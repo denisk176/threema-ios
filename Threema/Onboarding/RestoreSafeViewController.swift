@@ -293,7 +293,7 @@ extension RestoreSafeViewController {
                 password: enteredPassword,
                 server: OnboardingRestoreSafeInformation.Server(
                     user: restoreServerUsername,
-                    password: restoreSafePassword,
+                    password: restoreServerPassword,
                     url: restoreServer
                 ),
                 customServer: OnboardingRestoreSafeInformation.Server(
