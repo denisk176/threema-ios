@@ -355,10 +355,13 @@ private func runInZSH(command: String, in directory: URL, verbose: Bool) throws 
         "-c", command,
     ]
     process.currentDirectoryURL = directory
-    process.environment = [
-        "PATH": "$HOME/.cargo/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin",
-    ]
-    
+    // Inherit the parent environment (mise needs HOME to locate its data dir and toolchains),
+    // and prepend the dirs we rely on so cargo/mise are found even from a sparse Xcode PATH.
+    var environment = ProcessInfo.processInfo.environment
+    let extraPaths = "\(NSHomeDirectory())/.cargo/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin"
+    environment["PATH"] = environment["PATH"].map { "\(extraPaths):\($0)" } ?? extraPaths
+    process.environment = environment
+
     let outputPipe = Pipe()
     process.standardOutput = outputPipe
     try process.run()

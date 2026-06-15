@@ -24,6 +24,7 @@ final class SettingsViewController: UIViewController {
     private var betaFeedbackTip = TipKitManager.ThreemaBetaFeedbackTip()
     private var tipObservationTask: Task<Void, Never>?
     private weak var tipPopoverController: TipUIPopoverViewController?
+    private var isVisible = false
     
     // MARK: - Lifecycle
     
@@ -51,11 +52,13 @@ final class SettingsViewController: UIViewController {
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        isVisible = true
         showBetaFeedbackTip()
     }
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
+        isVisible = false
         removeTipObserver()
     }
     
@@ -86,14 +89,14 @@ final class SettingsViewController: UIViewController {
         
         tipObservationTask = tipObservationTask ?? Task { @MainActor in
             for await shouldDisplay in betaFeedbackTip.shouldDisplayUpdates {
-                if shouldDisplay {
+                if shouldDisplay, isVisible {
                     let popoverController = TipUIPopoverViewController(betaFeedbackTip, sourceItem: cell)
                     present(popoverController, animated: true)
                     tipPopoverController = popoverController
                 }
                 else {
                     if presentedViewController is TipUIPopoverViewController {
-                        dismiss(animated: true)
+                        tipPopoverController?.dismiss(animated: true)
                         tipPopoverController = nil
                     }
                 }
@@ -102,6 +105,7 @@ final class SettingsViewController: UIViewController {
     }
     
     private func removeTipObserver() {
+        tipPopoverController?.dismiss(animated: false)
         tipObservationTask?.cancel()
         tipObservationTask = nil
     }

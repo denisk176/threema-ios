@@ -71,8 +71,10 @@ final class WorkAvailabilityStatusViewModel {
             onDismiss?()
         }
         catch {
+            isLoading = false
             DDLogError("Failed to save work availability status: \(error)")
             NotificationPresenterWrapper.shared.present(type: .setWorkAvailabilityStatusFailed)
+            isLoading = false
         }
     }
 
@@ -82,7 +84,7 @@ final class WorkAvailabilityStatusViewModel {
         let trimmed = statusText.trimmingCharacters(in: .whitespacesAndNewlines)
         var text: String? = nil
         if selectedStatus != .none {
-            text = trimmed.isEmpty ? nil : statusText
+            text = trimmed.isEmpty ? nil : trimmed
         }
         
         let status = WorkAvailabilityStatus(category: selectedStatus, text: text)

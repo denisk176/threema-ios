@@ -121,7 +121,7 @@ final class NotificationResponse {
             else {
                 notificationManager.handleThreemaNotification(
                     payload: userInfo,
-                    receivedWhileRunning: AppDelegate.shared().active
+                    receivedWhileRunning: false
                 )
             }
         }
@@ -135,7 +135,7 @@ final class NotificationResponse {
             else {
                 notificationManager.handleThreemaNotification(
                     payload: userInfo,
-                    receivedWhileRunning: AppDelegate.shared().active
+                    receivedWhileRunning: false
                 )
                 finishResponse()
             }

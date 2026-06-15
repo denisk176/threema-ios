@@ -623,17 +623,20 @@ extension EntityManager {
                 DDLogWarn("Message \(e2eDeleteMessage.messageID.littleEndianData.hexString) to delete not found")
                 throw ThreemaProtocolError.messageToDeleteNotFound
             }
-
-            if abstractMessage.fromIdentity != myIdentity {
-                // If sender nil, then its a reflected outgoing message
-                if let sender = message.sender ?? conversation.contact {
-                    guard sender.identity == abstractMessage.fromIdentity else {
-                        DDLogWarn("Message \(message.id.hexString) can't be deleted because of sender mismatch")
-                        throw ThreemaProtocolError.messageSenderMismatch
-                    }
-                }
+            
+            let originalSenderIdentity = try self.resolveOriginalSenderIdentity(
+                for: message,
+                conversation: conversation,
+                myIdentity: myIdentity
+            )
+            
+            // 2. If referred-message is not defined or the sender is not the original sender of referred-message,
+            // discard the message and abort these steps.
+            if originalSenderIdentity != abstractMessage.fromIdentity {
+                DDLogWarn("Message \(message.id.hexString) can't be deleted because of sender mismatch")
+                throw ThreemaProtocolError.messageSenderMismatch
             }
-
+            
             message.deletedAt = abstractMessage.date
             message.lastEditedAt = nil
 
@@ -644,6 +647,30 @@ extension EntityManager {
 
             return message
         }
+    }
+    
+    private func resolveOriginalSenderIdentity(
+        for message: BaseMessageEntity,
+        conversation: ConversationEntity,
+        myIdentity: String?
+    ) throws -> String? {
+        let originalSenderIdentity: String?
+        if message.isOwnMessage {
+            originalSenderIdentity = myIdentity
+        }
+        else if let identity = message.sender?.identity {
+            originalSenderIdentity = identity
+        }
+        else if message.isGroupMessage {
+            DDLogWarn(
+                "Message \(message.id.hexString) can't be edited/deleted because it's a group without sender identity"
+            )
+            throw ThreemaProtocolError.messageSenderMismatch
+        }
+        else {
+            originalSenderIdentity = conversation.contact?.identity
+        }
+        return originalSenderIdentity
     }
 
     @available(swift, obsoleted: 1.0, message: "Only use from Objective-C")
@@ -688,15 +715,18 @@ extension EntityManager {
                 DDLogWarn("Message \(e2eEditMessage.messageID.littleEndianData.hexString) to edit not found")
                 throw ThreemaProtocolError.messageToEditNotFound
             }
-
-            if abstractMessage.fromIdentity != myIdentity {
-                // If sender nil, then its a reflected outgoing message
-                if let sender = message.sender ?? conversation.contact {
-                    guard sender.identity == abstractMessage.fromIdentity else {
-                        DDLogWarn("Message \(message.id.hexString) can't be edited because of sender mismatch")
-                        throw ThreemaProtocolError.messageSenderMismatch
-                    }
-                }
+                      
+            let originalSenderIdentity = try self.resolveOriginalSenderIdentity(
+                for: message,
+                conversation: conversation,
+                myIdentity: myIdentity
+            )
+            
+            // 2. If referred-message is not defined or the sender is not the original sender of referred-message,
+            // discard the message and abort these steps.
+            if originalSenderIdentity != abstractMessage.fromIdentity {
+                DDLogWarn("Message \(message.id.hexString) can't be edited because of sender mismatch")
+                throw ThreemaProtocolError.messageSenderMismatch
             }
 
             let history = self.entityCreator.messageHistoryEntryEntity(for: message)

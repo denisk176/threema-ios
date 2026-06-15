@@ -30,8 +30,19 @@ final class ThreemaSplitViewNavigationManager: NSObject {
         tabBarController.delegate = self
     }
     
+    /// Programmatic tab switches (setting `selectedIndex`) don't trigger
+    /// `UITabBarControllerDelegate`. Call these before/after changing
+    /// `selectedIndex` to perform the same store/restore cycle the delegate would.
+    func storeCurrentTabStack() {
+        storeCurrentViewControllerStack()
+    }
+
+    func restoreTabStack(for tab: ThreemaTab) {
+        restoreViewControllerStack(for: tab)
+    }
+
     // MARK: - Private methods
-    
+
     private func storeViewControllerStack(for tab: ThreemaTab) {
         let viewControllersToStore = currentNavigationStack(for: tab)
         thetaStack.store(stack: viewControllersToStore, for: tab)

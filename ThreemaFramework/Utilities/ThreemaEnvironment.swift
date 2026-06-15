@@ -105,19 +105,6 @@ public final class ThreemaEnvironment: NSObject {
         #endif
     }
     
-    // MARK: Work availability status
-
-    @objc public static var workAvailabilityStatusEnabled: Bool {
-        if ProcessInfoHelper.isRunningForScreenshots {
-            return false
-        }
-        #if DEBUG
-            return TargetManager.isWork
-        #else
-            return TargetManager.current == .blue
-        #endif
-    }
-    
     // MARK: Delete & edit messages
     
     @objc public static var deleteEditMessage: Bool {

@@ -70,7 +70,7 @@ final class ProfileCollectionViewDataSource: UICollectionViewDiffableDataSource<
         snapshot.appendItems(Section.header.rows)
 
         // WorkAvailabilityStatus
-        if TargetManager.isWork, ThreemaEnvironment.workAvailabilityStatusEnabled {
+        if TargetManager.isWork {
             snapshot.appendSections([.workAvailabilityStatus])
             snapshot.appendItems(Section.workAvailabilityStatus.rows)
         }
@@ -174,7 +174,7 @@ final class ProfileCollectionViewDataSource: UICollectionViewDiffableDataSource<
     }
     
     @objc private func reconfigureWorkAvailabilityStatus() {
-        guard TargetManager.isWork, ThreemaEnvironment.workAvailabilityStatusEnabled else {
+        guard TargetManager.isWork else {
             return
         }
         

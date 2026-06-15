@@ -143,13 +143,15 @@ class ContactListBaseViewController: ThemedTableViewController {
             
         } onError: { error in
             if let nsError = error as? NSError, nsError.code == 429, TargetManager.isBusinessApp {
+                let message = String.localizedStringWithFormat(
+                    #localize("pull_to_sync_429_message_work"),
+                    TargetManager.appName
+                )
                 UIAlertTemplate
                     .showAlert(
                         owner: self,
                         title: nil,
-                        message: TargetManager
-                            .isBusinessApp ? #localize("pull_to_sync_429_message_work") :
-                            #localize("pull_to_sync_429_message")
+                        message: message
                     )
                 self.endPullToRefresh()
             }
@@ -183,11 +185,15 @@ class ContactListBaseViewController: ThemedTableViewController {
                 }
                 
                 if let nsError = error as? NSError, nsError.code == 401 || nsError.code == 409 {
+                    let message = String.localizedStringWithFormat(
+                        #localize("pull_to_sync_429_message_work"),
+                        TargetManager.appName
+                    )
                     UIAlertTemplate
                         .showAlert(
                             owner: self,
                             title: nil,
-                            message: #localize("pull_to_sync_429_message_work")
+                            message: message
                         ) { _ in
                             NotificationPresenterWrapper.shared.present(type: .updateWorkDataFailed)
                         }

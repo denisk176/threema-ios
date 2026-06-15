@@ -276,6 +276,11 @@ final class VoiceMessageRecorderViewModel: NSObject, ObservableObject {
             currentRecorder = recorder
         }
         
+        // Disable proximity monitoring for voice-over during the recording process
+        if UIAccessibility.isVoiceOverRunning {
+            UIDevice.current.isProximityMonitoringEnabled = false
+        }
+        
         try audioSessionManager.setupForRecording()
         recordingState = .recording
         recorder.record()
@@ -301,7 +306,20 @@ final class VoiceMessageRecorderViewModel: NSObject, ObservableObject {
             return
         }
         recorder.pause()
-
+        
+        // Enable proximity monitoring for voice over so that you can navigate or play the recording through the speaker
+        // or earpiece
+        if UIAccessibility.isVoiceOverRunning {
+            UIDevice.current.isProximityMonitoringEnabled = true
+            
+            do {
+                try audioSessionManager.setupForPlayback()
+            }
+            catch {
+                DDLogError("[Voice Recorder] Can't setup audio session for playback.")
+            }
+        }
+        
         recordedDuration = await totalRecordingDuration
         stopRecordTimer()
         recordingState = .paused

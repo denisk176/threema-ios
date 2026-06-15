@@ -35,7 +35,7 @@ final class ConversationListViewController: ThemedTableViewController {
     }()
     
     private lazy var workStatusBanner: ConversationListWorkStatusBannerView? = {
-        guard TargetManager.isWork, ThreemaEnvironment.workAvailabilityStatusEnabled else {
+        guard TargetManager.isWork else {
             return nil
         }
         
@@ -399,7 +399,7 @@ extension ConversationListViewController {
     }
     
     private func changeOwnWorkAvailabilityStatus() {
-        guard TargetManager.isWork, ThreemaEnvironment.workAvailabilityStatusEnabled else {
+        guard TargetManager.isWork else {
             return
         }
         

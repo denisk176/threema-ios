@@ -14,6 +14,7 @@ final class ProfileViewController: UIViewController {
     private var workAvailabilityStatusTip = TipKitManager.ThreemaWorkAvailabilityStatusChatTip(forChat: false)
     private var tipObservationTask: Task<Void, Never>?
     private weak var tipPopoverController: TipUIPopoverViewController?
+    private var isVisible = false
     
     // MARK: - Lifecycle
     
@@ -45,6 +46,7 @@ final class ProfileViewController: UIViewController {
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        isVisible = true
         dataSource.checkRevocationPassword()
         dataSource.checkEmailVerification()
         showWorkAvailabilityStatusTip()
@@ -52,6 +54,7 @@ final class ProfileViewController: UIViewController {
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
+        isVisible = false
         removeTipObserver()
     }
     
@@ -80,7 +83,7 @@ final class ProfileViewController: UIViewController {
             return
         }
         
-        guard ThreemaEnvironment.workAvailabilityStatusEnabled else {
+        guard TargetManager.isWork else {
             return
         }
         
@@ -90,14 +93,14 @@ final class ProfileViewController: UIViewController {
         
         tipObservationTask = tipObservationTask ?? Task { @MainActor in
             for await shouldDisplay in workAvailabilityStatusTip.shouldDisplayUpdates {
-                if shouldDisplay {
+                if shouldDisplay, isVisible {
                     let popoverController = TipUIPopoverViewController(workAvailabilityStatusTip, sourceItem: cell)
                     present(popoverController, animated: true)
                     tipPopoverController = popoverController
                 }
                 else {
                     if presentedViewController is TipUIPopoverViewController {
-                        dismiss(animated: true)
+                        tipPopoverController?.dismiss(animated: true)
                         tipPopoverController = nil
                     }
                 }
@@ -106,6 +109,7 @@ final class ProfileViewController: UIViewController {
     }
     
     private func removeTipObserver() {
+        tipPopoverController?.dismiss(animated: false)
         tipObservationTask?.cancel()
         tipObservationTask = nil
     }

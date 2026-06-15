@@ -107,10 +107,7 @@ struct WorkAvailabilityStatusView: View {
         }
         .navigationTitle(model.navigationTitle)
         .loadingOverlay(model.isLoading)
-        .applyIf(model.statusChanged) { view in
-            view
-                .interactiveDismissDisabled()
-        }
+        .interactiveDismissDisabled(model.statusChanged)
         .task {
             model.loadCurrentStatus()
         }

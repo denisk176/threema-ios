@@ -1,3 +1,4 @@
+import CocoaLumberjackSwift
 import Coordinator
 import Foundation
 import ThreemaMacros
@@ -23,7 +24,7 @@ final class ConversationListCoordinator: Coordinator, CurrentDestinationHolderPr
                 
                 // If we have force compose in the new destination we push again even if we already show the chat, so we
                 // can update the text in chat bar.
-                if let rhsInfo, rhsInfo.forceCompose {
+                if let rhsInfo, rhsInfo.forceReopenChat {
                     return false
                 }
                 return lhsConversation == rhsConversation
@@ -127,22 +128,22 @@ final class ConversationListCoordinator: Coordinator, CurrentDestinationHolderPr
         guard currentDestination != destination else {
             return
         }
-        
+
         resetSelection()
         currentDestination = destination
-    
+
         let viewController = viewControllerForDestination(destination)
-        
+
         switch viewController {
         case let chatViewController as ChatViewController:
             showChatViewController(chatViewController, animated: true)
-            
+
         case let archivedListViewController as ArchivedConversationListViewController:
             rootNavigationController.pushViewController(
                 archivedListViewController,
                 animated: true
             )
-            
+
         default:
             return
         }
@@ -179,24 +180,24 @@ final class ConversationListCoordinator: Coordinator, CurrentDestinationHolderPr
                 for: .conversations
             )
         }
-        
+
         /// Chat is already displayed
         guard navigationController()?.topViewController != chatViewController else {
             return
         }
-        
+
         /// In the view hierarchy, there is already a view for the chat, pop stack view controller to it
         guard navigationController()?.viewControllers.contains(chatViewController) == false else {
             guard navigationController()?.topViewController?.presentedViewController == nil else {
                 return
             }
-            
+
             navigationController()?.popToViewController(chatViewController, animated: animated)
             return
         }
-        
+
         handlePresentation(of: chatViewController)
-        
+
         handleConversationSelection(for: chatViewController)
     }
     
@@ -245,15 +246,15 @@ final class ConversationListCoordinator: Coordinator, CurrentDestinationHolderPr
     private func present(_ chatViewController: ChatViewController) {
         let navigationController = rootNavigationController
         let isCollapsed = presentingViewController?.isCollapsed
-        
+
         if isCollapsed == true {
             let archivedListViewController =
                 rootNavigationController.viewControllers.first {
                     $0 is ArchivedConversationListViewController
                 }
-            
+
             var viewControllers: [UIViewController] = [chatViewController]
-            
+
             if case .archivedConversation = currentDestination {
                 if let archivedListViewController {
                     viewControllers.insert(archivedListViewController, at: 0)
@@ -263,17 +264,17 @@ final class ConversationListCoordinator: Coordinator, CurrentDestinationHolderPr
                     viewControllers.insert(viewController, at: 0)
                 }
             }
-            
+
             viewControllers.insert(conversationListViewController, at: 0)
-            
-            navigationController.setViewControllers(viewControllers, animated: true)
+
+            setViewControllersWhenReady(viewControllers, on: navigationController)
         }
         else {
             handleRootNavigationController()
-            
+
             /// In case the passcode is presented from a private chat
             passcodeRouter.rootViewController().dismiss(animated: false)
-            
+
             presentingViewController?.show(chatViewController, sender: self)
         }
     }
@@ -308,6 +309,25 @@ final class ConversationListCoordinator: Coordinator, CurrentDestinationHolderPr
         }
     }
     
+    /// Sets view controllers on the navigation controller, deferring if there is an active
+    /// transition. On cold start, the navigation controller may have multiple transitions
+    /// (split view collapse, initial appearance) that cause `setViewControllers` to be
+    /// silently ignored by UIKit.
+    private func setViewControllersWhenReady(
+        _ viewControllers: [UIViewController],
+        on navigationController: UINavigationController
+    ) {
+        if navigationController.transitionCoordinator != nil {
+            DDLogVerbose("[Navigation] Deferring setViewControllers — transition active")
+            navigationController.transitionCoordinator?.animate(alongsideTransition: nil) { [weak self] _ in
+                self?.setViewControllersWhenReady(viewControllers, on: navigationController)
+            }
+        }
+        else {
+            navigationController.setViewControllers(viewControllers, animated: true)
+        }
+    }
+
     private func presentChatViewControllerAfterPasscode(_ chatViewController: ChatViewController) {
         passcodeRouter.requireAuthenticationIfNeeded(
             style: .currentContext,

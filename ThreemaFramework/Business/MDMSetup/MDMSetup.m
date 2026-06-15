@@ -75,6 +75,10 @@ NSString * const MDM_KEY_THREEMA_PARAMS = @"params";
 static NSDictionary *_mdmCache;
 static NSDictionary *_mdmCacheSetup;
 
+@interface MDMSetup ()
+@property (nonatomic, strong) NSSet *personalInfoKeys;
+@end
+
 @implementation MDMSetup {
     /// Check if app can handle MDM
     BOOL isBusinessApp;
@@ -108,6 +112,8 @@ static NSDictionary *_mdmCacheSetup;
         }
 
         queue = dispatch_queue_create("ch.threema.MdmConfiguration", NULL);
+
+        _personalInfoKeys = [MDMSetup defaultPersonalInfoKeys];
     }
     return self;
 }
@@ -126,6 +132,8 @@ static NSDictionary *_mdmCacheSetup;
         isOnPrem = onPrem;
 
         queue = dispatch_queue_create("ch.threema.MdmConfiguration", NULL);
+
+        _personalInfoKeys = [MDMSetup defaultPersonalInfoKeys];
     }
     return self;
 }
@@ -914,20 +922,28 @@ static NSDictionary *_mdmCacheSetup;
     }
 }
 
++ (NSSet *)defaultPersonalInfoKeys {
+    return [NSSet setWithArray:@[
+        MDM_KEY_LICENSE_USERNAME,
+        MDM_KEY_FIRST_NAME,
+        MDM_KEY_LAST_NAME,
+        MDM_KEY_CSI,
+        MDM_KEY_CATEGORY,
+        MDM_KEY_JOB_TITLE,
+        MDM_KEY_DEPARTMENT,
+        MDM_KEY_NICKNAME,
+    ]];
+}
+
+- (BOOL)isPersonalInfoKey:(NSString *)key {
+    return [self.personalInfoKeys containsObject:key];
+}
+
 - (void)checkIsPersonalInfoAndLog:(NSString *)key value:(NSString *)value {
     if ([key containsString:@"pass"] && ![key isEqualToString:MDM_KEY_SAFE_PASSWORD_PATTERN] && ![key isEqualToString:MDM_KEY_SAFE_PASSWORD_MESSAGE] && value != nil) {
         DDLogNotice(@"[MDMSetup] %@: ***", key);
     }
-    if (value != nil && [value isKindOfClass:[NSString class]] &&
-        ([key isEqualToString:MDM_KEY_LICENSE_USERNAME] ||
-         [key isEqualToString:MDM_KEY_FIRST_NAME] ||
-         [key isEqualToString:MDM_KEY_LAST_NAME] ||
-         [key isEqualToString:MDM_KEY_CSI] ||
-         [key isEqualToString:MDM_KEY_CATEGORY] ||
-         [key isEqualToString:MDM_KEY_JOB_TITLE] ||
-         [key isEqualToString:MDM_KEY_DEPARTMENT]) ||
-        [key isEqualToString:MDM_KEY_NICKNAME]
-        ) {
+    else if (value != nil && [value isKindOfClass:[NSString class]] && [self isPersonalInfoKey:key]) {
             if ([value length] == 0) {
                 DDLogNotice(@"[MDMSetup] %@: [empty]", key);
             }

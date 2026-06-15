@@ -571,18 +571,24 @@ struct pktExtension {
     }
 
     if ([[UserSettings sharedUserSettings] ipcCommunicationEnabled] == NO && [AppGroup amIActive] == NO) {
-        if ([AppGroup getCurrentType] != AppGroupTypeNotificationExtension) {
-            DDLogNotice(@"Not active -> don't connect now, retry later");
-            // keep delay at constant rate to avoid too long waits when becoming active again
-            reconnectAttempts = 1;
-            autoReconnect = YES;
-            [self reconnectAfterDelay];
+        if ([AppGroup areOthersActive] == NO) {
+            DDLogNotice(@"Not active -> there are no other processes active, set me as active");
+            [AppGroup setMeActive];
         }
         else {
-            DDLogNotice(@"Not active -> disconnect now");
-            [self _disconnect];
+            if ([AppGroup getCurrentType] != AppGroupTypeNotificationExtension) {
+                DDLogNotice(@"Not active -> don't connect now, retry later");
+                // keep delay at constant rate to avoid too long waits when becoming active again
+                reconnectAttempts = 1;
+                autoReconnect = YES;
+                [self reconnectAfterDelay];
+            }
+            else {
+                DDLogNotice(@"Not active -> disconnect now");
+                [self _disconnect];
+            }
+            return;
         }
-        return;
     }
 
     LicenseStore *licenseStore = [LicenseStore sharedLicenseStore];

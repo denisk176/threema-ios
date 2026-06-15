@@ -269,7 +269,6 @@ final class DetailsHeaderProfileView: UIStackView {
     private var isAvailabilityStatusVisible: Bool {
         guard
             TargetManager.isWork,
-            ThreemaEnvironment.workAvailabilityStatusEnabled,
             let availability = contentConfiguration.availabilityStatus,
             availability.category != .none
         else {
@@ -397,7 +396,7 @@ final class DetailsHeaderProfileView: UIStackView {
             return
         }
         
-        guard ThreemaEnvironment.workAvailabilityStatusEnabled else {
+        guard TargetManager.isWork else {
             return
         }
         

@@ -53,8 +53,10 @@ final class ThreemaSplitViewController: UISplitViewController {
         guard threemaTabBarController.selectedIndex != item.rawValue else {
             return
         }
-        
+
+        navigationManager.storeCurrentTabStack()
         threemaTabBarController.selectedIndex = item.rawValue
+        navigationManager.restoreTabStack(for: item)
     }
     
     func navigationController(

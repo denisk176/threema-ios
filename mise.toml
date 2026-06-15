@@ -1,9 +1,12 @@
 #-- Tools --#
 
 [tools."github:nicklockwood/SwiftFormat"]
-version = "0.61.0"
+version = "0.61.1"
 rename_exe = "swiftformat"
 no_app = true  # Skip SwiftFormat.for.Xcode.app.zip, use swiftformat.zip instead
+
+[tools]
+rust = "1.94"
 
 #-- Settings --#
 [settings]
@@ -42,27 +45,21 @@ run = "echo 'All dependencies cleaned.'"
 
 [tasks.libthreema-hash]
 description = "Write libthreema submodule hash to .libthreema-version"
-run = "echo $(git submodule status libthreema) | cut -d ' ' -f1 > .libthreema-version"
+run = "if [ -d libthreema/.git ]; then echo $(git submodule status libthreema) | cut -d ' ' -f1 > .libthreema-version; fi"
 
 [tasks.saltyrtc-hash]
 description = "Write SaltyRTC submodule hash to .saltyrtc-version"
-run = "echo $(git submodule status saltyrtc-task-relayed-data-rs) | cut -d ' ' -f1 > .saltyrtc-version"
+run = "if [ -d saltyrtc-task-relayed-data-rs/.git ]; then echo $(git submodule status saltyrtc-task-relayed-data-rs) | cut -d ' ' -f1 > .saltyrtc-version; fi"
 
 #- Setup -#
 
 [tasks.setup]
-description = "Install protobuf and upgrade rustup via brew"
-run = [
-    "brew install --quiet protobuf",
-    "brew upgrade --quiet rustup",
-]
+description = "Setup the project"
+run = "./scripts/setup.sh"
 
-[tasks.setup-rust]
-description = "Install and initialize rustup"
-run = [
-    "brew install --quiet rustup",
-    "rustup-init",
-]
+[tasks.set-githooks]
+description = "Install protobuf and upgrade rustup via brew"
+run = "git config core.hooksPath .githooks"
 
 #- Dependencies -#
 
@@ -85,8 +82,9 @@ run = "git submodule update --init --recursive || true"
 #- Format -#
 
 [tasks.format]
-description = "Run SwiftFormat on project"
-run = "mise exec -- swiftformat . --config .swiftformat --swift-version $(cat .swift-version)"
+description = "Run SwiftFormat on project (pass --lint for check-only mode)"
+usage = 'flag "--lint" help="Check formatting without modifying files"'
+run = 'mise exec -- swiftformat . --config .swiftformat --swift-version $(cat .swift-version) ${usage_lint:+--lint}'
 
 #-- WebRTC --#
 
@@ -116,30 +114,44 @@ run = "echo 'libthreema ready.'"
 #   (https://github.com/mozilla/uniffi-rs/issues/2276)
 [tasks.libthreema]
 description = "Build libthreema xcframework and generate Swift bindings"
+depends = ["update-submodules"]
 run = """
+# Sync Rust version
+VERSION=$(awk -F'"' '/channel/ {print $2}' libthreema/rust-toolchain.toml)
+CURRENT=$(awk -F'"' '/^rust =/ {print $2}' mise.toml)
+if [ "$VERSION" != "$CURRENT" ]; then
+    sed -i'' -e 's/^rust = ".*"/rust = "'"$VERSION"'"/' mise.toml
+    mise trust $PWD/mise.toml
+    mise install rust
+    mise use rust@$VERSION
+    echo "Rust version updated to $VERSION"
+else
+    mise use rust@$VERSION
+    echo "Rust version matches $VERSION"
+fi
+
 xcrun --sdk macosx ./scripts/BuildRustLibrary/Sources/BuildRustLibraryScript/main.swift \
     libthreema \
     --library-path {{vars.libthreema_path}} \
     --framework-out-file-path {{vars.libthreema_xcframework_file}} \
     --swift-out-file-path {{vars.libthreema_generated_swift_file}} \
     --targets {{vars.rust_targets}}
+
 mise run libthreema-hash
 """
 
 [tasks.libthreema-rust]
 description = """
-Install correct Rust toolchain and targets for libthreema.
-This picks up the `libthreema/rust-toolchain.toml` file to install the correct toolchain version
+Install Rust targets for libthreema.
+The toolchain version is managed by mise (see [tools] above), sourced from libthreema/rust-toolchain.toml.
 """
-run = [
-    "cd {{vars.libthreema_path}} && rustup toolchain install",
-    "cd {{vars.libthreema_path}} && rustup target add {{vars.rust_targets}}",
-]
+depends = ["update-submodules"]
+run = "cd {{vars.libthreema_path}} && mise exec -- rustup target add {{vars.rust_targets}}"
 
 [tasks.libthreema-clean]
 description = "Clean libthreema build artifacts"
 run = [
-    "cd {{vars.libthreema_path}} && cargo clean",
+    "cd {{vars.libthreema_path}} && mise exec -- cargo clean",
     "rm -rf {{vars.libthreema_path}}/build",
     "rm -rf {{vars.libthreema_xcframework_file}}",
     "rm -f {{vars.libthreema_generated_swift_file}}",
@@ -149,11 +161,12 @@ run = [
 
 [tasks.saltyrtc]
 description = "Build SaltyRTC FFI"
+depends = ["update-submodules"]
 run = """
-/bin/bash scripts/build-rust.sh {{vars.saltyrtc_path}} {{vars.saltyrtc_ffi_target}}
+./scripts/build-rust.sh {{vars.saltyrtc_path}} {{vars.saltyrtc_ffi_target}}
 mise run saltyrtc-hash
 """
 
 [tasks.saltyrtc-clean]
 description = "Clean SaltyRTC build"
-run = "cd {{vars.saltyrtc_path}} && cargo clean"
+run = "cd {{vars.saltyrtc_path}} && mise exec -- cargo clean"

@@ -132,9 +132,12 @@ final class ProfileCoordinator: NSObject, Coordinator, CurrentDestinationHolderP
                     let attachment = NSTextAttachment()
                     let font = UIFont.preferredFont(forTextStyle: .body)
 
-                    attachment.image = UIImage(systemName: "circle.fill")!
-                        .withTintColor(category.color)
-                    attachment.bounds = CGRect(x: 0, y: 0, width: font.capHeight, height: font.capHeight)
+                    let size = CGSize(width: font.capHeight, height: font.capHeight)
+                    attachment.image = UIGraphicsImageRenderer(size: size).image { _ in
+                        category.color.setFill()
+                        UIBezierPath(ovalIn: CGRect(origin: .zero, size: size)).fill()
+                    }
+                    attachment.bounds = CGRect(origin: .zero, size: size)
 
                     let attributedText = NSMutableAttributedString(attachment: attachment)
                     attributedText.append(NSAttributedString(string: " \(category.localizedDescription)"))

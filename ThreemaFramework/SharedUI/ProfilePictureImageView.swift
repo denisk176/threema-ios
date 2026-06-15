@@ -238,7 +238,7 @@ public final class ProfilePictureImageView: UIView {
     }
     
     private func updateWorkAvailabilityIcon() {
-        guard let info, iconConfiguration != .hidden, ThreemaEnvironment.workAvailabilityStatusEnabled else {
+        guard let info, iconConfiguration != .hidden, TargetManager.isWork else {
             hideWorkAvailabilityIcon()
             return
         }

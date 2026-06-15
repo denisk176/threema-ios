@@ -125,18 +125,18 @@ final class AppCoordinatorNotificationHandler {
         let information = ShowConversationInformation.createInfo(
             for: notification as NSNotification
         )
-            
+
         guard let conversation = information?.conversation else {
             return
         }
-        
+
         coordinator.switchTabIfNeeded(to: .conversations)
-            
+
         let destination: ConversationListCoordinator.InternalDestination =
             conversation.conversationVisibility == .archived
                 ? .archivedConversation(conversation, information: information)
                 : .conversation(conversation, information: information)
-            
+
         conversationListCoordinator.show(destination)
     }
     

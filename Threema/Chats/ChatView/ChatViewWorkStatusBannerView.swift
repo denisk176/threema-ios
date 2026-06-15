@@ -214,16 +214,16 @@ final class ChatViewWorkStatusBannerView: UIView {
         guard !ProcessInfoHelper.isRunningForScreenshots else {
             return
         }
-        
-        guard !isHidden else {
+
+        guard TargetManager.isWork else {
             return
         }
-
+        
         guard !UIAccessibility.isVoiceOverRunning else {
             return
         }
         
-        guard ThreemaEnvironment.workAvailabilityStatusEnabled else {
+        guard !isHidden else {
             return
         }
         

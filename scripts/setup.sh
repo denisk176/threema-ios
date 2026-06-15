@@ -54,8 +54,6 @@ eval "$(mise activate bash)"
 echo "Installing mise tools..."
 mise install
 
-mise run setup-rust
-mise run setup
 mise run dependencies
 
 echo "Setup complete."

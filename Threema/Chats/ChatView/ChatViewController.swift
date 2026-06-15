@@ -269,7 +269,7 @@ final class ChatViewController: UIViewController {
     }()
     
     private lazy var workStatusBannerView: ChatViewWorkStatusBannerView? = {
-        guard ThreemaEnvironment.workAvailabilityStatusEnabled,
+        guard TargetManager.isWork,
               !conversation.isGroup,
               let contactEntity = conversation.contact else {
             return nil
@@ -477,6 +477,19 @@ final class ChatViewController: UIViewController {
     }
     
     private lazy var bottomComposeConstraint = view.keyboardLayoutGuide.topAnchor
+
+    /// Bottom constraint of the chat bar. Swapped between `safeAreaLayoutGuide.bottomAnchor` (keyboard hidden)
+    /// and `keyboardLayoutGuide.topAnchor` (keyboard visible). We can't pin to `keyboardLayoutGuide.topAnchor`
+    /// permanently because the guide reports a stale y-coordinate when the device orientation changes while
+    /// the app is backgrounded, leaving the chat bar floating above the bottom of the view on return.
+    private var chatBarBottomConstraint: NSLayoutConstraint!
+
+    /// True while a `viewWillTransition` (a screen rotation) is in flight. During this window we
+    /// avoid swapping `chatBarBottomConstraint`, because iOS fires `keyboardWillHide`+`keyboardWillShow`
+    /// in quick succession on rotation with the keyboard up, without this guard the chat bar would
+    /// briefly snap to the safe area bottom and back.
+    private var isInViewTransition = false
+
     private lazy var defaultScrollToBottomButtonConstraints: [NSLayoutConstraint] =
         if #available(iOS 26.0, *) {
             [
@@ -844,14 +857,14 @@ final class ChatViewController: UIViewController {
         
         NotificationCenter.default.addObserver(
             self,
-            selector: #selector(updateContentInsetsForce),
+            selector: #selector(keyboardWillChange(_:)),
             name: UIResponder.keyboardWillShowNotification,
             object: nil
         )
-        
+
         NotificationCenter.default.addObserver(
             self,
-            selector: #selector(updateContentInsetsForce),
+            selector: #selector(keyboardWillChange(_:)),
             name: UIResponder.keyboardWillHideNotification,
             object: nil
         )
@@ -965,7 +978,11 @@ final class ChatViewController: UIViewController {
         chatBarCoordinator.chatBarContainerView.translatesAutoresizingMaskIntoConstraints = false
         chatBarCoordinator.chatBarContainerView.keyboardLayoutGuide.followsUndockedKeyboard = false
         scrollToBottomButton.translatesAutoresizingMaskIntoConstraints = false
-        
+
+        chatBarBottomConstraint = chatBarCoordinator.chatBarContainerView.bottomAnchor.constraint(
+            equalTo: view.safeAreaLayoutGuide.bottomAnchor
+        )
+
         NSLayoutConstraint.activate([
             backgroundView.topAnchor.constraint(equalTo: view.topAnchor),
             backgroundView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
@@ -979,9 +996,7 @@ final class ChatViewController: UIViewController {
             
             chatBarCoordinator.chatBarContainerView.leadingAnchor.constraint(equalTo: tableView.leadingAnchor),
             chatBarCoordinator.chatBarContainerView.trailingAnchor.constraint(equalTo: tableView.trailingAnchor),
-            chatBarCoordinator.chatBarContainerView.bottomAnchor.constraint(
-                equalTo: view.keyboardLayoutGuide.topAnchor
-            ),
+            chatBarBottomConstraint,
             
             view.safeAreaLayoutGuide.topAnchor.constraint(equalTo: bannerContainerView.topAnchor, constant: -10),
             view.safeAreaLayoutGuide.leadingAnchor.constraint(
@@ -1115,6 +1130,11 @@ final class ChatViewController: UIViewController {
         cellHeightCache.clear()
         super.viewWillTransition(to: size, with: coordinator)
         wallpaperChanged()
+
+        isInViewTransition = true
+        coordinator.animate(alongsideTransition: nil) { [weak self] _ in
+            self?.isInViewTransition = false
+        }
     }
     
     // MARK: - Notifications
@@ -2928,6 +2948,39 @@ extension ChatViewController: UIScrollViewDelegate {
 
     @objc func updateContentInsetsForce() {
         updateContentInsets(force: true)
+    }
+
+    @objc private func keyboardWillChange(_ notification: Notification) {
+        // During a rotation the keyboardLayoutGuide is animated by UIKit and the chat bar follows
+        // smoothly via its current anchor. Skip the swap as commented in `isInViewTransition`.
+        if isInViewTransition {
+            updateContentInsetsForce()
+            return
+        }
+
+        let isHiding = notification.name == UIResponder.keyboardWillHideNotification
+        let newAnchor: NSLayoutYAxisAnchor = isHiding
+            ? view.safeAreaLayoutGuide.bottomAnchor
+            : view.keyboardLayoutGuide.topAnchor
+
+        chatBarBottomConstraint.isActive = false
+        chatBarBottomConstraint = chatBarCoordinator.chatBarContainerView.bottomAnchor.constraint(equalTo: newAnchor)
+        chatBarBottomConstraint.isActive = true
+
+        // Match the keyboard's own animation so the chat bar slides in sync with it
+        // instead of snapping when the constraint is swapped. The curve raw value lives
+        // in bits 0-3 of `UIView.AnimationCurve` but `UIView.AnimationOptions` expects it
+        // shifted into bits 16-19, hence the `<< 16`.
+        if let userInfo = notification.userInfo,
+           let duration = userInfo[UIResponder.keyboardAnimationDurationUserInfoKey] as? TimeInterval,
+           let curveRaw = userInfo[UIResponder.keyboardAnimationCurveUserInfoKey] as? UInt {
+            let options = UIView.AnimationOptions(rawValue: curveRaw << 16)
+            UIView.animate(withDuration: duration, delay: 0, options: options) {
+                self.view.layoutIfNeeded()
+            }
+        }
+
+        updateContentInsetsForce()
     }
     
     func updateContentInsets(force: Bool = false, retry: Bool = true) {

@@ -13,18 +13,22 @@ CARGO_DIR=$1
 # what to pass to cargo build -p, e.g. saltyrtc-task-relayed-data-ffi
 FFI_TARGET=$2
 
+# We need this specific version due to https://github.com/saltyrtc/saltyrtc-task-relayed-data-rs
+# using it.
 TOOLCHAIN_VERSION=1.63
 
 set -euvx
 
-# Install toochlain & targets
+# Install toolchain & targets.
+# The pinned toolchain is installed and selected through mise (`mise exec rust@<version>`),
+# overriding the mise-managed default rust version just for these commands.
 
-$HOME/.cargo/bin/rustup install $TOOLCHAIN_VERSION
-$HOME/.cargo/bin/rustup target add --toolchain $TOOLCHAIN_VERSION aarch64-apple-ios aarch64-apple-ios-sim
+mise install rust@$TOOLCHAIN_VERSION
+mise exec rust@$TOOLCHAIN_VERSION -- rustup target add aarch64-apple-ios aarch64-apple-ios-sim
 
 # Build
 
 cd "$CARGO_DIR"
 
-$HOME/.cargo/bin/cargo +$TOOLCHAIN_VERSION build --locked -p $FFI_TARGET --lib --release --target aarch64-apple-ios
-$HOME/.cargo/bin/cargo +$TOOLCHAIN_VERSION build --locked -p $FFI_TARGET --lib --release --target aarch64-apple-ios-sim
+mise exec rust@$TOOLCHAIN_VERSION -- cargo build --locked -p $FFI_TARGET --lib --release --target aarch64-apple-ios
+mise exec rust@$TOOLCHAIN_VERSION -- cargo build --locked -p $FFI_TARGET --lib --release --target aarch64-apple-ios-sim

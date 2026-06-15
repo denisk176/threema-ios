@@ -523,7 +523,9 @@ static const NSTimeInterval minimumSyncInterval = 30;   /* avoid multiple concur
  @param department: Department of the contact
  @param featureMask: Feature mask of contact (will only updated if not nil)
  @param acquaintanceLevel: Is `group` contact will be marked as hidden
+ @param workAvailabilityStatus: Optional `WorkAvailabilityStatus` of the contact
  @param entityManagerObject: Used `EntityManager`
+ @param contactSyncer: Used `MediatorSyncableContacts` to sync changes when MD is enabled
  @returns: Added/updated identity of contact or nil if public key of already existing contact differs to given public key
  */
 - (nullable NSString *)addWorkContactWithIdentity:(nonnull NSString *)identity
@@ -629,9 +631,7 @@ static const NSTimeInterval minimumSyncInterval = 30;   /* avoid multiple concur
         if ((featureMask || contact.featureMask) && ![featureMask isEqual:contact.featureMask]) {
             [contact setFeatureMaskTo: featureMask.intValue];
         }
-        
-        BOOL needsUpdateWorkAvailabilityStatus = NO;
-        
+                
         if(workAvailabilityStatus) {
             // Check if contact currently has status
             if (contact.workAvailabilityStatus) {
@@ -639,27 +639,20 @@ static const NSTimeInterval minimumSyncInterval = 30;   /* avoid multiple concur
                 if ([self workAvailabilityStatusChangedWithCurrent:contact.workAvailabilityStatus new:workAvailabilityStatus]) {
                     [em.entityDestroyer deleteWithWorkAvailabilityStatus:contact.workAvailabilityStatus];
                     [em.entityCreator workAvailabilityStatusEntityWithValue:workAvailabilityStatus.categoryRawValue text:workAvailabilityStatus.text contact:contact];
-                    
-                    needsUpdateWorkAvailabilityStatus = YES;
                 }
             }
             // Contact has no status, we create a new one
             else {
                 [em.entityCreator workAvailabilityStatusEntityWithValue:workAvailabilityStatus.categoryRawValue text:workAvailabilityStatus.text contact:contact];
-                
-                needsUpdateWorkAvailabilityStatus = YES;
             }
         }
         // We did not receive a status, if contact has one, we remove it
         else if (contact.workAvailabilityStatus) {
             [em.entityDestroyer deleteWithWorkAvailabilityStatus:contact.workAvailabilityStatus];
-            
-            needsUpdateWorkAvailabilityStatus = YES;
         }
         
-        if (needsUpdateWorkAvailabilityStatus) {
-            [mediatorSyncableContacts updateWorkAvailabilityStatusWithIdentity:contact.identity status:workAvailabilityStatus];
-        }
+        // We always sync the status, even if it did not change
+        [mediatorSyncableContacts updateWorkAvailabilityStatusWithIdentity:contact.identity status:workAvailabilityStatus];
         
         contactIdentity = contact.identity;
     }];

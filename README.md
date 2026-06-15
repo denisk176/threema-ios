@@ -105,16 +105,7 @@ Before starting, if you don't have [homebrew](https://brew.sh), check out their 
    ```
 
 3. Install the third-party tools needed to build our Rust dependencies
-
-   1. If you don't have Rust, install & set it up using [Rustup](https://rustup.rs)
-
-      ```sh
-      mise run setup-rust
-      ```
-
-      (You might want to add `$HOME/.cargo/bin` to your `PATH`.)
-
-   2. Install the other tools needed
+   1. Install the other tools needed
 
       ```sh
       mise run setup
