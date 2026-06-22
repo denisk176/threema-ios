@@ -400,6 +400,7 @@ final class AppCoordinator: NSObject, Coordinator {
     }
     
     @objc func reset() {
+        DDLogNotice("[AppCoordinator] Reset called")
         dismissModal { [weak self] in
             self?.tabBarController.viewControllers = []
             self?.splitViewController.viewControllers = []

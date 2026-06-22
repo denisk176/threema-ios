@@ -1,7 +1,7 @@
 import ThreemaMacros
 import UIKit
 
-/// Displays the own status in a colored box with a button to change it.
+/// Displays the own status in a colored box. The whole banner is tappable to change the status.
 final class ConversationListWorkStatusBannerView: UIView {
     
     // MARK: - Config
@@ -16,6 +16,9 @@ final class ConversationListWorkStatusBannerView: UIView {
         static let imageSize: CGFloat = 24
         
         static let stackViewSpacing: CGFloat = 12
+
+        static let editPillVerticalInset: CGFloat = 6
+        static let editPillHorizontalInset: CGFloat = 12
     }
     
     // MARK: - Properties
@@ -74,26 +77,61 @@ final class ConversationListWorkStatusBannerView: UIView {
         return label
     }()
     
-    private lazy var actionButton: UIButton = {
-        var buttonConfig = UIButton.Configuration.bordered()
-        buttonConfig.title = #localize("edit")
-        buttonConfig.buttonSize = .small
-        buttonConfig.baseBackgroundColor = .labelInverted
-        buttonConfig.baseForegroundColor = .label
-        
-        let button = UIButton(configuration: buttonConfig)
-        button.setContentHuggingPriority(.required, for: .horizontal)
-        button.setContentCompressionResistancePriority(.required, for: .horizontal)
-        button.accessibilityLabel = #localize("edit_work_availability")
-        
-        let action = UIAction { [weak self] _ in
-            self?.editButtonTapped()
-        }
-        button.addAction(action, for: .touchUpInside)
-        
-        return button
+    private lazy var editPillLabel: UILabel = {
+        let label = UILabel()
+        label.text = #localize("edit")
+        label.font = .preferredFont(forTextStyle: .subheadline)
+        label.adjustsFontForContentSizeCategory = true
+        label.textColor = .label
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+
+    /// Mimics the appearance of a small bordered button, but is not a control. The edit action is handled by a
+    /// tap gesture on the whole banner
+    private lazy var editPillView: UIView = {
+        let view = UIView()
+        view.backgroundColor = .labelInverted
+        view.layer.masksToBounds = true
+        view.setContentHuggingPriority(.required, for: .horizontal)
+        view.setContentCompressionResistancePriority(.required, for: .horizontal)
+        view.translatesAutoresizingMaskIntoConstraints = false
+
+        view.addSubview(editPillLabel)
+        NSLayoutConstraint.activate([
+            editPillLabel.topAnchor.constraint(equalTo: view.topAnchor, constant: Configuration.editPillVerticalInset),
+            editPillLabel.bottomAnchor.constraint(
+                equalTo: view.bottomAnchor,
+                constant: -Configuration.editPillVerticalInset
+            ),
+            editPillLabel.leadingAnchor.constraint(
+                equalTo: view.leadingAnchor,
+                constant: Configuration.editPillHorizontalInset
+            ),
+            editPillLabel.trailingAnchor.constraint(
+                equalTo: view.trailingAnchor,
+                constant: -Configuration.editPillHorizontalInset
+            ),
+        ])
+
+        return view
     }()
     
+    /// The whole banner is the tap target instead of a dedicated button (see `editPillView`).
+    ///
+    /// The recognizer is attached to the *window* (see `didMoveToWindow()`), not the banner: in the iPad split
+    /// view sidebar, the system's interactive column-resize separator overlaps the banner's trailing area and
+    /// wins the hit-test, so touches there are never delivered to the banner's own recognizers. A recognizer
+    /// on the window receives every touch in the window; the delegate filters it to touches inside the banner.
+    /// `cancelsTouchesInView = false` keeps the separator's drag-to-resize fully functional – a drag fails the
+    /// tap recognizer anyway, so only actual taps trigger the edit action.
+    private lazy var tapGestureRecognizer: UITapGestureRecognizer = {
+        let tapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(handleTap))
+        tapGestureRecognizer.cancelsTouchesInView = false
+        tapGestureRecognizer.delegate = self
+        return tapGestureRecognizer
+    }()
+
     // MARK: - Callbacks
     
     private let editButtonTapped: () -> Void
@@ -116,6 +154,14 @@ final class ConversationListWorkStatusBannerView: UIView {
     
     // MARK: - Lifecycle
     
+    override func didMoveToWindow() {
+        super.didMoveToWindow()
+
+        // (Re)attach the tap recognizer to the current window, detaching it from any previous one
+        tapGestureRecognizer.view?.removeGestureRecognizer(tapGestureRecognizer)
+        window?.addGestureRecognizer(tapGestureRecognizer)
+    }
+
     override func layoutSubviews() {
         super.layoutSubviews()
         
@@ -129,6 +175,16 @@ final class ConversationListWorkStatusBannerView: UIView {
             // Use fixed corner radius for older iOS versions
             roundedContainer.layer.cornerRadius = 12
         }
+
+        // Capsule shape for the (decorative) edit pill
+        editPillView.layer.cornerRadius = editPillView.bounds.height / 2
+    }
+
+    // MARK: - Accessibility
+
+    override func accessibilityActivate() -> Bool {
+        editButtonTapped()
+        return true
     }
     
     // MARK: - Setup
@@ -143,17 +199,29 @@ final class ConversationListWorkStatusBannerView: UIView {
 
         // Color
         roundedContainer.backgroundColor = status.category.bannerColor
+
+        // Accessibility: announce the current status on the banner-wide button
+        accessibilityLabel = textLabel.text
+    }
+
+    @objc private func handleTap() {
+        editButtonTapped()
     }
     
     private func setupView() {
         backgroundColor = nil
         
+        // Expose the banner as a single button to assistive technologies
+        isAccessibilityElement = true
+        accessibilityTraits = .button
+        accessibilityHint = #localize("edit_work_availability")
+
         // Add arranged subviews to stack
         if !traitCollection.preferredContentSizeCategory.isAccessibilityCategory {
             stackView.addArrangedSubview(imageView)
         }
         stackView.addArrangedSubview(textLabel)
-        stackView.addArrangedSubview(actionButton)
+        stackView.addArrangedSubview(editPillView)
         
         // Add rounded container to main view
         addSubview(roundedContainer)
@@ -193,5 +261,23 @@ final class ConversationListWorkStatusBannerView: UIView {
                 constant: -Configuration.roundedRectVerticalInset
             ),
         ])
+    }
+}
+
+// MARK: - UIGestureRecognizerDelegate
+
+extension ConversationListWorkStatusBannerView: UIGestureRecognizerDelegate {
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
+        // The recognizer lives on the window and would otherwise see every touch:
+        // only accept touches that land inside the banner
+        bounds.contains(touch.location(in: self))
+    }
+
+    func gestureRecognizer(
+        _ gestureRecognizer: UIGestureRecognizer,
+        shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer
+    ) -> Bool {
+        // Allow the banner tap to fire even while another recognizer (sidebar resize, table view) is tracking
+        true
     }
 }

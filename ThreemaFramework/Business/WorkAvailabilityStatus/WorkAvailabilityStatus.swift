@@ -136,7 +136,7 @@ import ThreemaProtocols
     
     // MARK: - Lifecycle
     
-    init(value: Int, text: String?) {
+    @objc init(value: Int, text: String?) {
         self.category = Category(rawValue: value) ?? .none
         self.text = text
     }

@@ -9,8 +9,8 @@
 The following tools were used to build the current release:
 | Tool   | Version               |
 | ------ | --------------------- |
-| `macOS`| Tahoe 26.4.1 (25E253) |
-| `Xcode`| 26.4.1 (17E202)       |
+| `macOS`| Tahoe 26.5.1 (25F80)  |
+| `Xcode`| 26.5 (17F42)          |
 
 ## Certificates
 The following suffixes are required for the certificates:

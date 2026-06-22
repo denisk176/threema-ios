@@ -40,6 +40,9 @@
 
 @synthesize internalDeviceID;
 
+@synthesize error;
+@synthesize errorMessage;
+
 + (nonnull instancetype)sharedLicenseStore {
     static LicenseStore *instance;
 
@@ -153,9 +156,9 @@
             [mdmSetup applyCompanyMDMWithCachedThreemaMDMSendForce:false];
             dispatch_semaphore_signal(_sema);
             onCompletion(success);
-        } onError:^(NSError *error) {
-            errorMessage = error.localizedDescription;
-            error = error;
+        } onError:^(NSError *validationError) {
+            errorMessage = validationError.localizedDescription;
+            error = validationError;
             
             if ([error.domain hasPrefix:@"NSURL"] == NO && error.code != 256) {
                 // Remove licenseLastCheck. If notification extension will be started, it will not process the messages
@@ -304,9 +307,5 @@
         internalDeviceID = nil;
     }
 }
-
-@synthesize error;
-
-@synthesize errorMessage;
 
 @end

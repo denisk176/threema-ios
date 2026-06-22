@@ -345,16 +345,10 @@ final class AppCoordinatorNotificationHandler {
             forName: UIApplication.didReceiveMemoryWarningNotification,
             object: nil,
             queue: .main,
-            using: { [weak self] _ in
-                Task { @MainActor in
-                    self?.handleMemoryWarningNotification()
-                }
+            using: { _ in
+                DDLogWarn("Received memory warning")
             }
         ))
-    }
-    
-    private func handleMemoryWarningNotification() {
-        coordinator.reset()
     }
     
     // MARK: Color Theme Changed Notification

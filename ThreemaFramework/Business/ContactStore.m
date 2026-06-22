@@ -651,9 +651,9 @@ static const NSTimeInterval minimumSyncInterval = 30;   /* avoid multiple concur
             [em.entityDestroyer deleteWithWorkAvailabilityStatus:contact.workAvailabilityStatus];
         }
         
-        // We always sync the status, even if it did not change
-        [mediatorSyncableContacts updateWorkAvailabilityStatusWithIdentity:contact.identity status:workAvailabilityStatus];
-        
+        // We always sync the status, even if is not set
+        [mediatorSyncableContacts updateWorkAvailabilityStatusWithIdentity:contact.identity status:workAvailabilityStatus != nil ? workAvailabilityStatus : [[WorkAvailabilityStatus alloc] initWithValue:0 text:nil]];
+
         contactIdentity = contact.identity;
     }];
 
