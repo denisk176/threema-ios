@@ -1,5 +1,4 @@
-// swift-tools-version: 6.1
-// The swift-tools-version declares the minimum version of Swift required to build this package.
+// swift-tools-version: 6.3
 
 import PackageDescription
 
@@ -32,10 +31,6 @@ let package = Package(
             swiftSettings: [
                 .unsafeFlags([
                     "-Xfrontend",
-                    "-warn-concurrency",
-                    "-Xfrontend",
-                    "-enable-actor-data-race-checks",
-                    "-Xfrontend",
                     "-warn-long-function-bodies=100",
                     "-Xfrontend",
                     "-warn-long-expression-type-checking=100",
@@ -47,6 +42,5 @@ let package = Package(
             name: "ThreemaEssentialsTests",
             dependencies: ["ThreemaEssentials"]
         ),
-    ],
-    swiftLanguageModes: [.v5],
+    ]
 )

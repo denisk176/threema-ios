@@ -38,7 +38,7 @@ open class MediaPreviewViewController: UIViewController, UIGestureRecognizerDele
     public var backIsCancel = false
     public var showKeyboard = false
     
-    var completion: (([Any], Bool, [String]) -> Void)?
+    var completion: (([Any], Bool, [String?]) -> Void)?
     public var optionsEnabled = true
     @objc public var disableAdd = false
     public var memoryConstrained = false
@@ -369,7 +369,7 @@ open class MediaPreviewViewController: UIViewController, UIGestureRecognizerDele
     
     public func initWithMedia(
         dataArray: [Any],
-        completion: (([Any], Bool, [String]) -> Void)?,
+        completion: (([Any], Bool, [String?]) -> Void)?,
         itemDelegate: MediaPreviewURLDataProcessor
     ) {
         self.completion = completion
@@ -475,11 +475,9 @@ open class MediaPreviewViewController: UIViewController, UIGestureRecognizerDele
         }
 
         navigationItem.rightBarButtonItem?.isEnabled = false
-        let label = #localize("processing_items_progress")
         let progressViewHandler = ProgressViewHandler(
             view: view,
-            totalWorkItems: mediaData.count,
-            label: label
+            totalWorkItems: mediaData.count
         )
         dismissKeyboard()
 
@@ -491,7 +489,7 @@ open class MediaPreviewViewController: UIViewController, UIGestureRecognizerDele
             self.itemDelegate?.sendAsFile = sendAsFile
             
             var returnVal: [Any] = []
-            var captions: [String] = []
+            var captions: [String?] = []
             for item in self.mediaData {
                 if let videoItem = item as? VideoPreviewItem {
                     progressViewHandler.observeVideoItem(videoItem)
@@ -501,7 +499,7 @@ open class MediaPreviewViewController: UIViewController, UIGestureRecognizerDele
                     continue
                 }
                 returnVal.append(i)
-                captions.append(item.caption ?? "")
+                captions.append(item.caption ?? nil)
                 
                 if item.isKind(of: VideoPreviewItem.self) {
                     progressViewHandler.finishVideo()

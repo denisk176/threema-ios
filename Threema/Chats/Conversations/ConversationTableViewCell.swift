@@ -25,8 +25,8 @@ extension ConversationTableViewCell {
         
         /// Preview text-style
         static let previewTextStyle: UIFont.TextStyle = .subheadline
-        /// DateDraft text-style
-        static let dateDraftTextStyle: UIFont.TextStyle = .footnote
+        /// Date text-style
+        static let dateTextStyle: UIFont.TextStyle = .footnote
         
         /// TitleDateLastMessageState stack view spacing
         static let nameDateLastMessageStateStackViewSpacing = 5.0
@@ -49,18 +49,18 @@ extension ConversationTableViewCell {
         
         /// DisplayState image configuration
         static let displayStateConfiguration = UIImage.SymbolConfiguration(
-            textStyle: Configuration.dateDraftTextStyle,
+            textStyle: Configuration.dateTextStyle,
             scale: .small
         )
         
         static let noteGroupConfiguration = UIImage.SymbolConfiguration(
-            textStyle: Configuration.dateDraftTextStyle,
+            textStyle: Configuration.dateTextStyle,
             scale: .medium
         )
         
         /// Lock image configuration
         static let lockImageConfiguration = UIImage.SymbolConfiguration(
-            textStyle: Configuration.dateDraftTextStyle,
+            textStyle: Configuration.dateTextStyle,
             scale: .medium
         )
         
@@ -99,7 +99,7 @@ final class ConversationTableViewCell: ThemedCodeTableViewCell {
     
     private let businessInjector = BusinessInjector.ui
     
-    private lazy var constantScaler = UIFontMetrics(forTextStyle: Configuration.dateDraftTextStyle)
+    private lazy var constantScaler = UIFontMetrics(forTextStyle: Configuration.dateTextStyle)
 
     /// Offset of date label from trailing end
     private lazy var dateLabelTrailingInset: CGFloat = {
@@ -160,9 +160,9 @@ final class ConversationTableViewCell: ThemedCodeTableViewCell {
         return label
     }()
     
-    private lazy var dateDraftLabel: UILabel = {
+    private lazy var dateLabel: UILabel = {
         let label = UILabel()
-        label.font = UIFont.preferredFont(forTextStyle: Configuration.dateDraftTextStyle)
+        label.font = UIFont.preferredFont(forTextStyle: Configuration.dateTextStyle)
         label.textColor = .secondaryLabel
         label.numberOfLines = 1
         label.textAlignment = .right
@@ -306,7 +306,7 @@ final class ConversationTableViewCell: ThemedCodeTableViewCell {
     
     private lazy var dateLastMessageStateContainerView: UIView = {
         let containerView = UIView(frame: .zero)
-        containerView.addSubview(dateDraftLabel)
+        containerView.addSubview(dateLabel)
         containerView.addSubview(displayStateImageView)
         containerView.translatesAutoresizingMaskIntoConstraints = false
         
@@ -430,10 +430,10 @@ final class ConversationTableViewCell: ThemedCodeTableViewCell {
         NSLayoutConstraint.activate([
             
             // DateLastMessageStateContainerView
-            dateDraftLabel.topAnchor.constraint(equalTo: dateLastMessageStateContainerView.topAnchor),
-            dateDraftLabel.leadingAnchor.constraint(equalTo: dateLastMessageStateContainerView.leadingAnchor),
-            dateDraftLabel.bottomAnchor.constraint(equalTo: dateLastMessageStateContainerView.bottomAnchor),
-            dateDraftLabel.trailingAnchor.constraint(
+            dateLabel.topAnchor.constraint(equalTo: dateLastMessageStateContainerView.topAnchor),
+            dateLabel.leadingAnchor.constraint(equalTo: dateLastMessageStateContainerView.leadingAnchor),
+            dateLabel.bottomAnchor.constraint(equalTo: dateLastMessageStateContainerView.bottomAnchor),
+            dateLabel.trailingAnchor.constraint(
                 equalTo: dateLastMessageStateContainerView.trailingAnchor,
                 constant: -dateLabelTrailingInset
             ),
@@ -498,7 +498,7 @@ final class ConversationTableViewCell: ThemedCodeTableViewCell {
         ])
         
         if UIApplication.shared.preferredContentSizeCategory.isAccessibilityCategory {
-            displayStateImageView.firstBaselineAnchor.constraint(equalTo: dateDraftLabel.firstBaselineAnchor)
+            displayStateImageView.firstBaselineAnchor.constraint(equalTo: dateLabel.firstBaselineAnchor)
                 .isActive = true
         }
         else {
@@ -525,7 +525,7 @@ final class ConversationTableViewCell: ThemedCodeTableViewCell {
 
         guard let conversation else {
             previewLabel.attributedText = nil
-            dateDraftLabel.text = nil
+            dateLabel.text = nil
             return
         }
 
@@ -533,11 +533,11 @@ final class ConversationTableViewCell: ThemedCodeTableViewCell {
         guard conversation.conversationCategory != .private else {
             previewLabel
                 .attributedText = NSAttributedString(string: #localize("private_chat_label"))
-            dateDraftLabel.text = nil
+            dateLabel.text = nil
             return
         }
         
-        updateDateDraftLabel()
+        updatePreviewAndDateLabels()
     }
     
     public func updateCellTitle() {
@@ -550,11 +550,6 @@ final class ConversationTableViewCell: ThemedCodeTableViewCell {
         super.updateColors()
         
         backgroundColor = .clear
-                
-        if let conversation {
-            let draft = MessageDraftStore.shared.loadDraft(for: conversation)
-            updateColorsForDateDraftLabel(isDraft: draft?.string != nil)
-        }
         
         badgeCountView.updateColors()
         
@@ -607,15 +602,6 @@ final class ConversationTableViewCell: ThemedCodeTableViewCell {
         Task { @MainActor in
             let leftSeparatorInset = profilePictureView.frame.size.width + Configuration.profilePictureMessageSpace
             separatorInset = UIEdgeInsets(top: 0, left: leftSeparatorInset, bottom: 0, right: 0)
-        }
-    }
-    
-    private func updateColorsForDateDraftLabel(isDraft: Bool) {
-        if isDraft {
-            dateDraftLabel.textColor = .systemRed
-        }
-        else {
-            dateDraftLabel.textColor = .secondaryLabel
         }
     }
     
@@ -714,7 +700,7 @@ final class ConversationTableViewCell: ThemedCodeTableViewCell {
     private func updateTitleLabel() {
         guard let conversation else {
             // This should not occur, but we assign an empty string to make the firstBaseline alignment of
-            // dateDraftLabel work anyways.
+            // dateLabel work anyways.
             nameLabel.attributedText = NSAttributedString(string: " ")
             return
         }
@@ -793,9 +779,9 @@ final class ConversationTableViewCell: ThemedCodeTableViewCell {
         }
     }
     
-    private func updateDateDraftLabel() {
+    private func updatePreviewAndDateLabels() {
         guard let conversation else {
-            dateDraftLabel.isHidden = true
+            dateLabel.isHidden = true
             return
         }
         
@@ -804,36 +790,65 @@ final class ConversationTableViewCell: ThemedCodeTableViewCell {
             textStyle: Configuration.previewTextStyle,
             tint: .secondaryLabel
         ) {
-            updateColorsForDateDraftLabel(isDraft: true)
-            dateDraftLabel.text = #localize("draft").uppercased()
-            previewLabel.attributedText = draft
+            updatePreviewAndDateLabels(with: draft, for: conversation)
         }
         else {
-            updateColorsForDateDraftLabel(isDraft: false)
-            
-            guard let lastMessage = conversation.lastMessage else {
-                previewLabel.attributedText = nil
-                dateDraftLabel.text = nil
-                return
-            }
-            
-            dateDraftLabel.text = DateFormatter.relativeTimeTodayAndMediumDateOtherwise(for: lastMessage.displayDate)
-            if conversation.conversationCategory != .private {
-                if let previewableMessage = lastMessage as? PreviewableMessage {
-                    previewLabel.attributedText = previewableMessage
-                        .previewAttributedText(
-                            for: PreviewableMessageConfiguration.conversationCell,
-                            settingsStore: businessInjector.settingsStore
-                        )
-                }
-            }
-            else {
-                previewLabel.attributedText = NSAttributedString(
-                    string: #localize("private_chat_label")
-                )
+            updatePreviewAndDateLabelsWithLastMessage(for: conversation)
+        }
+    }
+    
+    private func updatePreviewAndDateLabels(with draft: NSAttributedString, for conversation: ConversationEntity) {
+        let draftPrefixFont = UIFont.systemFont(
+            ofSize: UIFont.preferredFont(forTextStyle: Configuration.previewTextStyle).pointSize,
+            weight: .medium
+        )
+        let attributedDraftPrefix = NSAttributedString(
+            string: "\(#localize("draft")):",
+            attributes: [
+                .foregroundColor: UIColor.systemRed,
+                .font: draftPrefixFont
+            ]
+        )
+        
+        let mutableAttributedString = NSMutableAttributedString()
+        mutableAttributedString.append(attributedDraftPrefix)
+        mutableAttributedString.append(NSAttributedString(string: " "))
+        mutableAttributedString.append(draft)
+        previewLabel.attributedText = mutableAttributedString
+        
+        if let lastMessage = conversation.lastMessage {
+            dateLabel.text = DateFormatter.relativeTimeTodayAndMediumDateOtherwise(for: lastMessage.displayDate)
+            dateLabel.isHidden = false
+        }
+        else {
+            dateLabel.isHidden = true
+        }
+    }
+    
+    private func updatePreviewAndDateLabelsWithLastMessage(for conversation: ConversationEntity) {
+        guard let lastMessage = conversation.lastMessage else {
+            previewLabel.attributedText = nil
+            dateLabel.text = nil
+            return
+        }
+        
+        dateLabel.text = DateFormatter.relativeTimeTodayAndMediumDateOtherwise(for: lastMessage.displayDate)
+        if conversation.conversationCategory != .private {
+            if let previewableMessage = lastMessage as? PreviewableMessage {
+                previewLabel.attributedText = previewableMessage
+                    .previewAttributedText(
+                        for: PreviewableMessageConfiguration.conversationCell,
+                        settingsStore: businessInjector.settingsStore
+                    )
             }
         }
-        dateDraftLabel.isHidden = false
+        else {
+            previewLabel.attributedText = NSAttributedString(
+                string: #localize("private_chat_label")
+            )
+        }
+        
+        dateLabel.isHidden = false
     }
     
     private func updateBadge() {
@@ -1156,22 +1171,22 @@ final class ConversationTableViewCell: ThemedCodeTableViewCell {
 
             observeLastMessage(lastMessage, keyPath: \.read, callOnCreation: false) { [weak self] in
                 self?.updateDisplayStateImage()
-                self?.updateDateDraftLabel()
+                self?.updatePreviewAndDateLabels()
             }
 
             observeLastMessage(lastMessage, keyPath: \.delivered, callOnCreation: false) { [weak self] in
                 self?.updateDisplayStateImage()
-                self?.updateDateDraftLabel()
+                self?.updatePreviewAndDateLabels()
             }
 
             observeLastMessage(lastMessage, keyPath: \.sendFailed, callOnCreation: false) { [weak self] in
                 self?.updateDisplayStateImage()
-                self?.updateDateDraftLabel()
+                self?.updatePreviewAndDateLabels()
             }
 
             observeLastMessage(lastMessage, keyPath: \.sent, callOnCreation: false) { [weak self] in
                 self?.updateDisplayStateImage()
-                self?.updateDateDraftLabel()
+                self?.updatePreviewAndDateLabels()
             }
         }
     }

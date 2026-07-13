@@ -291,6 +291,30 @@ final class ChatViewDataSource: UITableViewDiffableDataSource<String, ChatViewDa
     deinit {
         DDLogVerbose("\(#function)")
         self.fetchRequestSnapshotApplyStore?.seal.reject(DataSourceError.cancelled)
+
+        // `observers` holds KVO observations on `NSManagedObject`s. Invalidating (and deallocating)
+        // an observation touches its observed managed object, which is only allowed on the object's
+        // context queue (main). `deinit` – and the implicit ivar destruction that follows it – can
+        // run on a background queue (e.g. `snapshotProviderQueue`) when the data source is released
+        // while converting a snapshot during deletion, which trips CoreData's multithreaded-access
+        // assertion.
+        //
+        // Move the observations into a local and invalidate them on the main queue. Capturing the
+        // local (not `self`, which can't be retained from `deinit`) keeps the backing storage alive
+        // past the ivar destructor, so the observations are only released on the main queue.
+        let observersToInvalidate = observers
+        let invalidateObservers = {
+            for observer in observersToInvalidate.values {
+                observer.invalidate()
+            }
+        }
+
+        if Thread.isMainThread {
+            invalidateObservers()
+        }
+        else {
+            DispatchQueue.main.async(execute: invalidateObservers)
+        }
     }
         
     @available(*, unavailable)
@@ -311,7 +335,7 @@ final class ChatViewDataSource: UITableViewDiffableDataSource<String, ChatViewDa
         // The actual subscription is handled by the `Subscriber` extension below
         snapshotProvider.$snapshotInfo
             .receive(on: preDebounceDataSourceApplyQueue)
-            .compactMap { $0 }
+            .compactMap(\.self)
             .debounceSnapshots(scheduler: dataSourceApplyQueue)
             .receive(on: dataSourceApplyQueue)
             .flatMap(maxPublishers: .max(1)) { [weak self] value -> Future<Void, Never> in
@@ -348,6 +372,11 @@ final class ChatViewDataSource: UITableViewDiffableDataSource<String, ChatViewDa
     /// - Parameter snapshotInfo: Snapshot info to be applied
     private func apply(snapshotInfo: ChatViewSnapshotProvider.SnapshotInfo) {
         DDLogVerbose("apply async")
+
+        guard !conversation.willBeDeleted else {
+            DDLogWarn("Conversation is being deleted, skipping snapshot apply")
+            return
+        }
         
         DDLogVerbose("\(#function) dataSource.snapshotApplyLock.lock()")
         if !snapshotApplyLock.lock(before: Date().addingTimeInterval(5)) {

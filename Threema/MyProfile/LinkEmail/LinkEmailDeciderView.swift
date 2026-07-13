@@ -18,6 +18,7 @@ struct LinkEmailDeciderView: View {
             }
         }
         .navigationTitle(#localize("profile_linked_email"))
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
 

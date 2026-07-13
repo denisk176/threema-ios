@@ -135,7 +135,7 @@ extension CallsignalingProtocol {
         var threemaVideoCallQualityProfile: ThreemaVideoCallQualityProfile?
         var threemaVideoCallCaputreState: ThreemaVideoCallCaputreState?
         
-        let envelop = try? O2oCall_Envelope(serializedData: data)
+        let envelop = try? O2oCall_Envelope(serializedBytes: data)
                 
         switch envelop?.content {
         case .captureStateChange(envelop?.captureStateChange):

@@ -66,12 +66,12 @@ final class StatusNavigationBar: UINavigationBar {
                     }
                     else {
                         statusView.backgroundColor = .systemRed
-                        statusView.isHidden = AppDelegate.isAppInBackground()
+                        statusView.isHidden = SharedAppProvider.isAppInBackground
                     }
 
                 case .connected:
                     statusView.backgroundColor = .systemOrange
-                    statusView.isHidden = AppDelegate.isAppInBackground()
+                    statusView.isHidden = SharedAppProvider.isAppInBackground
 
                 case .loggedIn:
                     statusView.backgroundColor = .systemGreen

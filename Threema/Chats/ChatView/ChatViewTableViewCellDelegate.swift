@@ -18,7 +18,7 @@ protocol ChatViewTableViewCellDelegateProtocol: AnyObject {
     func didTap(message: BaseMessageEntity?, in cell: ChatViewBaseTableViewCell?, customDefaultAction: (() -> Void)?)
     func didAccessibilityTapOnCell()
     
-    func showQuoteView(message: QuoteMessage)
+    func showQuoteView(for message: QuoteMessage)
     func startMultiselect(with messageObjectID: NSManagedObjectID)
     
     func quoteTapped(on quotedMessageID: Data)
@@ -219,7 +219,7 @@ final class ChatViewTableViewCellDelegate: NSObject, ChatViewTableViewCellDelega
         chatViewController?.didTapOnChatView()
     }
     
-    func showQuoteView(message: QuoteMessage) {
+    func showQuoteView(for message: QuoteMessage) {
         chatViewController?.chatBarCoordinator.showQuoteView(for: message)
     }
     

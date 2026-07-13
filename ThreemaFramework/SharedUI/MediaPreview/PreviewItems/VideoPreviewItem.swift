@@ -7,16 +7,10 @@ import ThreemaMacros
 open class VideoPreviewItem: MediaPreviewItem {
     public typealias PreviewType = URL
     
-    var exportSession: AVAssetExportSession?
-    var isConverted = false
-    
     // MARK: Private Properties
-    
-    private var video: Data?
-    private var isConverting = false
-    
-    private var transcodeSema = DispatchSemaphore(value: 0)
-    private var transcodedItem: URL?
+        
+    private(set) var exportSession: (any VideoExportSession)?
+    private(set) var transcodedItem: URL?
     
     open var internalOriginalAsset: Promise<AVAsset> {
         Promise { seal in
@@ -63,20 +57,23 @@ open class VideoPreviewItem: MediaPreviewItem {
 
             return Promise { seal in
                 Task {
-                    guard let session = await VideoConversionHelper()
-                        .getAVAssetExportSession(from: asset, outputURL: outputURL)
-                    else {
+                    let session: any VideoExportSession
+                    do {
+                        session = try await VideoConversionHelper()
+                            .getAVAssetExportSession(from: asset, outputURL: outputURL)
+                    }
+                    catch {
                         seal.reject(MediaPreviewItem.LoadError.unknown)
                         return
                     }
 
-                    self.convertVideo(exportSession: session)
-                        .done { url in
-                            seal.fulfill(url)
-                        }
-                        .catch { error in
-                            seal.reject(error)
-                        }
+                    do {
+                        let url = try await self.convertVideo(exportSession: session)
+                        seal.fulfill(url)
+                    }
+                    catch {
+                        seal.reject(error)
+                    }
                 }
             }
         }
@@ -103,37 +100,12 @@ open class VideoPreviewItem: MediaPreviewItem {
         itemURL
     }
     
-    override open func freeMemory() {
-        super.freeMemory()
-        video = nil
-    }
-    
     // MARK: Private functions
     
-    private func convertVideo(exportSession: AVAssetExportSession) -> Promise<URL> {
-        Promise { seal in
-            autoreleasepool {
-                isConverting = true
-                MediaConverter.convertVideo(with: exportSession) { url in
-                    guard let url else {
-                        seal.reject(MediaPreviewItem.LoadError.unknown)
-                        return
-                    }
-                    
-                    self.transcodedItem = url
-                    self.isConverted = true
-                    self.isConverting = false
-                    self.transcodeSema.signal()
-                    
-                    seal.fulfill(url)
-                } onError: { error in
-                    guard let error else {
-                        seal.reject(MediaPreviewItem.LoadError.unknown)
-                        return
-                    }
-                    seal.reject(error)
-                }
-            }
-        }
+    private func convertVideo(exportSession: any VideoExportSession) async throws -> URL {
+        self.exportSession = exportSession
+        let url = try await exportSession.runExport()
+        self.transcodedItem = url
+        return url
     }
 }

@@ -216,7 +216,7 @@ public final class WebCreateFileMessageRequest: WebAbstractMessage {
                     item: senderItem,
                     conversation: conversation,
                     completion: { [weak self] in
-                        guard let self else {
+                        guard self != nil else {
                             return
                         }
 

@@ -8,5 +8,5 @@
 "safe_mode_switch" = "Pokročilý režim podpory";
 
 /* (No Comment) */
-"sentry_switch" = "Deaktivovať Sentry";
+"sentry_deactivation_switch_title" = "Deaktivovať anonymné hlásenie chýb";
 

@@ -22,7 +22,6 @@
     NSData *nonce;
     NSData *encryptionKey;
     NSMutableData *receivedData;
-    NSURLConnection *uploadConnection;
     void(^onCompletion)(NSData *blobId, NSData *encryptionKey);
     void(^onError)(NSError *error);
 }

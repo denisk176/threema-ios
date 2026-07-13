@@ -27,11 +27,14 @@ enum AppLauncher {
                 delegateClass = AppTestDelegate.self
             }
             else {
-                #if SCENE_DELEGATE_ROOT_COORDINATOR_DEVELOPMENT
-                    delegateClass = SceneDelegate.self
-                #else
+                if SharedAppProvider.onMain({
+                    SharedAppProvider.isSceneDelegateDevelopment
+                }) {
+                    delegateClass = AppSceneDelegate.self
+                }
+                else {
                     delegateClass = AppDelegate.self
-                #endif
+                }
             }
         #else
             delegateClass = AppDelegate.self

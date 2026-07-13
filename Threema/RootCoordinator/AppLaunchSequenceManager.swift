@@ -51,7 +51,7 @@ final class AppLaunchSequenceManager {
         case needsOnboarding
 
         /// App needs passcode entry before continuing
-        case needsPasscode(BusinessInjectorProtocol)
+        case needsPasscode(AppDependencyContainer)
 
         /// Protected data unavailable (device locked)
         case protectedDataUnavailable
@@ -175,14 +175,31 @@ final class AppLaunchSequenceManager {
             try await SetupApp.runAppMigrationIfNeeded()
 
             let businessInjector = BusinessInjector(remoteSecretManager: remoteSecretManager)
-
+            let passcodeLock = KKPasscodeLockAdapter()
+            
             let container = AppDependencyContainer(
                 businessInjector: businessInjector,
                 remoteSecretManager: remoteSecretManager,
                 keychainManager: keychainManager,
                 bootstrap: bootstrap,
-                wcSessionManager: WCSessionManagerAdapter()
+                passcodeLock: passcodeLock,
+                wcSessionManager: WCSessionManagerAdapter(),
+                newMessageToaster: NewMessageToaster(
+                    previewSetting: UserSettings.shared(),
+                    bannerPresenter: DefaultNotificationBannerPresenter(),
+                    pushSettingManager: businessInjector.pushSettingManager,
+                    entityManager: businessInjector.entityManager,
+                    notificationCenter: .default
+                ),
+                incomingMessageManager: IncomingMessageManager(),
+                groupCallUIHelper: GroupCallUIHelper(),
+                typingIndicatorManager: TypingIndicatorManager.sharedInstance
             )
+
+            guard !passcodeLock.isPasscodeRequired() else {
+                return .needsPasscode(container)
+            }
+
             return .ready(container)
         }
         catch {

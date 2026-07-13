@@ -241,14 +241,24 @@ struct DeveloperSettingsView: View {
                         isPresented: $showDeleteAllDataConfirmation
                     ) {
                         Button {
-                            // DB & Files
-                            FileUtility.shared.removeItemsInAllDirectories(appGroupID: AppGroup.groupID())
-                            AppGroup.resetUserDefaults()
+                            // Destroy CoreData SQLite and associated files (-wal, -shm)
                             try? PersistenceManager(
                                 appGroupID: AppGroup.groupID(),
                                 userDefaults: AppGroup.userDefaults(),
                                 remoteSecretManager: RemoteSecretProvider.remoteSecretManager
                             ).databaseManager.eraseDB()
+
+                            // Close the Threema-FS session store before unlinking its file
+                            BusinessInjector.ui.dhSessionStore.close()
+
+                            // Remaining Files
+                            FileUtility.shared.removeItemsInAllDirectories(appGroupID: AppGroup.groupID())
+
+                            // User Defaults
+                            UserDefaults.resetStandardUserDefaults()
+                            AppGroup.resetUserDefaults()
+
+                            // Safe to exit.
                             exit(0)
                         } label: {
                             Text(verbatim: "Delete Everything")

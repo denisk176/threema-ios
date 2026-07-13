@@ -117,32 +117,6 @@ public final class ThreemaEnvironment: NSObject {
     
     // MARK: Multi-device
     
-    public static var allowEasyDeviceSwitch: Bool {
-        guard !ProcessInfoHelper.isRunningForScreenshots else {
-            return false
-        }
-        
-        #if DEBUG
-            return true
-        #endif
-        
-        if TargetManager.isSandbox {
-            return true
-        }
-        
-        switch env() {
-        case .appStore, .testFlight:
-            return !TargetManager.isBusinessApp
-            
-        case .xcode:
-            return true
-        }
-        
-        return false
-    }
-    
-    // MARK: Multi-device
-    
     public static var allowMultipleLinkedDevices: Bool {
         guard !ProcessInfoHelper.isRunningForScreenshots else {
             return false

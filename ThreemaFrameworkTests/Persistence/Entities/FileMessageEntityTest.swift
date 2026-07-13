@@ -97,6 +97,7 @@ final class FileMessageEntityTests: XCTestCase {
         XCTAssertEqual(origin as NSNumber, fetchedFileMessageEntity.origin)
         XCTAssertEqual(progress as NSNumber, fetchedFileMessageEntity.progress)
         XCTAssertEqual(type as NSNumber, fetchedFileMessageEntity.type)
+        XCTAssertEqual(fileDataEntity.data != nil, fetchedFileMessageEntity.dataAvailable.boolValue)
         XCTAssertEqual(conversation.objectID, fetchedFileMessageEntity.conversation.objectID)
         XCTAssertEqual(thumbnailDataEntity.objectID, fetchedFileMessageEntity.thumbnail?.objectID)
         XCTAssertEqual(fileDataEntity.objectID, fetchedFileMessageEntity.data?.objectID)
@@ -105,7 +106,7 @@ final class FileMessageEntityTests: XCTestCase {
             XCTAssertEqual(testDatabase.remoteSecretCryptoMock.decryptCalls, 0)
             XCTAssertEqual(
                 testDatabase.remoteSecretCryptoMock.encryptCalls,
-                15
+                16
             ) // Plus 5 `BaseMessageEntity` fields
 
             // Test faulting
@@ -125,7 +126,7 @@ final class FileMessageEntityTests: XCTestCase {
             XCTAssertEqual(testDatabase.remoteSecretCryptoMock.decryptCalls, 10)
             XCTAssertEqual(
                 testDatabase.remoteSecretCryptoMock.encryptCalls,
-                15
+                16
             ) // Plus 5 `BaseMessageEntity` fields
         }
         else {
@@ -141,7 +142,7 @@ final class FileMessageEntityTests: XCTestCase {
 
         let messageID = BytesUtility.generateMessageID()
         let isOwn = true
-        
+
         // Act
         let conversation = entityManager.performAndWaitSave {
             entityManager.entityCreator.conversationEntity()
@@ -165,6 +166,7 @@ final class FileMessageEntityTests: XCTestCase {
         XCTAssertEqual(messageID, fetchedFileMessageEntity.id)
         XCTAssertEqual(isOwn, fetchedFileMessageEntity.isOwnMessage)
         XCTAssertEqual(conversation.objectID, fetchedFileMessageEntity.conversation.objectID)
+        XCTAssertFalse(fetchedFileMessageEntity.dataAvailable.boolValue)
     }
 
     func testJson() throws {
@@ -194,5 +196,114 @@ final class FileMessageEntityTests: XCTestCase {
         XCTAssertEqual(fileMessageEntity.width, 2)
         XCTAssertEqual(fileMessageEntity.duration, 3.3423)
         XCTAssertNil(fileMessageEntity.jsonDescription)
+    }
+    
+    func testUpdateDataAvailableSetter() throws {
+        // Arrange
+        let testDatabase = TestDatabase()
+        let entityManager = testDatabase.entityManager
+
+        let messageID = BytesUtility.generateMessageID()
+        let isOwn = true
+
+        // Act
+        let conversation = entityManager.performAndWaitSave {
+            entityManager.entityCreator.conversationEntity()
+        }
+
+        let fileMessageEntity = entityManager.performAndWaitSave {
+            FileMessageEntity(
+                context: testDatabase.context.main,
+                id: messageID,
+                isOwn: isOwn,
+                conversation: conversation
+            )
+        }
+
+        entityManager.performAndWaitSave {
+            let fileDataEntity = entityManager.entityCreator.fileDataEntity(data: Data())
+            fileMessageEntity.data = fileDataEntity
+        }
+
+        let updatedFetchedFileMessageEntity = try XCTUnwrap(
+            entityManager.entityFetcher
+                .existingObject(with: fileMessageEntity.objectID) as? FileMessageEntity
+        )
+
+        // Assert
+        let updatedDataAvailable = try XCTUnwrap(updatedFetchedFileMessageEntity.dataAvailable)
+        XCTAssertTrue(updatedDataAvailable.boolValue)
+    }
+    
+    func testUpdateDataAvailableInit() throws {
+        // Arrange
+        let testDatabase = TestDatabase()
+        let entityManager = testDatabase.entityManager
+
+        let messageID = BytesUtility.generateMessageID()
+        let isOwn = true
+
+        // Act
+        let conversation = entityManager.performAndWaitSave {
+            entityManager.entityCreator.conversationEntity()
+        }
+
+        let fileMessageEntity = entityManager.performAndWaitSave {
+            let fileDataEntity = entityManager.entityCreator.fileDataEntity(data: Data())
+            return FileMessageEntity(
+                context: testDatabase.context.main,
+                id: messageID,
+                isOwn: isOwn,
+                conversation: conversation,
+                data: fileDataEntity
+            )
+        }
+        
+        // Assert
+        let dataAvailable = try XCTUnwrap(fileMessageEntity.dataAvailable)
+        XCTAssertTrue(dataAvailable.boolValue)
+    }
+    
+    func testUpdateDataAvailableAfterDataAssigning() throws {
+        // Arrange
+        let testDatabase = TestDatabase()
+        let entityManager = testDatabase.entityManager
+
+        let messageID = BytesUtility.generateMessageID()
+        let isOwn = true
+
+        // Act
+        let conversation = entityManager.performAndWaitSave {
+            entityManager.entityCreator.conversationEntity()
+        }
+
+        let (fileMessageEntity, fileDataEntity) = entityManager.performAndWaitSave {
+            let fileDataEntity = entityManager.entityCreator.fileDataEntity(data: nil)
+            let fileMessageEntity = FileMessageEntity(
+                context: testDatabase.context.main,
+                id: messageID,
+                isOwn: isOwn,
+                conversation: conversation,
+                data: fileDataEntity
+            )
+            
+            return (fileMessageEntity, fileDataEntity)
+        }
+
+        let initialDataAvailable = try XCTUnwrap(fileMessageEntity.dataAvailable)
+        XCTAssertFalse(initialDataAvailable.boolValue)
+
+        entityManager.performAndWaitSave {
+            fileDataEntity.data = Data()
+        }
+
+        let updatedFetchedFileMessageEntity = try XCTUnwrap(
+            entityManager.entityFetcher
+                .existingObject(with: fileMessageEntity.objectID) as? FileMessageEntity
+        )
+
+        // Assert
+        let updatedDataAvailable = try XCTUnwrap(updatedFetchedFileMessageEntity.dataAvailable)
+        XCTAssertTrue(updatedDataAvailable.boolValue)
     }
 }

@@ -118,7 +118,7 @@ extension BlobData {
     }
     
     private var incomingDataState: IncomingBlobState {
-        if blobData != nil {
+        if isDataAvailable {
             return .processed
         }
         
@@ -138,14 +138,14 @@ extension BlobData {
             return .fatalError(.noEncryptionKey)
         }
         
-        if blobError {
-            return .remote(error: .downloadFailed) // or (less likely) fatalError
-        }
-        
         if blobIdentifier == nil {
             // Blob id is set to `nil` when media is deleted (see `EntityDestroyer`)
             return .noData(.deleted)
             // or maybe .fatalError media_file_not_found
+        }
+        
+        if blobError {
+            return .remote(error: .downloadFailed) // or (less likely) fatalError
         }
         
         return .remote(error: nil)
@@ -156,11 +156,11 @@ extension BlobData {
         // If is blob ID set, than must be an reflected outgoing message
         if blobIdentifier != nil {
             // The blob for reflected outgoing file message must be downloaded
-            if blobData == nil, !blobError, blobProgress != nil {
+            if !isDataAvailable, !blobError, blobProgress != nil {
                 return .downloading
             }
 
-            guard blobData != nil else {
+            guard isDataAvailable else {
                 return .pendingDownload(error: blobError ? .downloadFailed : nil)
             }
             
@@ -185,7 +185,7 @@ extension BlobData {
         }
         
         // This might be the not persisted error
-        if blobData != nil {
+        if isDataAvailable {
             return .pendingUpload(error: .uploadFailed)
         }
         else {

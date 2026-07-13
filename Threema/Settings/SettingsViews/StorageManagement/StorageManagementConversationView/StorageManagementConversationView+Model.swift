@@ -19,8 +19,7 @@ extension StorageManagementConversationView {
         
         @Published var deleteInProgress = false {
             willSet {
-                let hud = ProgressHUD
-                    .make(label: #localize("delete_in_progress"))
+                let hud = ProgressHUD.make(label: #localize("delete_in_progress"))
                 (newValue ? hud.show : hud.hide)?()
             }
         }

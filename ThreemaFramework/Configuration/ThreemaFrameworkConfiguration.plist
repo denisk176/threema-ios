@@ -43,9 +43,9 @@
 		<string>5pEn1T/5bhecNWrp9NgUQweRfgVtu/I8gRb3VxGP7k4=</string>
 	</array>
 	<key>ThreemaPOIAroundURL</key>
-	<string>https://poi.threema.ch/around/</string>
+	<string>https://poi.threema.ch/around/{latitude}/{longitude}/{radius}/</string>
 	<key>ThreemaPOINamesURL</key>
-	<string>https://poi.threema.ch/names/</string>
+	<string>https://poi.threema.ch/names/{latitude}/{longitude}/{query}/</string>
 	<key>ThreemaSafeURL</key>
 	<string>https://safe-{backupIdPrefix8}.threema.ch</string>
 	<key>ThreemaServerAltPublicKey</key>

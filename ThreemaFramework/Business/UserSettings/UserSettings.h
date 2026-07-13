@@ -107,6 +107,8 @@ extern NSString * const kPreferenceInterfaceStyleKey;
 @property (nonatomic, readwrite) BOOL jbDetectionDismissed;
 @property (nonatomic, readwrite) BOOL didShowIdentityThisDeviceOnly;
 
+@property (nonatomic, readwrite) NSData *evaluatedPolicyDomainStateApp;
+
 @end
 
 @interface UserSettings : NSObject <UserSettingsProtocol>
@@ -137,10 +139,8 @@ typedef NS_ENUM(NSInteger, AcceptPrivacyPolicyVariant) {
 
 @property (nonatomic, readwrite) BOOL openPlusIconInChat;
 
-@property (nonatomic, readwrite) NSData *evaluatedPolicyDomainStateApp;
 @property (nonatomic, readwrite) NSData *evaluatedPolicyDomainStateShareExtension;
 
-@property (nonatomic, readwrite) BOOL workInfoShown;
 @property (nonatomic, readwrite) BOOL desktopInfoBannerShown;
 @property (nonatomic, readwrite) BOOL resetTipKitOnNextLaunch;
 @property (nonatomic, readwrite) BOOL partialReactionSupportAlertShown;

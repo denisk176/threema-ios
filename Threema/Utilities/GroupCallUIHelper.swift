@@ -12,26 +12,39 @@ final class GroupCallUIHelper: NSObject {
 // MARK: - GroupCallManagerSingletonUIDelegate
 
 extension GroupCallUIHelper: GroupCallManagerSingletonUIDelegate {
-    func showViewController(_ viewController: GroupCallViewController) {
-        Task { @MainActor in
-            guard AppDelegate.isAlertViewShown() == nil else {
-                DDLogError("[GroupCall] Do not show GroupCallViewController because an alert is being presented.")
-                return
-            }
-            AppDelegate.shared().currentTopViewController().present(viewController, animated: true)
+    private var isAppLocked: Bool {
+        SharedAppProvider.onMain {
+            SharedAppProvider.isAppLocked
         }
     }
     
+    func showViewController(_ viewController: GroupCallViewController) {
+        Task { @MainActor in
+            guard SharedAppProvider.alertViewShown == nil else {
+                DDLogError("[GroupCall] Do not show GroupCallViewController because an alert is being presented.")
+                return
+            }
+            SharedAppProvider.currentTopViewController?.present(viewController, animated: true)
+        }
+    }
+    
+    @MainActor
     func showAlert(for groupCallError: GroupCallErrorProtocol) {
+        guard let currentTopViewController = SharedAppProvider.currentTopViewController else {
+            DDLogError("`SharedAppProvider.currentTopViewController` not available.")
+            return
+        }
+        
         Task { @MainActor in
             UIAlertTemplate.showAlert(
-                owner: AppDelegate.shared().currentTopViewController(),
+                owner: currentTopViewController,
                 title: BundleUtil.localizedString(forKey: groupCallError.alertTitleKey),
                 message: BundleUtil.localizedString(forKey: groupCallError.alertMessageKey)
             )
         }
     }
     
+    @MainActor
     func showGroupCallFullAlert(maxParticipants: Int?, onOK: @escaping () -> Void) {
         let title = #localize("group_call_alert_full_title")
         let message =
@@ -43,8 +56,13 @@ extension GroupCallUIHelper: GroupCallManagerSingletonUIDelegate {
             }
         
         Task { @MainActor in
+            guard let currentTopViewController = SharedAppProvider.currentTopViewController else {
+                DDLogError("`SharedAppProvider.currentTopViewController` not available.")
+                return
+            }
+            
             UIAlertTemplate.showAlert(
-                owner: AppDelegate.shared().currentTopViewController(),
+                owner: currentTopViewController,
                 title: title,
                 message: message
             ) { _ in
@@ -61,7 +79,7 @@ extension GroupCallUIHelper: GroupCallManagerSingletonUIDelegate {
     ) {
         // No toast if disabled or passcode showing
         if !UserSettings.shared().inAppPreview ||
-            AppDelegate.shared().isAppLocked {
+            isAppLocked {
             return
         }
         
@@ -88,8 +106,8 @@ extension GroupCallUIHelper: GroupCallManagerSingletonUIDelegate {
         }
 
         // Is this for the currently visible conversation?
-        DispatchQueue.main.async {
-            if let mainTabBar = AppDelegate.shared().tabBarController(),
+        Task { @MainActor in
+            if let mainTabBar = SharedAppProvider.tabBarController,
                let viewControllers = mainTabBar.viewControllers {
                 if viewControllers.count <= kChatTabBarIndex {
                     return

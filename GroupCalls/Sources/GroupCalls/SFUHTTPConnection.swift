@@ -57,7 +57,7 @@ extension SFUHTTPConnection {
             return .invalidRequest
         }
         
-        guard let peekResponse = try? GroupCall_SfuHttpResponse.Peek(serializedData: data) else {
+        guard let peekResponse = try? GroupCall_SfuHttpResponse.Peek(serializedBytes: data) else {
             return .notDetermined
         }
         
@@ -122,7 +122,7 @@ extension SFUHTTPConnection {
                 return .notRunning
             }
             
-            guard let joinResponse = try? GroupCall_SfuHttpResponse.Join(serializedData: data) else {
+            guard let joinResponse = try? GroupCall_SfuHttpResponse.Join(serializedBytes: data) else {
                 DDLogError("[GroupCall] [Join Steps] Could not create join from received data")
                 return .notDetermined
             }

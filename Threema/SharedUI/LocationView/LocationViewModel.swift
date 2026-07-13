@@ -38,6 +38,7 @@ final class LocationViewModel: ObservableObject {
 
     let navigationTitle = #localize("location_view_title")
     let closeButtonText = #localize("close")
+    let shareMenuText = #localize("share")
     let showInGoogleMapsButtonText = #localize("show_in_google_maps")
     let showInMapsButtonText = #localize("show_in_maps")
     let calculateRouteButtonText = #localize("calculate_route")
@@ -48,7 +49,7 @@ final class LocationViewModel: ObservableObject {
     
     let shareImageName = "square.and.arrow.up"
     let centerMapPinImageName = "mappin.and.ellipse"
-    let mapImageName = "map"
+    let mapImageName = "map.fill"
     
     // MARK: - Private properties
     
@@ -58,7 +59,11 @@ final class LocationViewModel: ObservableObject {
     private lazy var locationManager = LocationManager { [weak self] status in
         self?.authorizationStatus = status
     }
-    
+
+    var isAuthorized: Bool {
+        [.authorizedAlways, .authorizedWhenInUse].contains(authorizationStatus)
+    }
+
     // MARK: - Lifecycle
     
     init(objectID: NSManagedObjectID) {

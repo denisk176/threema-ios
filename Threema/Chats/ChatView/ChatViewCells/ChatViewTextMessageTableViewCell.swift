@@ -1,3 +1,4 @@
+import CocoaLumberjackSwift
 import ThreemaFramework
 import ThreemaMacros
 import UIKit
@@ -247,6 +248,8 @@ final class ChatViewTextMessageTableViewCell: ChatViewBaseTableViewCell, Measura
         guard textMessageAndNeighbors?.message.quoteMessage != nil else {
             return
         }
+        
+        // TODO: (IOS-6109) Check that this is read with VoiceOver
         accessibilityHint = #localize("quote_interaction_hint")
     }
     
@@ -323,13 +326,19 @@ extension ChatViewTextMessageTableViewCell: ChatViewMessageActions {
             self.chatViewTableViewCellDelegate?.toggleMessageMarkerStar(message: message)
         }
         
-        // Quote
-        let quoteHandler = {
+        // Reply
+        let replyHandler = {
             guard let chatViewTableViewCellDelegate = self.chatViewTableViewCellDelegate else {
+                DDLogError("[CV CxtMenu] Could not show quote view because the delegate was nil.")
                 return
             }
             
-            chatViewTableViewCellDelegate.showQuoteView(message: message)
+            guard let message = message as? QuoteMessage else {
+                DDLogError("[CV CxtMenu] Could not show quote view because the message is not a quote message.")
+                return
+            }
+            
+            chatViewTableViewCellDelegate.showQuoteView(for: message)
         }
         
         // Edit Message
@@ -374,7 +383,7 @@ extension ChatViewTextMessageTableViewCell: ChatViewMessageActions {
             activityViewAnchor: contentView,
             popOverSource: chatBubbleContentView,
             markStarHandler: markStarHandler,
-            quoteHandler: quoteHandler,
+            replyHandler: replyHandler,
             editHandler: editHandler,
             copyHandler: copyHandler,
             shareHandler: shareHandler,

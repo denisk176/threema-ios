@@ -215,7 +215,7 @@ public final class DistributionListCell: ThemedCodeTableViewCell {
                 topMetadataLabel.accessibilityLabel,
                 membersListLabel.accessibilityLabel,
             ]
-            .compactMap { $0 }
+            .compactMap(\.self)
             .filter { !$0.isEmpty }
             .joined(separator: ". ")
         }

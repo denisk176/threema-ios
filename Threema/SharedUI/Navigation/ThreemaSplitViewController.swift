@@ -55,7 +55,10 @@ final class ThreemaSplitViewController: UISplitViewController {
         }
 
         navigationManager.storeCurrentTabStack()
-        threemaTabBarController.selectedIndex = item.rawValue
+        /// Non-animated: see `ThreemaSplitViewNavigationManager.tabBarController(_:shouldSelect:)`.
+        UIView.performWithoutAnimation {
+            threemaTabBarController.selectedIndex = item.rawValue
+        }
         navigationManager.restoreTabStack(for: item)
     }
     
@@ -83,5 +86,23 @@ final class ThreemaSplitViewController: UISplitViewController {
         }
         
         return chatViewController.isChat(for: contact)
+    }
+
+    /// Clears the secondary column for the given tab, showing the empty placeholder.
+    /// Also stores an empty stack in thetaStack for consistency across tab switches / resize.
+    func clearSecondaryColumn(for item: ThreemaTab) {
+        guard
+            isCollapsed == false,
+            let secondaryNav = navigationController(for: item)
+        else {
+            return
+        }
+
+        secondaryNav.setViewControllers(
+            [ThreemaLogoViewControllerFactory.threemaLogoViewController],
+            animated: false
+        )
+
+        setViewControllers([], for: item)
     }
 }

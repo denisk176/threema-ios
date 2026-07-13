@@ -83,8 +83,43 @@ final class EditProfileViewController: UITableViewController {
     private lazy var profileStore = BusinessInjector.ui.profileStore
     private lazy var settingsStore = BusinessInjector.ui.settingsStore
     private lazy var myIdentityStore = BusinessInjector.ui.myIdentityStore
-    private var name: String?
-    private var profilePictureImageData: Data?
+
+    private var name: String? {
+        didSet {
+            updateConfirmationButton()
+        }
+    }
+
+    private var profilePictureImageData: Data? {
+        didSet {
+            updateConfirmationButton()
+        }
+    }
+
+    private var sendProfilePictureKind: SendProfilePicture = SendProfilePictureNone {
+        didSet {
+            updateConfirmationButton()
+        }
+    }
+
+    private var profilePictureContacts: [String] = [] {
+        didSet {
+            updateConfirmationButton()
+        }
+    }
+
+    private var originalName: String?
+    private var originalProfilePictureImageData: Data?
+    private var originalSendProfilePictureKind: SendProfilePicture = SendProfilePictureNone
+    private var originalProfilePictureContacts: [String] = []
+
+    private var hasUnsavedChanges: Bool {
+        (name ?? "") != (originalName ?? "")
+            || profilePictureImageData != originalProfilePictureImageData
+            || sendProfilePictureKind != originalSendProfilePictureKind
+            || profilePictureContacts != originalProfilePictureContacts
+    }
+
     private var isProfileReadOnly: Bool {
         (mdmSetup?.readonlyProfile() ?? false)
     }
@@ -94,11 +129,11 @@ final class EditProfileViewController: UITableViewController {
     }
 
     var sendProfilePicture: SendProfilePicture {
-        profileStore.profile.sendProfilePicture
+        sendProfilePictureKind
     }
 
     var profilePictureContactList: [String] {
-        profileStore.profile.profilePictureContactList
+        profilePictureContacts
     }
     
     // MARK: Subview
@@ -192,12 +227,23 @@ final class EditProfileViewController: UITableViewController {
     }
     
     private func preFillData() {
-        profilePictureImageData = profileStore.profile.profileImage
+        // Current state from store
         name = profileStore.profile.nickname
+        profilePictureImageData = profileStore.profile.profileImage
+        sendProfilePictureKind = profileStore.profile.sendProfilePicture
+        profilePictureContacts = profileStore.profile.profilePictureContactList
+
+        // Snapshot original values
+        originalName = name
+        originalProfilePictureImageData = profilePictureImageData
+        originalSendProfilePictureKind = sendProfilePictureKind
+        originalProfilePictureContacts = profilePictureContacts
+
+        updateConfirmationButton()
     }
     
     private func configureController() {
-        isModalInPresentation = true
+        navigationController?.presentationController?.delegate = self
     }
     
     private func configureNavigationBar() {
@@ -259,14 +305,19 @@ final class EditProfileViewController: UITableViewController {
                 return
             }
             editNameCell.becomeFirstResponder()
-            
+
         case .editPictureReceivers:
             let controller = EditProfilePictureRecipientsViewController(
                 sendKind: sendProfilePicture,
                 contacts: profilePictureContactList
             ) { [weak self] in
                 self?.configureSnapshot()
+            } onSave: { [weak self] newSendKind, newContacts in
+                self?.sendProfilePictureKind = newSendKind
+                self?.profilePictureContacts = newContacts
+                self?.configureSnapshot()
             }
+
             present(UINavigationController(rootViewController: controller), animated: true)
         }
     }
@@ -277,34 +328,38 @@ final class EditProfileViewController: UITableViewController {
         tableView.contentInset = newContentInsets
         tableView.scrollIndicatorInsets = newContentInsets
     }
-    
-    // MARK: - Actions
 
+    private func updateConfirmationButton() {
+        saveBarButtonItem.isEnabled = hasUnsavedChanges
+    }
+
+    // MARK: - Actions
+    
     @objc private func cancelButtonTapped() {
         dismiss(animated: true)
     }
-    
+
     @objc private func saveButtonTapped() {
-        Task { @MainActor in
-            var profile = profileStore.profile
-            profile.nickname = name
-            profile.profileImage = profilePictureImageData
-            
-            if settingsStore.isMultiDeviceRegistered {
-                let progressString = #localize("syncing_profile")
-                let syncHelper = UISyncHelper(viewController: self, progressString: progressString)
-                syncHelper.execute(profile: profile)
-                    .done {
-                        self.dismiss(animated: true)
-                    }
-                    .catch { _ in
-                        self.dismiss(animated: true)
-                    }
-            }
-            else {
-                profileStore.save(profile)
-                dismiss(animated: true)
-            }
+        var profile = profileStore.profile
+        profile.nickname = name
+        profile.profileImage = profilePictureImageData
+        profile.sendProfilePicture = sendProfilePictureKind
+        profile.profilePictureContactList = profilePictureContacts
+        
+        if settingsStore.isMultiDeviceRegistered {
+            let progressString = #localize("syncing_profile")
+            let syncHelper = UISyncHelper(viewController: self, progressString: progressString)
+            syncHelper.execute(profile: profile)
+                .done {
+                    self.dismiss(animated: true)
+                }
+                .catch { _ in
+                    self.dismiss(animated: true)
+                }
+        }
+        else {
+            profileStore.save(profile)
+            dismiss(animated: true)
         }
     }
     
@@ -333,5 +388,13 @@ final class EditProfileViewController: UITableViewController {
 extension EditProfileViewController: EditNameTableViewCellDelegate {
     func editNameTableViewCell(_ editNameTableViewCell: EditNameTableViewCell, didChangeTextTo newText: String?) {
         name = newText
+    }
+}
+
+// MARK: - UIAdaptivePresentationControllerDelegate
+
+extension EditProfileViewController: UIAdaptivePresentationControllerDelegate {
+    func presentationControllerShouldDismiss(_ presentationController: UIPresentationController) -> Bool {
+        !hasUnsavedChanges
     }
 }

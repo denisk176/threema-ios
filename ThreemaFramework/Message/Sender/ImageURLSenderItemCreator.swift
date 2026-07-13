@@ -2,6 +2,7 @@ import CocoaLumberjackSwift
 import CoreServices
 import FileUtility
 import Foundation
+import ImageIO
 import PromiseKit
 import UIKit
 
@@ -48,6 +49,17 @@ public final class ImageURLSenderItemCreator: NSObject {
     ///   - uti: The UTI of the image in image. The UTI must be validated before passing it into this function
     /// - Returns: An URLSenderItem representing the image
     public func senderItem(from image: Data, uti: String) -> URLSenderItem? {
+        var image = image
+        var uti = uti
+
+        // Animated stickers from the iOS keyboard are APNGs (or HEICS) which the rest of the
+        // pipeline (and other clients) cannot animate, so we convert them to GIF
+        if !UTIConverter.isGifMimeType(UTIConverter.mimeType(fromUTI: uti) ?? fallbackMimeType),
+           let convertedGif = ImageURLSenderItemCreator.gifData(fromAnimatedImage: image) {
+            image = convertedGif
+            uti = UTType.gif.identifier
+        }
+
         guard let img = UIImage(data: image) else {
             return nil
         }
@@ -301,6 +313,89 @@ public final class ImageURLSenderItemCreator: NSObject {
         return alpha == 0
     }
     
+    /// Number of frames contained in the image data. Anything > 1 means the image is animated.
+    /// Works for any format ImageIO can read (APNG, HEICS, GIF, WebP, ...).
+    /// - Parameter data: image data
+    /// - Returns: The frame count, or 0 if the data could not be read
+    public static func frameCount(of data: Data) -> Int {
+        guard let source = CGImageSourceCreateWithData(data as CFData, nil) else {
+            return 0
+        }
+        return CGImageSourceGetCount(source)
+    }
+
+    /// Converts an animated image (APNG, HEICS, ...) to GIF data, preserving frame delays
+    /// - Parameter data: animated image data
+    /// - Returns: GIF data or nil if the conversion failed
+    static func gifData(fromAnimatedImage data: Data) -> Data? {
+        guard let source = CGImageSourceCreateWithData(data as CFData, nil) else {
+            return nil
+        }
+
+        let frameCount = CGImageSourceGetCount(source)
+        guard frameCount > 1 else {
+            return nil
+        }
+
+        let gifData = NSMutableData()
+        guard let destination = CGImageDestinationCreateWithData(
+            gifData,
+            UTType.gif.identifier as CFString,
+            frameCount,
+            nil
+        ) else {
+            return nil
+        }
+
+        let gifProperties = [kCGImagePropertyGIFDictionary: [
+            kCGImagePropertyGIFLoopCount: 0,
+            kCGImagePropertyGIFHasGlobalColorMap: false,
+        ] as [CFString: Any]]
+        CGImageDestinationSetProperties(destination, gifProperties as CFDictionary)
+
+        for index in 0..<frameCount {
+            guard let cgImage = CGImageSourceCreateImageAtIndex(source, index, nil) else {
+                return nil
+            }
+
+            let frameProperties = [kCGImagePropertyGIFDictionary: [
+                kCGImagePropertyGIFDelayTime: frameDelay(from: source, at: index),
+            ]]
+            CGImageDestinationAddImage(destination, cgImage, frameProperties as CFDictionary)
+        }
+
+        guard CGImageDestinationFinalize(destination) else {
+            return nil
+        }
+
+        return gifData as Data
+    }
+
+    /// Display duration in seconds of the frame at the given index, looked up in the format
+    /// specific properties (APNG or HEICS)
+    private static func frameDelay(from source: CGImageSource, at index: Int) -> Double {
+        let fallbackDelay = 0.1
+        let delayKeys: [(dictionary: CFString, unclamped: CFString, clamped: CFString)] = [
+            (kCGImagePropertyPNGDictionary, kCGImagePropertyAPNGUnclampedDelayTime, kCGImagePropertyAPNGDelayTime),
+            (kCGImagePropertyHEICSDictionary, kCGImagePropertyHEICSUnclampedDelayTime, kCGImagePropertyHEICSDelayTime),
+        ]
+
+        guard let properties = CGImageSourceCopyPropertiesAtIndex(source, index, nil) as? [CFString: Any] else {
+            return fallbackDelay
+        }
+
+        for keys in delayKeys {
+            guard let formatProperties = properties[keys.dictionary] as? [CFString: Any] else {
+                continue
+            }
+            if let delay = (formatProperties[keys.unclamped] ?? formatProperties[keys.clamped]) as? Double, delay > 0 {
+                return delay
+            }
+        }
+
+        return fallbackDelay
+    }
+
     /// Returns the UTI from Data by checking the first byte. Not all UTTypes are covered, check
     /// that all possible UTTypes for your object are covered.
     /// - Parameter data: any Data object

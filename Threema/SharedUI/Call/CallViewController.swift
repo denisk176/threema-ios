@@ -1533,8 +1533,8 @@ extension CallViewController {
             )
             
             dismiss(animated: true) {
-                if AppDelegate.shared()?.isAppLocked == true {
-                    AppDelegate.shared()?.presentPasscodeView()
+                if SharedAppProvider.isAppLocked {
+                    SharedAppProvider.presentPasscodeView()
                 }
             }
         }

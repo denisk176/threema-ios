@@ -1,5 +1,4 @@
-// swift-tools-version: 6.1
-// The swift-tools-version declares the minimum version of Swift required to build this package.
+// swift-tools-version: 6.3
 
 import PackageDescription
 
@@ -40,12 +39,8 @@ let package = Package(
                 .product(name: "CocoaLumberjackSwift", package: "CocoaLumberjack"),
                 .product(name: "CocoaLumberjack", package: "CocoaLumberjack"),
             ],
-            
             swiftSettings: [
                 .unsafeFlags([
-                    // TODO: (IOS-4047) Leads to errors in swift 5.10
-                    // "-Xfrontend", "-warn-concurrency",
-                    // "-Xfrontend", "-enable-actor-data-race-checks",
                     "-Xfrontend", "-warn-long-function-bodies=100",
                     "-Xfrontend", "-warn-long-expression-type-checking=100",
                 ]),
@@ -61,7 +56,6 @@ let package = Package(
         // To run tests in Xcode the WebRTC framework needs to be signed
         // WARN: The failure will tell you that the module cannot be loaded but not that it is because it wasn't signed.
         //
-        // codesign --sign - --force WebRTC.xcframework/ios-arm64_x86_64-simulator/WebRTC.framework/
         // codesign --sign - --force WebRTC.xcframework/ios-arm64/WebRTC.framework/
         // codesign --sign - --force WebRTC.xcframework
     ],

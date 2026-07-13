@@ -12,8 +12,8 @@ struct MultiDeviceWizardView: View {
         NavigationStack(path: $path) {
             MultiDeviceWizardTermsView(wizardVM: wizardVM, path: $path)
                 .padding(.horizontal)
-                .navigationBarTitleDisplayMode(.inline)
                 .navigationBarTitle(#localize("md_wizard_header"))
+                .navigationBarTitleDisplayMode(.inline)
                 .navigationDestination(for: MultiDeviceWizardNavigationRoute.self) { route in
                     switch route {
                     case .terms:
@@ -40,12 +40,12 @@ struct MultiDeviceWizardView: View {
             if UIDevice.current.userInterfaceIdiom == .phone {
                 // Forcing the rotation to portrait and lock it
                 UIDevice.current.setValue(UIInterfaceOrientation.portrait.rawValue, forKey: "orientation")
-                AppDelegate.shared().orientationLock = .portrait
+                SharedAppProvider.orientationLock = .portrait
             }
         }
         .onDisappear(perform: {
             // Unlocking the rotation
-            AppDelegate.shared().orientationLock = .all
+            SharedAppProvider.orientationLock = .all
         })
 
         .alert(

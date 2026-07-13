@@ -6,7 +6,7 @@ import ThreemaEssentials
 func testGroupIdentityWithEmptyCommonGroupIdentity() throws {
     let commonGroupIdentity = Common_GroupIdentity()
     
-    try #require(throws: GroupIdentity.Error.invalidCreatorIdentityLength, performing: {
+    try #require(throws: ThreemaIdentityError.invalid(identity: commonGroupIdentity.creatorIdentity), performing: {
         try GroupIdentity(commonGroupIdentity: commonGroupIdentity)
     })
 }

@@ -27,7 +27,6 @@ static const DDLogLevel ddLogLevel = DDLogLevelWarning;
     NSData *nonce;
     NSData *encryptionKey;
     NSMutableData *receivedData;
-    NSURLConnection *uploadConnection;
     void(^onCompletion)(void);
     void(^onError)(NSError *error);
 }

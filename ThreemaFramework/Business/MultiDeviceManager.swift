@@ -261,8 +261,7 @@ public final class MultiDeviceManager: MultiDeviceManagerProtocol {
     }
     
     public func resetEnableMultiDeviceIfNeeded() {
-        guard ThreemaEnvironment.allowEasyDeviceSwitch,
-              userSettings.enableMultiDevice else {
+        guard userSettings.enableMultiDevice else {
             return
         }
         

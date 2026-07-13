@@ -14,6 +14,14 @@ final class FileUtilityNull: FileUtilityProtocol {
     func backup(of namePrefixes: [String], exclude: Bool, appGroupID: String) throws { /* no-op */ }
     func cleanTemporaryDirectory(olderThan: Date?) { /* no-op */ }
     func contentsOfDirectory(atPath path: String) throws -> [String] { [] }
+    func contentsOfDirectory(
+        at url: URL,
+        includingPropertiesForKeys keys: [URLResourceKey]?,
+        options mask: FileManager.DirectoryEnumerationOptions
+    ) throws -> [URL] {
+        []
+    }
+
     func copy(from sourceURL: URL, to destinationURL: URL) throws { /* no-op */ }
     func createFile(
         atPath path: String,

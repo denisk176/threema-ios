@@ -1,3 +1,4 @@
+import CocoaLumberjackSwift
 import FileUtility
 import ThreemaFramework
 import ThreemaMacros
@@ -48,15 +49,20 @@ struct PreviewUnavailableViewModel {
     
     // A bit a hacky way to show share sheet in SwiftUI for types, that don't support `Transferable`
     // TODO: (IOS-5599) Adapt (file) messages to `Transferable` protocol
+    @MainActor
     func shareFile() {
         guard isShareable else {
+            DDLogVerbose("Item not shareable.")
             return
         }
         
-        guard
-            let shareableItem,
-            let topViewController = AppDelegate.shared().currentTopViewController()
-        else {
+        guard let shareableItem else {
+            DDLogVerbose("Shareable item is nil.")
+            return
+        }
+                
+        guard let topViewController = SharedAppProvider.currentTopViewController else {
+            DDLogError("`SharedAppProvider.currentTopViewController` not available.")
             return
         }
         

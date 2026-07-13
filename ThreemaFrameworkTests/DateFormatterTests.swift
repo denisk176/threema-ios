@@ -368,7 +368,36 @@ final class DateFormatterTests: XCTestCase {
     
     func testGetDateFromFullDateStringWithEmptyString() {
         let result = DateFormatter.getDateFromFullDateString("")
-                
+
         XCTAssertNil(result)
+    }
+
+    func testDateFromRFC1123WithEmptyString() {
+        let result = DateFormatter.dateFromRFC1123("")
+
+        XCTAssertNil(result)
+    }
+
+    func testDateFromRFC1123WithInvalidString() {
+        let result = DateFormatter.dateFromRFC1123("not a date")
+
+        XCTAssertNil(result)
+    }
+
+    func testDateFromRFC1123WithDifferentDay() {
+        let result = DateFormatter.dateFromRFC1123("Wed, 25 Dec 2024 00:00:00 GMT")
+
+        var components = DateComponents()
+        components.day = 25
+        components.month = 12
+        components.year = 2024
+        components.hour = 0
+        components.minute = 0
+        components.second = 0
+        components.timeZone = TimeZone(abbreviation: "GMT")
+
+        let expected = Calendar.current.date(from: components)
+
+        XCTAssertEqual(result, expected)
     }
 }

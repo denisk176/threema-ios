@@ -46,7 +46,19 @@ final class StartChatContactListTableViewController: ThemedTableViewController {
         tableView.delegate = self
         tableView.dataSource = dataSource
     }
+
+    // MARK: - Filtering
+
+    /// Filters the shown contacts to the ones matching the passed text and hides the actions. Pass an empty
+    /// string to show all again.
+    func filterContacts(matching searchText: String) {
+        dataSource.filterText = searchText
+    }
     
+    func cancelFiltering() {
+        dataSource.filterText = ""
+    }
+
     // MARK: - TableView selection
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {

@@ -961,7 +961,7 @@ class ChatViewBaseTableViewCell: ThemedCodeTableViewCell {
                     controller.view.backgroundColor = .tertiarySystemGroupedBackground
                 }
                 tipPopoverController = controller
-                AppDelegate.shared().window.rootViewController?.present(controller, animated: true)
+                SharedAppProvider.window?.rootViewController?.present(controller, animated: true)
             }
         }
     }
@@ -1181,7 +1181,7 @@ extension ChatViewBaseTableViewCell: ChatViewTableViewCellHorizontalSwipeHandler
         )
     }
     
-    var canQuote: Bool {
+    var canReply: Bool {
         (messageAndNeighbors.message is QuoteMessage) &&
             messageAndNeighbors.message?.deletedAt == nil &&
             (chatViewTableViewCellDelegate?.cellInteractionEnabled ?? false) &&
@@ -1191,11 +1191,11 @@ extension ChatViewBaseTableViewCell: ChatViewTableViewCellHorizontalSwipeHandler
     func showQuoteView() {
         guard let message = messageAndNeighbors.message as? QuoteMessage else {
             DDLogError(
-                "Cannot show quote as message is nil (\(messageAndNeighbors.message == nil) or not a QuoteMessage"
+                "Cannot show quote view as message is nil (\(messageAndNeighbors.message == nil) or not a QuoteMessage"
             )
             return
         }
-        chatViewTableViewCellDelegate?.showQuoteView(message: message)
+        chatViewTableViewCellDelegate?.showQuoteView(for: message)
     }
     
     func configure(swipeGestureRecognizer: UIPanGestureRecognizer) {
@@ -1278,6 +1278,8 @@ extension ChatViewBaseTableViewCell {
                   let accessibilityHint = message.customAccessibilityHint else {
                 return nil
             }
+            
+            // TODO: (IOS-6109) Also check if child might have set an hint (see other TODO in code)
             return accessibilityHint
         }
         

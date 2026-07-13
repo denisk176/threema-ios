@@ -60,15 +60,16 @@ final class AudioDataEntityTests: XCTestCase {
 
         if encrypted {
             XCTAssertEqual(testDatabase.remoteSecretCryptoMock.decryptCalls, 0)
-            XCTAssertEqual(testDatabase.remoteSecretCryptoMock.encryptCalls, 1)
+            XCTAssertEqual(testDatabase.remoteSecretCryptoMock.encryptCalls, 2)
 
             // Test faulting
             testDatabase.context.main.refresh(fetchedAudioDataEntity, mergeChanges: false)
 
             XCTAssertEqual(data, fetchedAudioDataEntity.data)
+            XCTAssertTrue(audioMessageEntity.isDataAvailable)
 
             XCTAssertEqual(testDatabase.remoteSecretCryptoMock.decryptCalls, 1)
-            XCTAssertEqual(testDatabase.remoteSecretCryptoMock.encryptCalls, 1)
+            XCTAssertEqual(testDatabase.remoteSecretCryptoMock.encryptCalls, 2)
         }
         else {
             XCTAssertEqual(testDatabase.remoteSecretCryptoMock.decryptCalls, 0)

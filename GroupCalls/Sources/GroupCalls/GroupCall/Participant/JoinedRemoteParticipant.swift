@@ -124,7 +124,7 @@ extension JoinedRemoteParticipant {
             throw GroupCallError.decryptionFailure
         }
         
-        guard let envelope = try? GroupCall_ParticipantToParticipant.Envelope(serializedData: innerData) else {
+        guard let envelope = try? GroupCall_ParticipantToParticipant.Envelope(serializedBytes: innerData) else {
             assertionFailure()
             throw GroupCallError.decryptionFailure
         }

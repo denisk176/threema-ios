@@ -3,7 +3,7 @@
 //  MediaBrowserPhoto.m
 //  Threema
 //
-//  Copyright (c) 2014 Threema GmbH. All rights reserved.
+//  Copyright (c) 2014 Threema AG. All rights reserved.
 //
 
 #import "MediaBrowserPhoto.h"

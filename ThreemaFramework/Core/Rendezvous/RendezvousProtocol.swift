@@ -83,7 +83,7 @@ public enum RendezvousProtocol {
         
         // swiftformat:disable:next acronyms
         guard let deviceGroupJoinRequestOrOffer = try? Url_DeviceGroupJoinRequestOrOffer(
-            serializedData: deviceGroupJoinRequestOrOfferData
+            serializedBytes: deviceGroupJoinRequestOrOfferData
         ) else {
             throw Error.unableToDeserializeData
         }
@@ -181,7 +181,7 @@ public enum RendezvousProtocol {
         // RRD <- Handshake.RidToRrd.AuthHello -- RID
         
         let authHelloData = try await connection.receive()
-        let authHelloMessage = try D2dRendezvous_Handshake.RidToRrd.AuthHello(serializedData: authHelloData)
+        let authHelloMessage = try D2dRendezvous_Handshake.RidToRrd.AuthHello(serializedBytes: authHelloData)
         // In theory we should retry to receive more data/frames and see if we the combined data can be deserialized.
         // For now we assume that this message is enough small
         DDLogVerbose("Received auth hello: \(authHelloMessage)")
@@ -225,7 +225,7 @@ public enum RendezvousProtocol {
             
             DDLogVerbose("Received a message")
             
-            guard let _ = try? D2dRendezvous_Nominate(serializedData: authHelloData) else {
+            guard let _ = try? D2dRendezvous_Nominate(serializedBytes: authHelloData) else {
                 throw Error.unableToDeserializeData
             }
         }
@@ -261,7 +261,7 @@ public enum RendezvousProtocol {
 
         let helloData = try await connection.receive()
         
-        let helloMessage = try D2dRendezvous_Handshake.RrdToRid.Hello(serializedData: helloData)
+        let helloMessage = try D2dRendezvous_Handshake.RrdToRid.Hello(serializedBytes: helloData)
         
         DDLogVerbose("Received hello: \(helloMessage)")
 
@@ -282,7 +282,7 @@ public enum RendezvousProtocol {
 
         let authData = try await connection.receive()
         
-        let authMessage = try D2dRendezvous_Handshake.RrdToRid.Auth(serializedData: authData)
+        let authMessage = try D2dRendezvous_Handshake.RrdToRid.Auth(serializedBytes: authData)
         
         DDLogVerbose("Received auth: \(authMessage)")
         

@@ -5,8 +5,7 @@ extension AppGroup {
     @objc static func refreshDirtyObjects() {
         guard RemoteSecretProvider.isRemoteSecretManagerSet else {
             DDLogWarn(
-                "Refresh of dirty objects not possible right now, "
-                    + "because remote secret manager is not initialized"
+                "Refresh of dirty objects not possible right now, because remote secret manager is not initialized"
             )
             return
         }

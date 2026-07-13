@@ -160,6 +160,12 @@ extension ContactStore: WorkFetcherContactAdderProtocol {
        
         return false
     }
+
+    @objc func fetchGatewayProfilePicture(for identity: String) {
+        if ThreemaIdentity(identity).isGatewayID {
+            GatewayProfilePictureManager().loadAndSaveAvatar(for: identity)
+        }
+    }
 }
 
 extension ContactStoreProtocol {

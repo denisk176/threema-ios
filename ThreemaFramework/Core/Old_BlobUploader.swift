@@ -63,7 +63,7 @@ final class Old_BlobUploader: NSObject {
         
         blobURL.upload(origin: origin, setPersistParam: setPersistParam) { uploadURL, authorization, error in
             if uploadURL == nil {
-                DDLogError(String(format: "Upload failed with error: %@", error!.localizedDescription))
+                DDLogError("\(String(format: "Upload failed with error: %@", error!.localizedDescription))")
                 self.delegate.uploadFailed()
                 return
             }
@@ -77,7 +77,7 @@ final class Old_BlobUploader: NSObject {
                 delegate: self
             ) { task, data, response, error in
                 if let error {
-                    DDLogError(String(format: "Upload failed with error: %@", error.localizedDescription))
+                    DDLogError("\(String(format: "Upload failed with error: %@", error.localizedDescription))")
                     self.delegate.uploadFailed()
                     return
                 }
@@ -179,7 +179,7 @@ extension Old_BlobUploader: URLSessionTaskDelegate {
     
     func urlSession(_ session: URLSession, didBecomeInvalidWithError error: Error?) {
         if let error {
-            DDLogError(String(format: "Upload session invalid with error: %@", error.localizedDescription))
+            DDLogError("\(String(format: "Upload session invalid with error: %@", error.localizedDescription))")
         }
 
         if !delegate.uploadShouldCancel() {

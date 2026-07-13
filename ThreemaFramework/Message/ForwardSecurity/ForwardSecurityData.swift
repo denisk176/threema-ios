@@ -10,7 +10,7 @@ class ForwardSecurityData: NSObject {
     }
     
     @objc static func fromProtobuf(rawProtobufMessage: Data) throws -> ForwardSecurityData {
-        let protobufMessage = try CspE2eFs_Envelope(serializedData: rawProtobufMessage)
+        let protobufMessage = try CspE2eFs_Envelope(serializedBytes: rawProtobufMessage)
         let sessionID = try DHSessionID(value: protobufMessage.sessionID)
         
         switch protobufMessage.content! {

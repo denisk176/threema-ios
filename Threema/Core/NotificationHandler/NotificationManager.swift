@@ -46,7 +46,7 @@ final class NotificationManager: NSObject, NotificationManagerProtocol {
     
     final func updateTabBarBadge(badgeTotalCount: Int) {
         Task { @MainActor in
-            if let mainTabBar = AppDelegate.shared().tabBarController(),
+            if let mainTabBar = SharedAppProvider.tabBarController,
                let items = mainTabBar.tabBar.items,
                items.count > Int(kChatTabBarIndex) {
                 items[Int(kChatTabBarIndex)].badgeValue = badgeTotalCount > 0 ? String(badgeTotalCount) : nil
@@ -88,11 +88,13 @@ final class NotificationManager: NSObject, NotificationManagerProtocol {
                     return totalCount
                 }
 
-                NotificationCenter.default.post(
-                    name: NSNotification.Name(rawValue: kNotificationMessagesCountChanged),
-                    object: nil,
-                    userInfo: [kKeyUnread: badgeTotalCount]
-                )
+                await MainActor.run {
+                    NotificationCenter.default.post(
+                        name: NSNotification.Name(rawValue: kNotificationMessagesCountChanged),
+                        object: nil,
+                        userInfo: [kKeyUnread: badgeTotalCount]
+                    )
+                }
 
                 self.updateTabBarBadge(badgeTotalCount: badgeTotalCount)
             }
@@ -187,7 +189,7 @@ final class NotificationManager: NSObject, NotificationManagerProtocol {
                         if !granted {
                             DispatchQueue.main.async {
                                 // No access to microphone, stop call
-                                guard let rootVC = AppDelegate.keyWindow?.rootViewController else {
+                                guard let rootVC = SharedAppProvider.keyWindow?.rootViewController else {
                                     return
                                 }
                                 
@@ -216,9 +218,12 @@ final class NotificationManager: NSObject, NotificationManagerProtocol {
             }
             else if let key = payload["key"] as? String,
                     key == "safe-backup-notification",
-                    let notification {
+                    let notification,
+                    let currentTopViewController = SharedAppProvider.onMain({
+                        SharedAppProvider.currentTopViewController
+                    }) {
                 UIAlertTemplate.showAlert(
-                    owner: AppDelegate.shared().currentTopViewController(),
+                    owner: currentTopViewController,
                     title: notification.request.content.title,
                     message: notification.request.content.body,
                     actionOk: nil
@@ -268,7 +273,7 @@ extension NotificationManager {
             TargetManager.appName
         )
         ThreemaUtilityObjC.sendErrorLocalNotification(title, body: message, userInfo: nil) {
-            if AppDelegate.shared().active {
+            if SharedAppProvider.isAppActive {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
                     completionHandler()
                 }
@@ -289,12 +294,17 @@ extension NotificationManager {
 extension NotificationManager {
     static func showThreemaWebError(title: String, body: String) {
         guard UIApplication.shared.applicationState != .active else {
-            UIAlertTemplate.showAlert(
-                owner: AppDelegate.shared().currentTopViewController(),
-                title: title,
-                message: body,
-                actionOk: nil
-            )
+            if let currentTopViewController = SharedAppProvider.onMain({
+                SharedAppProvider.currentTopViewController
+            }) {
+                UIAlertTemplate.showAlert(
+                    owner: currentTopViewController,
+                    title: title,
+                    message: body,
+                    actionOk: nil
+                )
+            }
+            
             return
         }
         let notification = UNMutableNotificationContent()

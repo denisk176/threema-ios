@@ -2,7 +2,7 @@
 //  KKPasscodeGracePeriodViewController.m
 //  Threema
 //
-//  Copyright (c) 2012 Threema GmbH. All rights reserved.
+//  Copyright (c) 2012 Threema AG. All rights reserved.
 //
 
 #import "KKPasscodeGracePeriodViewController.h"

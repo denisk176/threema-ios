@@ -196,9 +196,11 @@ enum ConversationListViewControllerHelper {
             message: #localize("privateChat_code_alert_message"),
             titleOk: #localize("privateChat_code_alert_confirm"),
             actionOk: { _ in
-                AppDelegate.shared().execute { appCoordinator in
-                    let passcodeViewController = KKPasscodeSettingsViewController(style: .insetGrouped)
-                    appCoordinator.showModal(for: passcodeViewController)
+                Task { @MainActor in
+                    SharedAppProvider.execute { appCoordinator in
+                        let passcodeViewController = KKPasscodeSettingsViewController(style: .insetGrouped)
+                        appCoordinator.showModal(for: passcodeViewController)
+                    }
                 }
             }
         )

@@ -730,8 +730,8 @@ extension ChatViewVoiceMessageTableViewCell: ChatViewMessageActions {
             }
         }
         
-        // Quote
-        let quoteHandler = {
+        // Reply
+        let replyHandler = {
             guard let chatViewTableViewCellDelegate = self.chatViewTableViewCellDelegate else {
                 DDLogError("[CV CxtMenu] Could not show quote view because the delegate was nil.")
                 return
@@ -742,7 +742,7 @@ extension ChatViewVoiceMessageTableViewCell: ChatViewMessageActions {
                 return
             }
             
-            chatViewTableViewCellDelegate.showQuoteView(message: message)
+            chatViewTableViewCellDelegate.showQuoteView(for: message)
         }
         
         // Copy
@@ -803,7 +803,7 @@ extension ChatViewVoiceMessageTableViewCell: ChatViewMessageActions {
             markStarHandler: markStarHandler,
             retryAndCancelHandler: retryAndCancelHandler,
             downloadHandler: downloadHandler,
-            quoteHandler: quoteHandler,
+            replyHandler: replyHandler,
             copyHandler: copyHandler,
             shareHandler: shareHandler,
             speakText: speakText,

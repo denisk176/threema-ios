@@ -53,6 +53,7 @@ final class AppearanceSettingsViewModel: ObservableObject {
 
     // MARK: - Public properties
 
+    let navigationBarTitle = #localize("settings_list_appearance_title")
     let themeSectionLabel = #localize("settings_appearance_theme_section")
     let systemButtonTitle = #localize("settings_appearance_system_theme")
     let lightButtonTitle = #localize("settings_appearance_light_theme")

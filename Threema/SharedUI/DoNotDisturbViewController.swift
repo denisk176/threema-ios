@@ -408,7 +408,7 @@ extension DoNotDisturbViewController {
         }
 
         // Cast indexes to `Int` and remove any `nil` values. There should be no `nil` values.
-        var weekdayOffByOneIndexes = weekdayOffByOneSet.map { $0 as? Int }.compactMap { $0 }
+        var weekdayOffByOneIndexes = weekdayOffByOneSet.map { $0 as? Int }.compactMap(\.self)
         assert(weekdayOffByOneSet.count == weekdayOffByOneIndexes.count, "All indexes should be parsable as `Int`.")
         
         // Sort our indexes according to the current locale's `firstWeekday`

@@ -32,7 +32,7 @@ final class ImageMessageEntityTests: XCTestCase {
         let imageSize: NSNumber = 256
         let encryptionKey = BytesUtility.generateBlobEncryptionKey()
         let progress: NSNumber = 0.75
-        
+
         // Act
         let conversation = entityManager.performAndWaitSave {
             entityManager.entityCreator.conversationEntity()
@@ -87,7 +87,7 @@ final class ImageMessageEntityTests: XCTestCase {
             XCTAssertEqual(testDatabase.remoteSecretCryptoMock.decryptCalls, 0)
             XCTAssertEqual(
                 testDatabase.remoteSecretCryptoMock.encryptCalls,
-                9
+                10
             ) // Plus 5 `BaseMessageEntity` fields
 
             // Test faulting
@@ -101,7 +101,7 @@ final class ImageMessageEntityTests: XCTestCase {
             XCTAssertEqual(testDatabase.remoteSecretCryptoMock.decryptCalls, 4)
             XCTAssertEqual(
                 testDatabase.remoteSecretCryptoMock.encryptCalls,
-                9
+                10
             ) // Plus 5 `BaseMessageEntity` fields
         }
         else {
@@ -117,7 +117,7 @@ final class ImageMessageEntityTests: XCTestCase {
 
         let messageID = BytesUtility.generateMessageID()
         let isOwn = true
-        
+
         // Act
         let conversation = entityManager.performAndWaitSave {
             entityManager.entityCreator.conversationEntity()
@@ -141,5 +141,73 @@ final class ImageMessageEntityTests: XCTestCase {
         XCTAssertEqual(messageID, fetchedImageMessageEntity.id)
         XCTAssertEqual(isOwn, fetchedImageMessageEntity.isOwnMessage)
         XCTAssertEqual(conversation.objectID, fetchedImageMessageEntity.conversation.objectID)
+        XCTAssertFalse(fetchedImageMessageEntity.dataAvailable.boolValue)
+    }
+    
+    func testUpdateDataAvailableSetter() throws {
+        // Arrange
+        let testDatabase = TestDatabase()
+        let entityManager = testDatabase.entityManager
+
+        let messageID = BytesUtility.generateMessageID()
+        let isOwn = true
+
+        // Act
+        let conversation = entityManager.performAndWaitSave {
+            entityManager.entityCreator.conversationEntity()
+        }
+
+        let imageMessageEntity = entityManager.performAndWaitSave {
+            ImageMessageEntity(
+                context: testDatabase.context.main,
+                id: messageID,
+                isOwn: isOwn,
+                conversation: conversation
+            )
+        }
+
+        entityManager.performAndWaitSave {
+            let imageDataEntity = entityManager.entityCreator.imageDataEntity(data: Data(), size: .zero)
+            imageMessageEntity.image = imageDataEntity
+        }
+
+        let updatedFetchedImageMessageEntity = try XCTUnwrap(
+            entityManager.entityFetcher
+                .existingObject(with: imageMessageEntity.objectID) as? ImageMessageEntity
+        )
+
+        // Assert
+        let updatedDataAvailable = try XCTUnwrap(updatedFetchedImageMessageEntity.dataAvailable)
+        XCTAssertTrue(updatedDataAvailable.boolValue)
+    }
+    
+    func testUpdateDataAvailableInit() throws {
+        // Arrange
+        let testDatabase = TestDatabase()
+        let entityManager = testDatabase.entityManager
+
+        let messageID = BytesUtility.generateMessageID()
+        let isOwn = true
+
+        // Act
+        let conversation = entityManager.performAndWaitSave {
+            entityManager.entityCreator.conversationEntity()
+        }
+
+        let imageMessageEntity = entityManager.performAndWaitSave {
+            let imageDataEntity = entityManager.entityCreator.imageDataEntity(data: Data(), size: .zero)
+
+            return ImageMessageEntity(
+                context: testDatabase.context.main,
+                id: messageID,
+                isOwn: isOwn,
+                image: imageDataEntity,
+                conversation: conversation
+            )
+        }
+
+        // Assert
+        let dataAvailable = try XCTUnwrap(imageMessageEntity.dataAvailable)
+        XCTAssertTrue(dataAvailable.boolValue)
     }
 }

@@ -4,23 +4,23 @@ import ThreemaMacros
 
 @MainActor
 final class CreatePollViewModel: ObservableObject {
-    
+
     // MARK: - Constants
-    
+
     private enum Constants {
         static let minChoicesCount = 2
     }
-    
+
     // MARK: - Internal type
-    
+
     public struct Choice: Identifiable {
         let id = UUID()
         var text: String
         var date: Date = .now
     }
-    
+
     // MARK: - State
-    
+
     @Published var title = "" {
         didSet {
             onTitleChanged()
@@ -41,15 +41,15 @@ final class CreatePollViewModel: ObservableObject {
     @Published var isEditEnabled = false
 
     // MARK: - Public properties
-    
+
     var pollType: BallotEntity.BallotType {
         showIntermediateResult ? .intermediate : .closed
     }
-    
+
     var pollAssessmentType: BallotEntity.BallotAssessmentType {
         allowMultipleSelection ? .multi : .single
     }
-    
+
     let titleSectionHeaderTitle = #localize("poll_title_section_header")
     let titlePlaceholder = #localize("ballot_placeholder_title")
     let choicesSectionHeaderTitle = #localize("ballot_options")
@@ -64,8 +64,12 @@ final class CreatePollViewModel: ObservableObject {
 
     let cancelText = #localize("cancel")
     let sendText = #localize("send")
-    
+
     let navigationTitle = #localize("ballot_create")
+
+    var isInteractiveDismissDisabled: Bool {
+        !title.isEmpty || choices.contains { !$0.text.isEmpty }
+    }
 
     // MARK: - Private properties
 

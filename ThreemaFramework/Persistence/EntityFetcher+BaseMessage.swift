@@ -74,6 +74,24 @@ extension EntityFetcher {
         return fetchEntities(entityName: "FileMessage", predicate: predicate, sortDescriptors: [sortDescriptor])
     }
     
+    public func audioMessageEntities(for conversationEntity: ConversationEntity) -> [AudioMessageEntity]? {
+        let predicate = messageConversationPredicate(conversation: conversationEntity)
+        let sortDescriptor = NSSortDescriptor(key: "date", ascending: true)
+        return fetchEntities(entityName: "AudioMessage", predicate: predicate, sortDescriptors: [sortDescriptor])
+    }
+    
+    public func imageMessageEntities(for conversationEntity: ConversationEntity) -> [ImageMessageEntity]? {
+        let predicate = messageConversationPredicate(conversation: conversationEntity)
+        let sortDescriptor = NSSortDescriptor(key: "date", ascending: true)
+        return fetchEntities(entityName: "ImageMessage", predicate: predicate, sortDescriptors: [sortDescriptor])
+    }
+    
+    public func videoMessageEntities(for conversationEntity: ConversationEntity) -> [VideoMessageEntity]? {
+        let predicate = messageConversationPredicate(conversation: conversationEntity)
+        let sortDescriptor = NSSortDescriptor(key: "date", ascending: true)
+        return fetchEntities(entityName: "VideoMessage", predicate: predicate, sortDescriptors: [sortDescriptor])
+    }
+    
     /// If a specific message from the sender has already been delivered.
     /// - Parameters:
     /// - identity: Sender of the message

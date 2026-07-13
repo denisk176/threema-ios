@@ -415,10 +415,15 @@ extension MessageTextView: UITextViewDelegate {
     ) -> UIAction? {
         switch textItem.content {
         case let .link(url):
-            guard IDNASafetyHelper.isLegalURL(
-                url: url,
-                viewController: AppDelegate.shared().currentTopViewController()
-            ) else {
+            guard
+                let topViewController = SharedAppProvider.onMain({
+                    SharedAppProvider.currentTopViewController
+                }),
+                IDNASafetyHelper.isLegalURL(
+                    url: url,
+                    viewController: topViewController
+                )
+            else {
                 return nil
             }
 

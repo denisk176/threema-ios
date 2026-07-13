@@ -65,46 +65,44 @@ struct PrivacySettingsView: View {
             
             // MARK: Allow identity transfer
 
-            if ThreemaEnvironment.allowEasyDeviceSwitch {
-                Section {
-                    Toggle(isOn: $allowIdentityTransfer) {
-                        Text(#localize("this_device_decision_toggle_title"))
-                    }
-                    .disabled(
-                        (
-                            mdmSetup?.disableIOSSystemBackupsIDKeyInclusion() ?? false || mdmSetup?
-                                .disableBackups() ?? false || mdmSetup?.disableSystemBackups() ?? false
-                        ) ||
-                            !canChangeAllowIdentityTransfer
-                    )
-                } header: {
-                    Text(#localize("this_device_decision_title"))
-                } footer: {
-                    if !canChangeAllowIdentityTransfer {
-                        Text(#localize("this_device_decision_alert_message"))
+            Section {
+                Toggle(isOn: $allowIdentityTransfer) {
+                    Text(#localize("this_device_decision_toggle_title"))
+                }
+                .disabled(
+                    (
+                        mdmSetup?.existsMdmKey(MDM_KEY_DISABLE_IOS_SYSTEM_BACKUPS_ID_KEY_INCLUSION) ?? false || mdmSetup?
+                            .disableBackups() ?? false || mdmSetup?.disableSystemBackups() ?? false
+                    ) ||
+                        !canChangeAllowIdentityTransfer
+                )
+            } header: {
+                Text(#localize("this_device_decision_title"))
+            } footer: {
+                if !canChangeAllowIdentityTransfer {
+                    Text(#localize("this_device_decision_alert_message"))
+                }
+                else {
+                        
+                    if mdmSetup?.existsMdmKey(MDM_KEY_DISABLE_IOS_SYSTEM_BACKUPS_ID_KEY_INCLUSION) ?? false || mdmSetup?
+                        .disableBackups() ?? false || mdmSetup?.disableSystemBackups() ?? false {
+                        Text(#localize("disabled_by_device_policy"))
                     }
                     else {
-                        
-                        if mdmSetup?.disableIOSSystemBackupsIDKeyInclusion() ?? false || mdmSetup?
-                            .disableBackups() ?? false || mdmSetup?.disableSystemBackups() ?? false {
-                            Text(#localize("disabled_by_device_policy"))
-                        }
-                        else {
-                            VStack(alignment: .leading, spacing: 0) {
-                                Text(#localize("this_device_decision_additional_info"))
+                        VStack(alignment: .leading, spacing: 0) {
+                            Text(#localize("this_device_decision_additional_info"))
                                 
-                                Link(
-                                    #localize("learn_more"),
-                                    destination: ThreemaURLProvider.thisDeviceOnlyFAQ
-                                )
-                                .font(.footnote)
-                            }
+                            Link(
+                                #localize("learn_more"),
+                                destination: ThreemaURLProvider.thisDeviceOnlyFAQ
+                            )
+                            .font(.footnote)
                         }
                     }
                 }
-                .onChange(of: allowIdentityTransfer) {
-                    setIdentityThisDeviceOnly()
-                }
+            }
+            .onChange(of: allowIdentityTransfer) {
+                setIdentityThisDeviceOnly()
             }
             
             // MARK: OS Integration
@@ -243,9 +241,10 @@ struct PrivacySettingsView: View {
     }
     
     private func hidePrivateChatsChanged(_ hide: Bool) {
-        if !hide {
+        if !hide,
+           let currentTopViewController = SharedAppProvider.currentTopViewController {
             lockScreenWrapper.presentLockScreenView(
-                viewController: AppDelegate.shared().currentTopViewController(),
+                viewController: currentTopViewController,
                 enteredCorrectly: {
                     settingsVM.hidePrivateChats = hide
                     NotificationCenter.default.post(

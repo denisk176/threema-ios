@@ -198,7 +198,7 @@ extension ChatViewDeletedMessageTableViewCell: ChatViewMessageActions {
         return [
             primaryActions,
             .init(sectionType: .inline, actions: basicActions),
-        ].compactMap { $0 }
+        ].compactMap(\.self)
     }
     
     override var accessibilityCustomActions: [UIAccessibilityCustomAction]? {

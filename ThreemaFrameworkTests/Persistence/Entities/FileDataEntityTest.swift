@@ -53,15 +53,16 @@ final class FileDataEntityTests: XCTestCase {
 
         if encrypted {
             XCTAssertEqual(testDatabase.remoteSecretCryptoMock.decryptCalls, 0)
-            XCTAssertEqual(testDatabase.remoteSecretCryptoMock.encryptCalls, 1)
+            XCTAssertEqual(testDatabase.remoteSecretCryptoMock.encryptCalls, 2)
 
             // Test faulting
             testDatabase.context.main.refresh(fetchedFileDataEntity, mergeChanges: false)
 
             XCTAssertEqual(data, fetchedFileDataEntity.data)
+            XCTAssertTrue(fileMessageEntity.isDataAvailable)
             
             XCTAssertEqual(testDatabase.remoteSecretCryptoMock.decryptCalls, 1)
-            XCTAssertEqual(testDatabase.remoteSecretCryptoMock.encryptCalls, 1)
+            XCTAssertEqual(testDatabase.remoteSecretCryptoMock.encryptCalls, 2)
         }
         else {
             XCTAssertEqual(testDatabase.remoteSecretCryptoMock.decryptCalls, 0)

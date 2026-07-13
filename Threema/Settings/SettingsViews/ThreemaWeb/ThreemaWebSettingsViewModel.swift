@@ -35,6 +35,7 @@ final class ThreemaWebSettingsViewModel: NSObject, ObservableObject {
     let okButtonTitle = #localize("ok")
     let renameButtonTitle = #localize("webClientSession_actionSheet_renameSession")
     let saveButtonTitle = #localize("save")
+    let scanButtonTitle = #localize("webClientSession_add")
     let scanButtonIconName = "qrcode.viewfinder"
     let screenTitle = #localize("settings_list_threema_web_title")
     let sessionTitle = #localize("webClientSession_title")

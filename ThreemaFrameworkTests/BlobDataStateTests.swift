@@ -373,9 +373,9 @@ final class BlobDataStateTests: XCTestCase {
                 conversation: conversation,
                 encryptionKey: BytesUtility.generateBlobEncryptionKey(),
                 blobID: BytesUtility.generateBlobID(),
+                data: databasePreparer.createFileDataEntity(data: Data([0])),
                 isOwn: true
             )
-            fileMessageEntity.data = databasePreparer.createFileDataEntity(data: Data([0]))
         }
         
         XCTAssertEqual(.outgoing(.remote), fileMessageEntity.dataState)

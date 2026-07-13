@@ -55,23 +55,32 @@ final class ProfileCollectionViewHeaderCell: UICollectionViewListCell, Reusable 
     
     private lazy var nameLabel: UILabel = {
         let label = UILabel()
-        label.adjustsFontForContentSizeCategory = true
+        
         label.font = .preferredFont(forTextStyle: .title1).bold()
+        label.adjustsFontForContentSizeCategory = true
         label.numberOfLines = 0
+        label.textAlignment = .center
+        
         label.isUserInteractionEnabled = true
+        
         label.translatesAutoresizingMaskIntoConstraints = false
         label.setContentCompressionResistancePriority(.required, for: .vertical)
+        
         return label
     }()
     
     private lazy var idLabel: UILabel = {
         let label = UILabel()
-        label.adjustsFontForContentSizeCategory = true
+        
         label.font = .preferredFont(forTextStyle: .title3)
+        label.adjustsFontForContentSizeCategory = true
         label.numberOfLines = 0
+        
         label.isUserInteractionEnabled = true
+        
         label.translatesAutoresizingMaskIntoConstraints = false
         label.setContentCompressionResistancePriority(.required, for: .vertical)
+        
         return label
     }()
     
@@ -89,7 +98,7 @@ final class ProfileCollectionViewHeaderCell: UICollectionViewListCell, Reusable 
     ]
     
     private lazy var idLabelConstraints: [NSLayoutConstraint] = [
-        idLabel.topAnchor.constraint(equalTo: nameLabel.bottomAnchor),
+        idLabel.topAnchor.constraint(equalTo: nameLabel.bottomAnchor, constant: 8),
         idLabel.leadingAnchor.constraint(greaterThanOrEqualTo: contentView.leadingAnchor),
         idLabel.trailingAnchor.constraint(lessThanOrEqualTo: contentView.trailingAnchor),
         idLabel.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
@@ -144,8 +153,8 @@ final class ProfileCollectionViewHeaderCell: UICollectionViewListCell, Reusable 
         
         NSLayoutConstraint.activate([
             profilePictureView.topAnchor.constraint(equalTo: contentView.topAnchor),
-            profilePictureView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 40),
-            profilePictureView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -40),
+            profilePictureView.heightAnchor.constraint(equalToConstant: 200),
+            profilePictureView.widthAnchor.constraint(equalTo: profilePictureView.heightAnchor),
             profilePictureView.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
 
             nameLabel.topAnchor.constraint(equalTo: profilePictureView.bottomAnchor, constant: 20),

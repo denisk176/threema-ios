@@ -75,7 +75,7 @@ import ThreemaEssentials
             "Started setting typing indicator `\(typing ? "ON" : "OFF")` for conversation with contact identity \(identity)."
         )
 
-        guard identity.count == ThreemaIdentity.length else {
+        guard (try? ThreemaIdentity(identity: identity)) != nil else {
             DDLogError("Invalid contact identity: \(identity).")
             return
         }

@@ -83,6 +83,7 @@ final class VideoMessageEntityTests: XCTestCase {
         XCTAssertEqual(progress, fetchedVideoMessageEntity.progress)
         XCTAssertEqual(videoBlobID, fetchedVideoMessageEntity.videoBlobID)
         XCTAssertEqual(videoSize, fetchedVideoMessageEntity.videoSize)
+        XCTAssertEqual(true, fetchedVideoMessageEntity.dataAvailable.boolValue)
         XCTAssertEqual(conversation.objectID, fetchedVideoMessageEntity.conversation.objectID)
         XCTAssertEqual(videoDataEntity.objectID, fetchedVideoMessageEntity.video?.objectID)
         XCTAssertEqual(thumbnailDataEntity.objectID, fetchedVideoMessageEntity.thumbnail?.objectID)
@@ -91,7 +92,7 @@ final class VideoMessageEntityTests: XCTestCase {
             XCTAssertEqual(testDatabase.remoteSecretCryptoMock.decryptCalls, 0)
             XCTAssertEqual(
                 testDatabase.remoteSecretCryptoMock.encryptCalls,
-                9
+                10
             ) // Plus 5 `BaseMessageEntity` fields
 
             // Test faulting
@@ -105,7 +106,7 @@ final class VideoMessageEntityTests: XCTestCase {
             XCTAssertEqual(testDatabase.remoteSecretCryptoMock.decryptCalls, 4)
             XCTAssertEqual(
                 testDatabase.remoteSecretCryptoMock.encryptCalls,
-                9
+                10
             ) // Plus 5 `BaseMessageEntity` fields
         }
         else {
@@ -123,7 +124,6 @@ final class VideoMessageEntityTests: XCTestCase {
         let isOwn = true
         
         // Act
-
         let conversation = entityManager.performAndWaitSave {
             entityManager.entityCreator.conversationEntity()
         }
@@ -146,5 +146,73 @@ final class VideoMessageEntityTests: XCTestCase {
         XCTAssertEqual(messageID, fetchedVideoMessageEntity.id)
         XCTAssertEqual(isOwn, fetchedVideoMessageEntity.isOwnMessage)
         XCTAssertEqual(conversation.objectID, fetchedVideoMessageEntity.conversation.objectID)
+        XCTAssertFalse(fetchedVideoMessageEntity.dataAvailable.boolValue)
+    }
+    
+    func testUpdateDataAvailableSetter() throws {
+        // Arrange
+        let testDatabase = TestDatabase()
+        let entityManager = testDatabase.entityManager
+
+        let messageID = BytesUtility.generateMessageID()
+        let isOwn = true
+
+        // Act
+        let conversation = entityManager.performAndWaitSave {
+            entityManager.entityCreator.conversationEntity()
+        }
+
+        let videoMessageEntity = entityManager.performAndWaitSave {
+            VideoMessageEntity(
+                context: testDatabase.context.main,
+                id: messageID,
+                isOwn: isOwn,
+                conversation: conversation
+            )
+        }
+
+        entityManager.performAndWaitSave {
+            let videoDataEntity = entityManager.entityCreator.videoDataEntity(data: Data())
+            videoMessageEntity.video = videoDataEntity
+        }
+
+        let updatedFetchedVideoMessageEntity = try XCTUnwrap(
+            entityManager.entityFetcher
+                .existingObject(with: videoMessageEntity.objectID) as? VideoMessageEntity
+        )
+
+        // Assert
+        let updatedDataAvailable = try XCTUnwrap(updatedFetchedVideoMessageEntity.dataAvailable)
+        XCTAssertTrue(updatedDataAvailable.boolValue)
+    }
+    
+    func testUpdateDataAvailableInit() throws {
+        // Arrange
+        let testDatabase = TestDatabase()
+        let entityManager = testDatabase.entityManager
+
+        let messageID = BytesUtility.generateMessageID()
+        let isOwn = true
+
+        // Act
+        let conversation = entityManager.performAndWaitSave {
+            entityManager.entityCreator.conversationEntity()
+        }
+
+        let videoMessageEntity = entityManager.performAndWaitSave {
+            let videoDataEntity = entityManager.entityCreator.videoDataEntity(data: Data())
+            
+            return VideoMessageEntity(
+                context: testDatabase.context.main,
+                id: messageID,
+                isOwn: isOwn,
+                conversation: conversation,
+                video: videoDataEntity
+            )
+        }
+
+        // Assert
+        let dataAvailable = try XCTUnwrap(videoMessageEntity.dataAvailable)
+        XCTAssertTrue(dataAvailable.boolValue)
     }
 }

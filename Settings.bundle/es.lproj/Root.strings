@@ -8,5 +8,5 @@
 "safe_mode_switch" = "Modo de soporte avanzado";
 
 /* (No Comment) */
-"sentry_switch" = "Desactivar Sentry";
+"sentry_deactivation_switch_title" = "Desactivar informe de error anónimo";
 

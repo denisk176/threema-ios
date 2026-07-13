@@ -154,4 +154,13 @@ extension FileMessageEntity: BlobData {
     public var blobExportFilename: String {
         "\(DateFormatter.getDateForFilename(date))-file-\(fileName ?? "unknown-file-name")"
     }
+    
+    public var isDataAvailable: Bool {
+        get {
+            dataAvailable.boolValue
+        }
+        set {
+            dataAvailable = NSNumber(booleanLiteral: newValue)
+        }
+    }
 }

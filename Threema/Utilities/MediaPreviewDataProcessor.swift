@@ -73,7 +73,7 @@ final class MediaPreviewDataProcessor: MediaPreviewURLDataProcessor {
         }
     }
     
-    private func handleVideoItem(item: VideoPreviewItem) -> Any? {
+    private func handleVideoItem(item: VideoPreviewItem) -> URL? {
         sendAsFile ? item.getOriginalItem() : item.getTranscodedItem()
     }
     

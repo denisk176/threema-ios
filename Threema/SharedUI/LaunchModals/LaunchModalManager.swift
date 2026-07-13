@@ -61,14 +61,7 @@ final class LaunchModalManager {
     }
 
     private var topViewController: UIViewController {
-        let topViewController: UIViewController?
-        
-        #if SCENE_DELEGATE_ROOT_COORDINATOR_DEVELOPMENT
-            topViewController =
-                SceneDelegate.current?.currentTopViewController
-        #else
-            topViewController = AppDelegate.shared().currentTopViewController()
-        #endif
+        let topViewController = SharedAppProvider.currentTopViewController
         
         guard let topViewController else {
             assertionFailure("Error: Could not get top view controller.")
@@ -84,7 +77,13 @@ final class LaunchModalManager {
 
     /// Checks if there is a launch view that needs to be displayed and does so modally if there is one
     func checkLaunchModals() {
+        guard !isBeingDisplayed else {
+            return
+        }
+
         Task {
+            isBeingDisplayed = true
+
             guard let modalType = await resolveModalType() else {
                 // No more launch modals to show
                 self.isBeingDisplayed = false
@@ -94,8 +93,6 @@ final class LaunchModalManager {
                 }
                 return
             }
-
-            isBeingDisplayed = true
 
             switch modalType {
             case .safeForcePassword:
@@ -201,10 +198,7 @@ final class LaunchModalManager {
     }
     
     private func checkCanShowIdentityThisDeviceOnly() -> Bool {
-        guard ThreemaEnvironment.allowEasyDeviceSwitch,
-              !UserSettings.shared().didShowIdentityThisDeviceOnly,
-              !TargetManager.isBusinessApp || TargetManager.isSandbox,
-              let mdmSetup = MDMSetup(),
+        guard !UserSettings.shared().didShowIdentityThisDeviceOnly,
               let thisDeviceOnly = try? BusinessInjector.ui.keychainManager.isIdentityThisDeviceOnly(),
               thisDeviceOnly
         else {
@@ -212,7 +206,7 @@ final class LaunchModalManager {
         }
         
         return !(
-            mdmSetup.disableIOSSystemBackupsIDKeyInclusion() || mdmSetup.disableBackups() || mdmSetup
+            mdmSetup.existsMdmKey(MDM_KEY_DISABLE_IOS_SYSTEM_BACKUPS_ID_KEY_INCLUSION) || mdmSetup.disableBackups() || mdmSetup
                 .disableSystemBackups()
         )
     }

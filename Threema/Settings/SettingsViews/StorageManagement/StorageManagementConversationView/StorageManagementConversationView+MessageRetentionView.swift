@@ -132,14 +132,13 @@ extension StorageManagementConversationView {
         
         private func confirmDeletion() {
             guard let days = selection.days else {
-                model.set(-1, completion: nil)
+                model.set(-1)
                 return
             }
             
-            model.set(days) {
-                Task { await storageModel.load() }
-                NotificationManager().updateUnreadMessagesCount()
-            }
+            model.set(days)
+            Task { await storageModel.load() }
+            NotificationManager().updateUnreadMessagesCount()
         }
     }
 }

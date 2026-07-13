@@ -57,15 +57,16 @@ final class VideoDataEntityTests: XCTestCase {
 
         if encrypted {
             XCTAssertEqual(testDatabase.remoteSecretCryptoMock.decryptCalls, 0)
-            XCTAssertEqual(testDatabase.remoteSecretCryptoMock.encryptCalls, 1)
+            XCTAssertEqual(testDatabase.remoteSecretCryptoMock.encryptCalls, 2)
 
             // Test faulting
             testDatabase.context.main.refresh(fetchedVideoDataEntity, mergeChanges: false)
 
             XCTAssertEqual(data, fetchedVideoDataEntity.data)
-            
+            XCTAssertTrue(videoMessageEntity.isDataAvailable)
+
             XCTAssertEqual(testDatabase.remoteSecretCryptoMock.decryptCalls, 1)
-            XCTAssertEqual(testDatabase.remoteSecretCryptoMock.encryptCalls, 1)
+            XCTAssertEqual(testDatabase.remoteSecretCryptoMock.encryptCalls, 2)
         }
     }
 

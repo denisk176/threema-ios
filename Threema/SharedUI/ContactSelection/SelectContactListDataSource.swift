@@ -14,15 +14,34 @@ final class SelectContactListDataSource: UITableViewDiffableDataSource<
         didSet {
             contentUnavailable = tableView?
                 .setupContentUnavailableView(configuration: contentUnavailableConfiguration)
-            snapshot().itemIdentifiers.isEmpty ? contentUnavailable?.show() : contentUnavailable?.hide()
+            snapshot().itemIdentifiers.isEmpty && !isSearching
+                ? contentUnavailable?.show()
+                : contentUnavailable?.hide()
         }
     }
 
     var onSnapshotApplied: (() -> Void)?
 
+    var filterText = "" {
+        didSet {
+            // Treat blank text (empty or whitespace-only) as no filter, so the full list stays visible
+            filterText = filterText.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard filterText != oldValue else {
+                return
+            }
+            applyProviderSnapshot()
+        }
+    }
+    
+    var isSearching: Bool {
+        !filterText.isEmpty
+    }
+
     private weak var coordinator: ContactListCoordinator?
     private weak var tableView: UITableView?
+    private let entityManager: EntityManager
     private var snapshotSubscription: Cancellable?
+    private var providerSnapshot = ContactListProvider.ContactListSnapshot()
     private var sectionTitles: [String] { ThreemaLocalizedIndexedCollation.sectionIndexTitles }
     
     private var tableIndexTitles: [String] {
@@ -50,6 +69,7 @@ final class SelectContactListDataSource: UITableViewDiffableDataSource<
     ) {
         self.coordinator = coordinator
         self.tableView = tableView
+        self.entityManager = entityManager
         self.sectionIndexEnabled = sectionIndexEnabled
         self.contentUnavailableConfiguration = contentUnavailableConfiguration
         
@@ -64,6 +84,8 @@ final class SelectContactListDataSource: UITableViewDiffableDataSource<
             
             return cellProvider.dequeueCell(for: indexPath, and: Contact(contactEntity: contactEntity), in: tableView)
         }
+        
+        defaultRowAnimation = .fade
         
         cellProvider.registerCells(in: tableView)
         
@@ -81,7 +103,7 @@ final class SelectContactListDataSource: UITableViewDiffableDataSource<
     }
 
     override func sectionIndexTitles(for tableView: UITableView) -> [String]? {
-        sectionIndexEnabled ? sectionTitles : nil
+        sectionIndexEnabled && isSearching ? sectionTitles : nil
     }
     
     override func tableView(_ tableView: UITableView, sectionForSectionIndexTitle title: String, at index: Int) -> Int {
@@ -93,16 +115,47 @@ final class SelectContactListDataSource: UITableViewDiffableDataSource<
             guard let self else {
                 return
             }
-            apply(snapshot)
-            didUpdate(snapshot: snapshot)
-            onSnapshotApplied?()
+            providerSnapshot = snapshot
+            applyProviderSnapshot()
         }
     }
 
     // MARK: - Private functions
-    
+
+    private func applyProviderSnapshot() {
+        let snapshot = filteredSnapshot(from: providerSnapshot)
+        apply(snapshot)
+        didUpdate(snapshot: snapshot)
+        onSnapshotApplied?()
+    }
+
+    private func filteredSnapshot(
+        from snapshot: ContactListProvider.ContactListSnapshot
+    ) -> ContactListProvider.ContactListSnapshot {
+        guard isSearching else {
+            return snapshot
+        }
+
+        let matchingIDs = Set(
+            entityManager.entityFetcher.matchingContactsForContactListSearch(
+                containing: filterText,
+                hideStaleContacts: UserSettings.shared().hideStaleContacts
+            )
+        )
+
+        var filtered = ContactListProvider.ContactListSnapshot()
+        for section in snapshot.sectionIdentifiers {
+            let items = snapshot.itemIdentifiers(inSection: section).filter { matchingIDs.contains($0) }
+            if !items.isEmpty {
+                filtered.appendSections([section])
+                filtered.appendItems(items, toSection: section)
+            }
+        }
+        return filtered
+    }
+
     private func didUpdate(snapshot: ContactListProvider.ContactListSnapshot) {
-        guard snapshot.numberOfItems > 0 else {
+        guard snapshot.numberOfItems > 0 || isSearching else {
             contentUnavailable?.show()
             return
         }

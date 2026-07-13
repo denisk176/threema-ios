@@ -26,6 +26,8 @@ public final class VideoDataEntity: ThreemaManagedObject {
 
         set {
             setData(newValue)
+            
+            message?.dataAvailable = NSNumber(booleanLiteral: true)
         }
     }
 

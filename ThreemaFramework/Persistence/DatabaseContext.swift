@@ -1,3 +1,4 @@
+import CocoaLumberjackSwift
 import CoreData
 
 @objc public protocol DatabaseContextProtocol {
@@ -172,6 +173,11 @@ public final class DatabaseContext: NSObject, DatabaseContextProtocol {
     /// Merge changed Managed Objects into main context.
     /// - Parameter changes: Changed Managed Objects
     static func mergeChangesIntoMainContext(_ changes: [AnyHashable: Any]) {
+        guard let mainContext else {
+            DDLogWarn("[DatabaseContext] No main context to merge into.")
+            return
+        }
+        
         mergeChanges(changes, into: [mainContext])
     }
 

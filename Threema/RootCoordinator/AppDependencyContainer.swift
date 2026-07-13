@@ -10,5 +10,10 @@ struct AppDependencyContainer {
     let remoteSecretManager: any RemoteSecretManagerProtocol
     let keychainManager: any KeychainManagerProtocol
     let bootstrap: BootstrapContainer
+    let passcodeLock: any PasscodeLockProtocol
     let wcSessionManager: WCSessionManagerProtocol
+    let newMessageToaster: NewMessageToaster
+    let incomingMessageManager: IncomingMessageManager
+    let groupCallUIHelper: GroupCallUIHelper
+    let typingIndicatorManager: TypingIndicatorManager
 }

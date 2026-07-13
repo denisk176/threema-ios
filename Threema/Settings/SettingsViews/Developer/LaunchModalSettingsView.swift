@@ -84,18 +84,21 @@ struct LaunchModalSettingsView: View {
             Section {
                 Button(role: .destructive) {
                     resetNotificationTypeSelection()
+                    NotificationPresenterWrapper.shared.present(type: .generalSuccess)
                 } label: {
                     Text(verbatim: "Notification Type Selection")
                 }
                 
                 Button(role: .destructive) {
                     resetSafeIntroShown()
+                    NotificationPresenterWrapper.shared.present(type: .generalSuccess)
                 } label: {
                     Text(verbatim: "Threema Safe Intro")
                 }
                 
                 Button(role: .destructive) {
                     resetThisDeviceOnly()
+                    NotificationPresenterWrapper.shared.present(type: .generalSuccess)
                 } label: {
                     Text(verbatim: "This Device Only")
                 }
@@ -107,6 +110,8 @@ struct LaunchModalSettingsView: View {
                 Button(role: .destructive) {
                     resetNotificationTypeSelection()
                     resetSafeIntroShown()
+                    resetThisDeviceOnly()
+                    NotificationPresenterWrapper.shared.present(type: .generalSuccess)
                 } label: {
                     Text(verbatim: "Reset All")
                 }

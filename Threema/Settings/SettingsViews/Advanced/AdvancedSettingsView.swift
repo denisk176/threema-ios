@@ -41,7 +41,7 @@ struct AdvancedSettingsView: View {
                 }
                 .onChange(of: settingsVM.validationLogging) {
                     if settingsVM.validationLogging {
-                        LogManager.addFileLogger(LogManager.debugLogFile)
+                        LogManager.addLogger(for: .debugDirectoryLog)
                         DDLogNotice("Logging started")
 
                         DebugLog.logAppVersion()
@@ -49,7 +49,7 @@ struct AdvancedSettingsView: View {
                     }
                     else {
                         DDLogNotice("Logging stopped")
-                        LogManager.removeFileLogger(LogManager.debugLogFile)
+                        LogManager.removeLogger(for: .debugDirectoryLog)
                     }
                 }
                 
@@ -57,7 +57,7 @@ struct AdvancedSettingsView: View {
                     Text(#localize("settings_advanced_debug_log_size_title"))
                     Spacer()
                     Text(
-                        LogManager.logFileSize(LogManager.debugLogFile),
+                        LogManager.getLoggerOutputSize(for: .debugDirectoryLog),
                         format: .byteCount(style: .file, spellsOutZero: false)
                     )
                     .foregroundColor(.secondary)
@@ -86,8 +86,7 @@ struct AdvancedSettingsView: View {
                         title: Text(#localize("debug_log_clear")),
                         buttons: [
                             .destructive(Text(#localize("debug_log_clear"))) {
-                                LogManager.deleteLogFile(LogManager.debugLogFile)
-                                LogManager.deleteLogFile(LogManager.validationLogFile)
+                                LogManager.clearLoggerOutput(for: .debugDirectoryLog)
                                 NotificationPresenterWrapper.shared.present(type: .emptyDebugLogSuccess)
                             },
                             .cancel(),
@@ -102,19 +101,21 @@ struct AdvancedSettingsView: View {
 
             if !disabledSentry {
                 Section {
-                    HStack {
-                        Text("Sentry")
-                        Spacer()
+                    VStack(alignment: .leading, spacing: 6.0) {
+                        Text(#localize("sentry_crash_app_device_id_label"))
                         Text(settingsVM.sentryAppDevice ?? "-")
+                            .monospaced()
                             .foregroundColor(.secondary)
                             .lineLimit(1)
                             .minimumScaleFactor(0.3)
-                            .contextMenu(ContextMenu(menuItems: {
-                                Button(#localize("copy"), action: {
-                                    UIPasteboard.general.string = settingsVM.sentryAppDevice ?? "-"
-                                })
-                            }))
                     }
+                    .contextMenu(
+                        ContextMenu {
+                            Button(#localize("copy")) {
+                                UIPasteboard.general.string = settingsVM.sentryAppDevice ?? "-"
+                            }
+                        }
+                    )
                 }
             }
             
@@ -243,7 +244,7 @@ struct AdvancedSettingsView: View {
                     }
                     
                     Button {
-                        SQLDHSessionStore.deleteSessionDB()
+                        BusinessInjector.ui.dhSessionStore.resetSessionDB()
                     } label: {
                         HStack {
                             Spacer()
@@ -288,10 +289,7 @@ struct AdvancedSettingsView: View {
     }
 
     private func hasDebugLog() -> Bool {
-        if let debugLogFile = LogManager.debugLogFile {
-            return LogManager.logFileSize(debugLogFile) > 0
-        }
-        return false
+        LogManager.getLoggerOutputSize(for: .debugDirectoryLog) > 0
     }
     
     private func showDeleteDebugLogSheet() {
@@ -302,16 +300,21 @@ struct AdvancedSettingsView: View {
     }
     
     private func shareLog() {
-        guard
-            let debugLogFile = LogManager.debugLogFile,
-            LogManager.logFileSize(debugLogFile) > 0,
-            let topViewController = AppDelegate.shared().currentTopViewController()
-        else {
+        guard let topViewController = SharedAppProvider.currentTopViewController else {
+            DDLogError("`SharedAppProvider.currentTopViewController` not available.")
             return
         }
-        
-        let activityViewController = UIActivityViewController(activityItems: [debugLogFile], applicationActivities: nil)
-        
+
+        guard let zipURL = LogManager.zipDebugLog() else {
+            return
+        }
+
+        let activityViewController = UIActivityViewController(activityItems: [zipURL], applicationActivities: nil)
+
+        activityViewController.completionWithItemsHandler = { _, _, _, _ in
+            try? FileUtility.shared?.delete(at: zipURL)
+        }
+
         if topViewController.traitCollection.horizontalSizeClass == .regular {
             activityViewController.popoverPresentationController?.sourceView = topViewController.view
             activityViewController.popoverPresentationController?.sourceRect = CGRectMake(
@@ -321,14 +324,20 @@ struct AdvancedSettingsView: View {
                 0
             )
         }
-        
+
         topViewController.present(activityViewController, animated: true)
     }
     
     private func reregisterPushNotifications() {
         UIApplication.shared.unregisterForRemoteNotifications()
         DDLogInfo("Unregistered for remote notifications")
-        MBProgressHUD.showAdded(to: AppDelegate.shared().currentTopViewController().view, animated: true)
+        
+        guard let currentTopViewController = SharedAppProvider.currentTopViewController else {
+            DDLogError("`SharedAppProvider.currentTopViewController` not available.")
+            return
+        }
+        
+        MBProgressHUD.showAdded(to: currentTopViewController.view, animated: true)
         
         DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + .seconds(1)) {
             DDLogInfo(
@@ -339,7 +348,7 @@ struct AdvancedSettingsView: View {
         }
         
         DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + .seconds(5)) {
-            MBProgressHUD.hide(for: AppDelegate.shared().currentTopViewController().view, animated: true)
+            MBProgressHUD.hide(for: currentTopViewController.view, animated: true)
             NotificationPresenterWrapper.shared.present(type: .reregisterNotificationsSuccess)
         }
     }

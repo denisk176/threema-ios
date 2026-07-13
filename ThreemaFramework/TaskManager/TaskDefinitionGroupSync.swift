@@ -56,7 +56,7 @@ final class TaskDefinitionGroupSync: TaskDefinition, TaskDefinitionTransactionPr
     required init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let dataSyncGroup = try container.decode(Data.self, forKey: .syncGroup)
-        self.syncGroup = try D2dSync_Group(contiguousBytes: dataSyncGroup)
+        self.syncGroup = try D2dSync_Group(serializedBytes: dataSyncGroup)
         self.syncAction = try container.decode(SyncAction.self, forKey: .syncAction)
         self.profilePicture = try container.decode(DeltaUpdateType.self, forKey: .profilePicture)
         self.image = try? container.decode(Data.self, forKey: .image)

@@ -35,6 +35,8 @@ final class VoiceMessageRecorderViewModel: NSObject, ObservableObject {
     
     private let conversation: ConversationEntity
     
+    private let playSentMessageSound: (() -> Void)?
+    
     let recordingMaxDuration = 30 * 60.0
 
     var assetDuration: Double {
@@ -78,10 +80,11 @@ final class VoiceMessageRecorderViewModel: NSObject, ObservableObject {
     // MARK: - Lifecycle
 
     @MainActor
-    init(conversation: ConversationEntity, draftAudioURL: URL? = nil) throws {
-        
+    init(conversation: ConversationEntity, draftAudioURL: URL? = nil, playSentMessageSound: (() -> Void)? = nil) throws {
+
         self.conversation = conversation
-        
+        self.playSentMessageSound = playSentMessageSound
+
         super.init()
         
         startObservers()
@@ -390,6 +393,7 @@ final class VoiceMessageRecorderViewModel: NSObject, ObservableObject {
         feedbackGenerator.prepare()
         feedbackGenerator.notificationOccurred(.success)
         sendingInProgress = false
+        playSentMessageSound?()
     }
     
     private func sendingFailed() {

@@ -268,7 +268,7 @@ extension Connected {
     }
     
     private func process(_ buffer: PeerConnectionMessage) async throws {
-        guard let sfuToParticipant = try? GroupCall_SfuToParticipant.Envelope(serializedData: buffer.data) else {
+        guard let sfuToParticipant = try? GroupCall_SfuToParticipant.Envelope(serializedBytes: buffer.data) else {
             DDLogWarn(
                 "[GroupCall] Could not create `Groupcall_SfuToParticipant.Envelope` from `PeerConnectionMessage`, thus ignoring it."
             )

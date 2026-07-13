@@ -191,15 +191,17 @@ extension MarkupParser {
         parseMention: Bool = true,
         removeMarkups: Bool = false,
         forTextStorage: Bool = false,
-        forTests: Bool = false
+        forTests: Bool = false,
+        makeURLsInteractive: Bool = true
     ) -> NSAttributedString {
         var parsedMarkups = NSMutableAttributedString(attributedString: attributedString)
         do {
-            
             if !forTests {
-                parsedMarkups = parseURLWithDataDetectorForLinks(attributedString: parsedMarkups)
+                parsedMarkups = parseURLWithDataDetectorForLinks(
+                    attributedString: parsedMarkups,
+                    makeURLsInteractive: makeURLsInteractive
+                )
             }
-            
             try parse(
                 allTokens: tokenize(
                     text: parsedMarkups.string,
@@ -225,9 +227,15 @@ extension MarkupParser {
     }
     
     /// Parse for URL's in the string
-    /// - Parameter attributedString: NSMutableAttributedString to parse
+    /// - Parameters:
+    ///   - attributedString: NSMutableAttributedString to parse
+    ///   - makeURLsInteractive: When `true` detected URLs get a `.link` attribute (tinted and tappable). When `false`
+    ///     they are only tinted in `linkColor` without becoming interactive (e.g. in the compose text view).
     /// - Returns: NSMutableAttributedString with all URL attributes
-    public func parseURLWithDataDetectorForLinks(attributedString: NSMutableAttributedString)
+    public func parseURLWithDataDetectorForLinks(
+        attributedString: NSMutableAttributedString,
+        makeURLsInteractive: Bool = true
+    )
         -> NSMutableAttributedString {
         do {
             let dataDetector = try NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue)
@@ -240,30 +248,19 @@ extension MarkupParser {
                     return
                 }
 
-                var url: URL?
-                if let urlResult = result.url {
-                    // Corrects the wrong encoded URL from NSDataDetector under iOS17
-                    if var urlSourceString = attributedString.string.substring(with: result.range) {
-                        // Add missing URL scheme, if happen when NSDataDetector detected an URL without scheme in
-                        // the text (eg. 'threema.com')
-                        if let scheme = urlResult.scheme, !urlSourceString.starts(with: scheme) {
-                            if scheme == "mailto" {
-                                urlSourceString = "\(scheme):\(urlSourceString)"
-                            }
-                            else {
-                                urlSourceString = "\(scheme)://\(urlSourceString)"
-                            }
-                        }
-                        
-                        let urlString = urlSourceString.removingPercentEncoding ?? String(urlSourceString)
-                        url = URL(string: urlString, encodingInvalidCharacters: true)
-                    }
-                    else {
-                        url = urlResult
-                    }
+                // Only tint the URL without making it tappable (e.g. in the compose text view)
+                guard makeURLsInteractive else {
+                    attributedString.addAttributes(
+                        [
+                            .foregroundColor: UIColor.linkColor,
+                            .tokenType: TokenType.url,
+                        ],
+                        range: result.range
+                    )
+                    return
                 }
 
-                attributedString.addAttribute(.link, value: url ?? "", range: result.range)
+                attributedString.addAttribute(.link, value: result.url ?? "", range: result.range)
             }
             return attributedString
         }
@@ -309,43 +306,42 @@ extension MarkupParser {
     
     public func parseMentionNamesToMarkup(parsed: NSAttributedString) -> NSAttributedString {
         let parsedWithMentionMarkups = NSMutableAttributedString(attributedString: parsed)
-        
-        parsedWithMentionMarkups.enumerateAttribute(NSAttributedString.Key.tokenType, in: NSRange(
-            location: 0,
-            length: parsedWithMentionMarkups.length
-        )) { attribute, range, _ in
-            guard let attribute = attribute as? MarkupParser.TokenType,
-                  attribute == TokenType.mention else {
+
+        // Enumerate the `.contact` attribute (unique per mention) rather than the shared `.mention`
+        // token type. This way two different adjacent mentions get separate ranges (so the second
+        // one isn't swallowed), while a single mention whose display name spans multiple attribute
+        // runs (e.g. an emoji in the name gets a different font applied) stays one range instead
+        // of being replaced once per run. Collect first, then apply back-to-front so earlier ranges
+        // remain valid as lengths change.
+        var replacements: [(range: NSRange, markup: String)] = []
+
+        parsedWithMentionMarkups.enumerateAttribute(
+            NSAttributedString.Key.contact,
+            in: NSRange(location: 0, length: parsedWithMentionMarkups.length)
+        ) { attribute, range, _ in
+            guard let mentionType = attribute as? MentionType else {
                 return
             }
-            var mutableRange = range
-            
-            let attributes = parsedWithMentionMarkups.attributes(
-                at: range.location,
-                longestEffectiveRange: &mutableRange,
-                in: NSRange(location: 0, length: parsedWithMentionMarkups.length)
-            )
 
-            if let mentionType = attributes[NSAttributedString.Key.contact] as? MentionType {
-                switch mentionType {
-                case .me:
-                    if let myIdentity = businessInjector.myIdentityStore.identity {
-                        parsedWithMentionMarkups.replaceCharacters(
-                            in: range,
-                            with: "@[\(myIdentity)]"
-                        )
-                    }
-                    else {
-                        DDLogError("Could not set own mention")
-                    }
-                case .all:
-                    parsedWithMentionMarkups.replaceCharacters(in: range, with: "@[\(MarkupParser.MENTION_ALL)]")
-                case let .contact(contact):
-                    parsedWithMentionMarkups.replaceCharacters(in: range, with: "@[\(contact.identity)]")
+            switch mentionType {
+            case .me:
+                if let myIdentity = businessInjector.myIdentityStore.identity {
+                    replacements.append((range, "@[\(myIdentity)]"))
                 }
+                else {
+                    DDLogError("Could not set own mention")
+                }
+            case .all:
+                replacements.append((range, "@[\(MarkupParser.MENTION_ALL)]"))
+            case let .contact(contact):
+                replacements.append((range, "@[\(contact.identity)]"))
             }
         }
-       
+
+        for replacement in replacements.sorted(by: { $0.range.location > $1.range.location }) {
+            parsedWithMentionMarkups.replaceCharacters(in: replacement.range, with: replacement.markup)
+        }
+
         return parsedWithMentionMarkups
     }
     

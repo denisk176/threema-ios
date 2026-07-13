@@ -87,7 +87,7 @@ struct IDExportView: View {
                         subject: Text(shareItem),
                         message: Text(exportString)
                     ) {
-                        Image(systemName: "square.and.arrow.up")
+                        Label(#localize("share"), systemImage: "square.and.arrow.up")
                     }
                 }
             }

@@ -58,7 +58,7 @@ import ThreemaProtocols
     }
     
     @objc func fromRawProtoBufMessage(rawProtobufMessage: NSData) throws {
-        decoded = try CspE2e_GroupCallStart(serializedData: rawProtobufMessage as Data)
+        decoded = try CspE2e_GroupCallStart(serializedBytes: rawProtobufMessage as Data)
     }
 
     // MARK: NSSecureCoding
@@ -78,7 +78,7 @@ import ThreemaProtocols
             guard let data = coder.decodeObject(of: NSData.self, forKey: CodingKeys.cspMessage.rawValue) else {
                 throw CodingError.decodeObjectFailed
             }
-            self.decoded = try CspE2e_GroupCallStart(serializedData: Data(data))
+            self.decoded = try CspE2e_GroupCallStart(serializedBytes: Data(data))
         }
         catch {
             DDLogError("Decoding failed: \(error)")

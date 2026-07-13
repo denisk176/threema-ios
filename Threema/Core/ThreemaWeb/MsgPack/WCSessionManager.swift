@@ -124,15 +124,8 @@ extension WCSessionManager {
             return
         }
 
-        DispatchQueue.main.async {
-            let mainTabBar: UITabBarController?
-            
-            #if SCENE_DELEGATE_ROOT_COORDINATOR_DEVELOPMENT
-                mainTabBar =
-                    SceneDelegate.current?.rootCoordinator?.tabBarController
-            #else
-                mainTabBar = AppDelegate.shared().tabBarController()
-            #endif
+        Task { @MainActor in
+            let mainTabBar = SharedAppProvider.tabBarController
             
             guard
                 let mainTabBar,
@@ -147,8 +140,10 @@ extension WCSessionManager {
                 return
             }
 
-            guard let chatNavVc = viewControllers[Int(kChatTabBarIndex)] as? UINavigationController,
-                  let curChatVc = chatNavVc.topViewController as? ChatViewController else {
+            guard
+                let chatNavVc = viewControllers[Int(kChatTabBarIndex)] as? UINavigationController,
+                let curChatVc = chatNavVc.topViewController as? ChatViewController
+            else {
                 UIApplication.shared.isIdleTimerDisabled = false
                 return
             }
@@ -193,8 +188,8 @@ extension WCSessionManager {
             }
             webClientSession.isConnecting = true
 
-            let (publicKey, saltyRTCHost): (Data, String) = self.businessInjector.entityManager
-                .performAndWait {
+            let (publicKey, saltyRTCHost): (Data, String) =
+                self.businessInjector.entityManager.performAndWait {
                     (
                         webClientSession.initiatorPermanentPublicKey,
                         webClientSession.saltyRTCHost
@@ -211,14 +206,18 @@ extension WCSessionManager {
                         whiteList: webHosts
                     ) == false {
                         DDLogNotice("[Threema Web] Scanned qr code host is not white listed")
-                        if AppDelegate.isAppInBackground() {
+                        if SharedAppProvider.onMain({
+                            SharedAppProvider.isAppInBackground
+                        }) {
                             ThreemaUtilityObjC.sendErrorLocalNotification(
                                 #localize("webClient_scan_error_mdm_host_title"),
                                 body: #localize("webClient_scan_error_mdm_host_message"),
                                 userInfo: nil
                             )
                         }
-                        else if let rootVC = AppDelegate.keyWindow?.rootViewController {
+                        else if let rootVC = SharedAppProvider.onMain({
+                            SharedAppProvider.keyWindow?.rootViewController
+                        }) {
                             UIAlertTemplate.showAlert(
                                 owner: rootVC,
                                 title: #localize("webClient_scan_error_mdm_host_title"),
@@ -231,7 +230,8 @@ extension WCSessionManager {
                 }
             }
 
-            if let session, let wca,
+            if let session,
+               let wca,
                let connectionWca = session.connectionWca(),
                wca.elementsEqual(connectionWca) {
                 // same wca, ignore this request
@@ -285,7 +285,8 @@ extension WCSessionManager {
 
             var session: WCSession? = self.sessions[publicKey]
 
-            if let session, let wca,
+            if let session,
+               let wca,
                let connectionWca = session.connectionWca(),
                wca.elementsEqual(connectionWca) {
                 // same wca, ignore this request
@@ -307,14 +308,18 @@ extension WCSessionManager {
                         whiteList: webHosts
                     ) == false {
                         DDLogError("[Threema Web] Scanned qr code host is not white listed")
-                        if AppDelegate.isAppInBackground() {
+                        if SharedAppProvider.onMain({
+                            SharedAppProvider.isAppInBackground
+                        }) {
                             ThreemaUtilityObjC.sendErrorLocalNotification(
                                 #localize("webClient_scan_error_mdm_host_title"),
                                 body: #localize("webClient_scan_error_mdm_host_message"),
                                 userInfo: nil
                             )
                         }
-                        else if let rootVC = AppDelegate.keyWindow?.rootViewController {
+                        else if let rootVC = SharedAppProvider.onMain({
+                            SharedAppProvider.keyWindow?.rootViewController
+                        }) {
                             UIAlertTemplate.showAlert(
                                 owner: rootVC,
                                 title: #localize("webClient_scan_error_mdm_host_title"),
@@ -353,22 +358,24 @@ extension WCSessionManager {
 
             DDLogNotice("[Threema Web] Connect active sessions (\(self.running.count))")
             for publicKey in self.running {
-                if let session = self.sessions[publicKey] {
-                    if session.connectionStatus() == .disconnected {
-                        self.addObservers()
-                        DDLogNotice("[Threema Web] Connect active session")
-                        session.connect(authToken: nil)
+                guard let session = self.sessions[publicKey] else {
+                    continue
+                }
+                
+                if session.connectionStatus() == .disconnected {
+                    self.addObservers()
+                    DDLogNotice("[Threema Web] Connect active session")
+                    session.connect(authToken: nil)
+                }
+                else {
+                    if let connectionStatus = session.connectionStatus() {
+                        DDLogError(
+                            "[Threema Web] Can't connect active session, wrong state \(connectionStatus)"
+                        )
                     }
                     else {
-                        if let connectionStatus = session.connectionStatus() {
-                            DDLogError(
-                                "[Threema Web] Can't connect active session, wrong state \(connectionStatus)"
-                            )
-                        }
-                        else {
-                            DDLogError("[Threema Web] Can't connect active session, connectionStatus is nil!")
-                            self.removeWCSessionFromRunning(session)
-                        }
+                        DDLogError("[Threema Web] Can't connect active session, connectionStatus is nil!")
+                        self.removeWCSessionFromRunning(session)
                     }
                 }
             }
@@ -381,9 +388,11 @@ extension WCSessionManager {
         // disconnect all active sessions and set all sessions on core data to inactive
         DDLogNotice("[Threema Web] Stop all active sessions")
         for publicKey in running {
-            if let session = sessions[publicKey] {
-                session.stop(close: true, forget: false, sendDisconnect: true, reason: .stop)
+            guard let session = self.sessions[publicKey] else {
+                continue
             }
+            
+            session.stop(close: true, forget: false, sendDisconnect: true, reason: .stop)
         }
         Task {
             await removeObservers()
@@ -397,9 +406,11 @@ extension WCSessionManager {
         DDLogNotice("[Threema Web] Stop and forget all active sessions")
         WebClientSessionStore.shared.setAllWebClientSessionsInactive()
         for publicKey in running {
-            if let session = sessions[publicKey] {
-                session.stop(close: true, forget: true, sendDisconnect: true, reason: .stop)
+            guard let session = self.sessions[publicKey] else {
+                continue
             }
+            
+            session.stop(close: true, forget: true, sendDisconnect: true, reason: .stop)
         }
     }
     
@@ -409,9 +420,12 @@ extension WCSessionManager {
         let publicKey: Data = businessInjector.entityManager.performAndWait {
             webClientSession.initiatorPermanentPublicKey
         }
-        if let session: WCSession = sessions[publicKey] {
-            session.stop(close: true, forget: false, sendDisconnect: true, reason: .stop)
+        
+        guard let session: WCSession = sessions[publicKey] else {
+            return
         }
+        
+        session.stop(close: true, forget: false, sendDisconnect: true, reason: .stop)
     }
     
     /// Stop and delete specific session.
@@ -420,12 +434,17 @@ extension WCSessionManager {
         let publicKey: Data = businessInjector.entityManager.performAndWait {
             webClientSession.initiatorPermanentPublicKey
         }
-        if let session: WCSession = sessions[publicKey] {
-            session.stop(close: true, forget: true, sendDisconnect: true, reason: .delete)
-            sessions.removeValue(forKey: publicKey)
+        
+        defer {
+            WebClientSessionStore.shared.deleteWebClientSession(webClientSession)
         }
-
-        WebClientSessionStore.shared.deleteWebClientSession(webClientSession)
+        
+        guard let session: WCSession = sessions[publicKey] else {
+            return
+        }
+        
+        session.stop(close: true, forget: true, sendDisconnect: true, reason: .delete)
+        sessions.removeValue(forKey: publicKey)
     }
 
     /// Remove WebClientSession from running list.
@@ -462,22 +481,29 @@ extension WCSessionManager {
         DDLogNotice("[Threema Web] Pause all sessions")
         sendConnectionAckToAllActiveSessions()
         for publicKey in running {
-            if let session = sessions[publicKey] {
-                session.stop(close: false, forget: false, sendDisconnect: false, reason: .pause)
+            guard let session = sessions[publicKey] else {
+                return
             }
+            
+            session.stop(close: false, forget: false, sendDisconnect: false, reason: .pause)
         }
     }
     
     @objc public func updateConversationPushSetting(conversation: ConversationEntity) {
         for publicKey in running {
-            if let session = sessions[publicKey] {
-                let conversationResponse = WebConversationUpdate(
-                    conversation: conversation,
-                    objectMode: .modified,
-                    session: session
-                )
-                session.messageQueue.enqueue(data: conversationResponse.messagePack(), blackListed: false)
+            guard let session: WCSession = sessions[publicKey] else {
+                return
             }
+            
+            let conversationResponse = WebConversationUpdate(
+                conversation: conversation,
+                objectMode: .modified,
+                session: session
+            )
+            session.messageQueue.enqueue(
+                data: conversationResponse.messagePack(),
+                blackListed: false
+            )
         }
     }
 }
@@ -490,10 +516,15 @@ extension WCSessionManager {
             webClientSession.initiatorPermanentPublicKey
         }
         runningSessionsQueue.sync {
-            if !running.contains(publicKey) {
-                running.append(publicKey)
-                WebClientSessionStore.shared.updateWebClientSession(session: webClientSession, active: true)
+            guard !running.contains(publicKey) else {
+                return
             }
+            
+            running.append(publicKey)
+            WebClientSessionStore.shared.updateWebClientSession(
+                session: webClientSession,
+                active: true
+            )
         }
     }
         
@@ -524,18 +555,24 @@ extension WCSessionManager {
     
     private func sendConnectionAckToAllActiveSessions() {
         for publicKey in running {
-            if let session = sessions[publicKey],
-               let context = session.connectionContext() {
-                context.sendConnectionAck()
+            guard
+                let session = sessions[publicKey],
+                let context = session.connectionContext()
+            else {
+                continue
             }
+            
+            context.sendConnectionAck()
         }
     }
     
     private func sendMessagePackToAllActiveSessions(messagePack: Data, blackListed: Bool) {
         for publicKey in running {
-            if let session = sessions[publicKey] {
-                session.sendMessageToWeb(blacklisted: blackListed, msgpack: messagePack)
+            guard let session = sessions[publicKey] else {
+                continue
             }
+            
+            session.sendMessageToWeb(blacklisted: blackListed, msgpack: messagePack)
         }
     }
     
@@ -545,19 +582,27 @@ extension WCSessionManager {
         blackListed: Bool
     ) {
         for publicKey in running {
-            if let session = sessions[publicKey],
-               session.requestedConversations(contains: requestedConversationID) == true {
-                session.sendMessageToWeb(blacklisted: blackListed, msgpack: messagePack)
+            guard
+                let session = sessions[publicKey],
+                session.requestedConversations(contains: requestedConversationID) == true
+            else {
+                continue
             }
+            
+            session.sendMessageToWeb(blacklisted: blackListed, msgpack: messagePack)
         }
     }
 
     private func sendMessagePackToRequestedSession(with requestID: String, messagePack: Data, blackListed: Bool) {
         for publicKey in running {
-            if let session = sessions[publicKey],
-               session.requestMessage(for: requestID) != nil {
-                session.sendMessageToWeb(blacklisted: blackListed, msgpack: messagePack)
+            guard
+                let session = sessions[publicKey],
+                session.requestMessage(for: requestID) != nil
+            else {
+                continue
             }
+            
+            session.sendMessageToWeb(blacklisted: blackListed, msgpack: messagePack)
         }
     }
     
@@ -588,16 +633,20 @@ extension WCSessionManager {
         exclude requestID: String
     ) {
         for publicKey in running {
-            if let session = sessions[publicKey],
-               session.requestedConversations(contains: requestedConversationID) == true,
-               session.requestMessage(for: requestID) == nil {
-                sendResponseUpdateMessage(
-                    message: message,
-                    conversation: conversation,
-                    objectMode: objectMode,
-                    session: session
-                )
+            guard
+                let session = sessions[publicKey],
+                session.requestedConversations(contains: requestedConversationID) == true,
+                session.requestMessage(for: requestID) == nil
+            else {
+                continue
             }
+            
+            sendResponseUpdateMessage(
+                message: message,
+                conversation: conversation,
+                objectMode: objectMode,
+                session: session
+            )
         }
     }
 
@@ -608,15 +657,19 @@ extension WCSessionManager {
         objectMode: WebMessagesUpdate.ObjectMode
     ) {
         for publicKey in running {
-            if let session = sessions[publicKey],
-               session.requestedConversations(contains: requestedConversationID) == true {
-                sendResponseUpdateMessage(
-                    message: message,
-                    conversation: conversation,
-                    objectMode: objectMode,
-                    session: session
-                )
+            guard
+                let session = sessions[publicKey],
+                session.requestedConversations(contains: requestedConversationID) == true
+            else {
+                continue
             }
+            
+            sendResponseUpdateMessage(
+                message: message,
+                conversation: conversation,
+                objectMode: objectMode,
+                session: session
+            )
         }
     }
     
@@ -641,15 +694,17 @@ extension WCSessionManager {
         objectMode: WebConversationUpdate.ObjectMode
     ) {
         for publicKey in running {
-            if let session = sessions[publicKey] {
-                let conversationResponse = WebConversationUpdate(
-                    conversation: conversation,
-                    objectMode: objectMode,
-                    session: session
-                )
-                DDLogVerbose("[Threema Web] MessagePack -> Send update/conversation")
-                session.sendMessageToWeb(blacklisted: false, msgpack: conversationResponse.messagePack())
+            guard let session = sessions[publicKey] else {
+                continue
             }
+            
+            let conversationResponse = WebConversationUpdate(
+                conversation: conversation,
+                objectMode: objectMode,
+                session: session
+            )
+            DDLogVerbose("[Threema Web] MessagePack -> Send update/conversation")
+            session.sendMessageToWeb(blacklisted: false, msgpack: conversationResponse.messagePack())
         }
     }
     
@@ -681,20 +736,28 @@ extension WCSessionManager {
 
     private func webRequestMessage(for requestID: String) -> WebAbstractMessage? {
         for publicKey in running {
-            if let session = sessions[publicKey],
-               let webAbstractMessage = session.requestMessage(for: requestID) {
-                return webAbstractMessage
+            guard
+                let session = sessions[publicKey],
+                let webAbstractMessage = session.requestMessage(for: requestID)
+            else {
+                continue
             }
+            
+            return webAbstractMessage
         }
         return nil
     }
 
     private func removeWebRequestMessage(with requestID: String) {
         for publicKey in running {
-            if let session = sessions[publicKey],
-               session.requestMessage(for: requestID) != nil {
-                session.removeRequestCreateMessage(requestID: requestID)
+            guard
+                let session = sessions[publicKey],
+                session.requestMessage(for: requestID) != nil
+            else {
+                continue
             }
+            
+            session.removeRequestCreateMessage(requestID: requestID)
         }
     }
 }
@@ -876,16 +939,18 @@ extension WCSessionManager {
             key: backgroundKey,
             timeout: Int(kAppCoreDataProcessMessageBackgroundTaskTime)
         ) {
-            guard let currentMessage = self.businessInjector.entityManager.entityFetcher
-                .managedObject(with: baseMessage.objectID) as? BaseMessageEntity else {
+            guard let currentMessage = self.businessInjector.entityManager.entityFetcher.managedObject(
+                with: baseMessage.objectID
+            ) as? BaseMessageEntity else {
                 BackgroundTaskManager.shared.cancelBackgroundTask(key: backgroundKey)
                 return
             }
             
             DDLogNotice("Updated message on main context \(currentMessage.id.hexString)")
             let conversation = currentMessage.conversation
-            let identity = conversation.isGroup ? conversation.groupID!.hexEncodedString() : self
-                .baseMessageIdentity(baseMessage)
+            let identity = conversation.isGroup
+                ? conversation.groupID!.hexEncodedString()
+                : self.baseMessageIdentity(baseMessage)
             self.processBaseMessageUpdate(baseMessage: currentMessage, changedValues: changedValues, identity: identity)
             
             if let lastMessage = conversation.lastMessage,
@@ -910,22 +975,24 @@ extension WCSessionManager {
         changedValues: [String: Any],
         identity: String
     ) {
-        if shouldSendUpdate(changedValues: changedValues) {
-            let objectMode: WebMessagesUpdate.ObjectMode = .modified
-            responseUpdateMessage(
-                with: identity,
-                message: baseMessage,
-                conversation: baseMessage.conversation,
-                objectMode: objectMode
-            )
-            // background task to send ack to server
-            let backgroundKey = kAppAckBackgroundTask + baseMessage.id.hexEncodedString()
-            BackgroundTaskManager.shared.newBackgroundTask(
-                key: backgroundKey,
-                timeout: Int(kAppAckBackgroundTaskTime),
-                completionHandler: nil
-            )
+        guard shouldSendUpdate(changedValues: changedValues) else {
+            return
         }
+        
+        let objectMode: WebMessagesUpdate.ObjectMode = .modified
+        responseUpdateMessage(
+            with: identity,
+            message: baseMessage,
+            conversation: baseMessage.conversation,
+            objectMode: objectMode
+        )
+        // background task to send ack to server
+        let backgroundKey = kAppAckBackgroundTask + baseMessage.id.hexEncodedString()
+        BackgroundTaskManager.shared.newBackgroundTask(
+            key: backgroundKey,
+            timeout: Int(kAppAckBackgroundTaskTime),
+            completionHandler: nil
+        )
     }
     
     private func shouldSendUpdate(changedValues: [String: Any]) -> Bool {
@@ -950,8 +1017,9 @@ extension WCSessionManager {
             key: backgroundKey,
             timeout: Int(kAppCoreDataProcessMessageBackgroundTaskTime)
         ) {
-            guard let currentConversation = self.businessInjector.entityManager.entityFetcher
-                .managedObject(with: conversation.objectID) as? ConversationEntity else {
+            guard let currentConversation = self.businessInjector.entityManager.entityFetcher.managedObject(
+                with: conversation.objectID
+            ) as? ConversationEntity else {
                 BackgroundTaskManager.shared.cancelBackgroundTask(key: backgroundKey)
                 return
             }
@@ -1035,8 +1103,9 @@ extension WCSessionManager {
             key: backgroundKey,
             timeout: Int(kAppCoreDataProcessMessageBackgroundTaskTime)
         ) {
-            guard let currentContact = self.businessInjector.entityManager.entityFetcher
-                .managedObject(with: contact.objectID) as? ContactEntity else {
+            guard let currentContact = self.businessInjector.entityManager.entityFetcher.managedObject(
+                with: contact.objectID
+            ) as? ContactEntity else {
                 BackgroundTaskManager.shared.cancelBackgroundTask(key: backgroundKey)
                 return
             }
@@ -1058,8 +1127,9 @@ extension WCSessionManager {
         ) {
             
             // Show only chats where lastUpdate is not `nil` to avoid showing chats that only contain system messages
-            guard let currentConversation = self.businessInjector.entityManager.entityFetcher
-                .managedObject(with: conversation.objectID) as? ConversationEntity,
+            guard let currentConversation = self.businessInjector.entityManager.entityFetcher.managedObject(
+                with: conversation.objectID
+            ) as? ConversationEntity,
                 currentConversation.lastUpdate != nil else {
                 BackgroundTaskManager.shared.cancelBackgroundTask(key: backgroundKey)
                 return
@@ -1085,8 +1155,9 @@ extension WCSessionManager {
             key: backgroundKey,
             timeout: Int(kAppCoreDataProcessMessageBackgroundTaskTime)
         ) {
-            guard let currentMessage = self.businessInjector.entityManager.entityFetcher
-                .managedObject(with: baseMessage.objectID) as? BaseMessageEntity else {
+            guard let currentMessage = self.businessInjector.entityManager.entityFetcher.managedObject(
+                with: baseMessage.objectID
+            ) as? BaseMessageEntity else {
                 BackgroundTaskManager.shared.cancelBackgroundTask(key: backgroundKey)
                 return
             }
@@ -1251,9 +1322,11 @@ extension WCSessionManager {
         var createFileMessageResponse: WebCreateFileMessageResponse?
         var backgroundIdentifier: String?
         
-        if let webRequestID = baseMessage.webRequestID, let createFileMessageRequest = webRequestMessage(
-            for: webRequestID
-        ) as? WebCreateFileMessageRequest {
+        if
+            let webRequestID = baseMessage.webRequestID,
+            let createFileMessageRequest = webRequestMessage(
+                for: webRequestID
+            ) as? WebCreateFileMessageRequest {
             createFileMessageRequest.ack = WebAbstractMessageAcknowledgement(webRequestID, true, nil)
             createFileMessageResponse = WebCreateFileMessageResponse(
                 message: baseMessage,
@@ -1265,7 +1338,8 @@ extension WCSessionManager {
         }
         
         let objectMode: WebMessagesUpdate.ObjectMode = .new
-        if createFileMessageResponse != nil, let webRequestID = baseMessage.webRequestID {
+        if createFileMessageResponse != nil,
+           let webRequestID = baseMessage.webRequestID {
             DDLogVerbose("[Threema Web] MessagePack -> Send create/fileMessage")
             sendMessagePackToRequestedSession(
                 with: webRequestID,
@@ -1377,27 +1451,35 @@ extension WCSessionManager {
     }
     
     @objc func blackListChanged(_ notification: Notification) {
-        let identity = notification.object as! String
-        if let contact = businessInjector.entityManager.entityFetcher.contactEntity(for: identity) {
-            responseUpdateContact(contact: contact, objectMode: .modified)
+        guard !running.isEmpty else {
+            return
         }
+        
+        let identity = notification.object as! String
+        guard let contact = businessInjector.entityManager.entityFetcher.contactEntity(for: identity) else {
+            return
+        }
+        
+        responseUpdateContact(contact: contact, objectMode: .modified)
     }
     
     @objc private func changedManagedObjects(_ notification: Notification) {
-        guard let refreshedObjectIDs = notification
-            .userInfo?[DatabaseContext.refreshedObjectIDsKey] as? Set<NSManagedObjectID> else {
+        guard !running.isEmpty, let refreshedObjectIDs = notification.userInfo?[
+            DatabaseContext.refreshedObjectIDsKey
+        ] as? Set<NSManagedObjectID> else {
             return
         }
 
         for objectID in refreshedObjectIDs {
-            if let managedObject = businessInjector.entityManager.entityFetcher
-                .managedObject(with: objectID) {
-                DDLogInfo("[dirty-objects] Send dirty object to web client (insert and update): \(objectID)")
-                var insertedObjects = Set<NSManagedObject>()
-                insertedObjects.insert(managedObject)
-                handleInsertedObjects(insertedObjects: insertedObjects)
-                handleUpdatedObjects(updatedObjects: insertedObjects, true)
+            guard let managedObject = businessInjector.entityManager.entityFetcher.managedObject(with: objectID) else {
+                continue
             }
+            
+            DDLogInfo("[dirty-objects] Send dirty object to web client (insert and update): \(objectID)")
+            var insertedObjects = Set<NSManagedObject>()
+            insertedObjects.insert(managedObject)
+            handleInsertedObjects(insertedObjects: insertedObjects)
+            handleUpdatedObjects(updatedObjects: insertedObjects, true)
         }
     }
 }

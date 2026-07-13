@@ -14,6 +14,8 @@ public final class AudioDataEntity: ThreemaManagedObject, Identifiable {
         }
         set {
             setData(newValue)
+            
+            message?.dataAvailable = NSNumber(booleanLiteral: true)
         }
     }
 

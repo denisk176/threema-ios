@@ -99,6 +99,7 @@ struct AddContactView: View {
         // Can be removed after migrating from NavigationView to NavigationStack
         .navigationViewStyle(.stack)
         .loadingOverlay(viewModel.isLoading)
+        .interactiveDismissDisabled(viewModel.isInteractiveDismissDisabled)
     }
     
     @ViewBuilder

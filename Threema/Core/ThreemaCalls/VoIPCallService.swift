@@ -968,7 +968,7 @@ final class VoIPCallService {
                     self.rejectCall(action: action, closeCallView: false)
                     
                     // Show alert if mic permission is not granted
-                    if let rootVC = AppDelegate.keyWindow?.rootViewController {
+                    if let rootVC = SharedAppProvider.keyWindow?.rootViewController {
                         UIAlertTemplate.showOpenSettingsAlert(owner: rootVC, noAccessAlertType: .microphone)
                     }
                     
@@ -1386,7 +1386,7 @@ final class VoIPCallService {
                     else {
                         DispatchQueue.main.async {
                             // No access to microphone, stop call
-                            guard let rootVC = AppDelegate.keyWindow?.rootViewController else {
+                            guard let rootVC = SharedAppProvider.keyWindow?.rootViewController else {
                                 return
                             }
                         
@@ -1645,7 +1645,7 @@ final class VoIPCallService {
                                                         self.invalidateInitCallTimeout()
                                                         self.delegate?.callFinished()
                                                         
-                                                        guard let rootVC = AppDelegate.keyWindow?.rootViewController
+                                                        guard let rootVC = SharedAppProvider.keyWindow?.rootViewController
                                                         else {
                                                             return
                                                         }
@@ -1841,7 +1841,7 @@ final class VoIPCallService {
                 viewWasHidden = false
             }
             
-            let rootVC = AppDelegate.keyWindow?.rootViewController
+            let rootVC = SharedAppProvider.keyWindow?.rootViewController
             var presentingVC = (rootVC?.presentedViewController ?? rootVC)
             
             if let navController = presentingVC as? UINavigationController {
@@ -1871,7 +1871,7 @@ final class VoIPCallService {
     
     private func showCallActiveAlert() {
         Task { @MainActor in
-            guard let vc = AppDelegate.keyWindow?.rootViewController else {
+            guard let vc = SharedAppProvider.keyWindow?.rootViewController else {
                 return
             }
             
@@ -1940,8 +1940,8 @@ final class VoIPCallService {
                                  .rejectedDisabled, .rejectedOffHours, .rejectedUnknown, .microphoneDisabled:
                                 self.callViewController = nil
                             }
-                            if AppDelegate.shared()?.isAppLocked == true {
-                                AppDelegate.shared()?.presentPasscodeView()
+                            if SharedAppProvider.isAppLocked {
+                                SharedAppProvider.presentPasscodeView()
                             }
                             completion?()
                         })
@@ -1956,8 +1956,8 @@ final class VoIPCallService {
                              .rejectedOffHours, .rejectedUnknown, .microphoneDisabled:
                             self.callViewController = nil
                         }
-                        if AppDelegate.shared()?.isAppLocked == true {
-                            AppDelegate.shared()?.presentPasscodeView()
+                        if SharedAppProvider.isAppLocked {
+                            SharedAppProvider.presentPasscodeView()
                         }
                         completion?()
                     })
@@ -2828,7 +2828,12 @@ final class VoIPCallService {
         handleTones(state: .ended, oldState: .reconnecting)
         dismissCallView {
             self.callKitManager.endCall(with: self.callID)
-            guard self.peerWasConnected, let rootVC = AppDelegate.keyWindow?.rootViewController else {
+            guard
+                self.peerWasConnected,
+                let rootVC = SharedAppProvider.onMain({
+                    SharedAppProvider.keyWindow?.rootViewController
+                })
+            else {
                 return
             }
         

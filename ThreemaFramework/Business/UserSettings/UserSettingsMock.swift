@@ -144,4 +144,6 @@ public final class UserSettingsMock: NSObject, UserSettingsProtocol {
     public var jbDetectionDismissed = false
 	
     public var didShowIdentityThisDeviceOnly = true
+    
+    public var evaluatedPolicyDomainStateApp: Data?
 }

@@ -1,5 +1,6 @@
 import Combine
 import Foundation
+import ThreemaFramework
 import ThreemaMacros
 import UIKit
 
@@ -28,7 +29,26 @@ final class StartChatContactListDataSource: UITableViewDiffableDataSource<
 
     // MARK: - Properties
 
+    /// When non-blank, the actions section is hidden and only contacts matching the text are shown (see
+    /// `applyProviderSnapshot()`)
+    var filterText = "" {
+        didSet {
+            // Treat blank text (empty or whitespace-only) as no filter, so the full list stays visible
+            filterText = filterText.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard filterText != oldValue else {
+                return
+            }
+            applyProviderSnapshot()
+        }
+    }
+    
+    var isSearching: Bool {
+        !filterText.isEmpty
+    }
+
+    private let entityManager: EntityManager
     private var snapshotSubscription: Cancellable?
+    private var providerSnapshot = ContactListProvider.ContactListSnapshot()
     private var sectionTitles: [String] { ThreemaLocalizedIndexedCollation.sectionIndexTitles }
     private var tableIndexTitles: [String?] {
         snapshot().sectionIdentifiers.map { section in
@@ -54,6 +74,8 @@ final class StartChatContactListDataSource: UITableViewDiffableDataSource<
         entityManager: EntityManager,
         in tableView: UITableView,
     ) {
+        self.entityManager = entityManager
+
         super.init(tableView: tableView) { tableView, indexPath, row in
             switch row {
             case let .contact(objectID):
@@ -94,6 +116,8 @@ final class StartChatContactListDataSource: UITableViewDiffableDataSource<
             }
         }
 
+        defaultRowAnimation = .fade
+
         registerCells(tableView, cellProvider: cellProvider)
         subscribe(to: provider)
     }
@@ -110,7 +134,9 @@ final class StartChatContactListDataSource: UITableViewDiffableDataSource<
     
     override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
         let kinds: [StartChatAddItemCell.AddItemKind] = [.contact, .group]
-        guard section == 0,
+        // The actions section (and thus its footer) is hidden while searching
+        guard !isSearching,
+              section == 0,
               kinds.contains(where: { !$0.enabled }) else {
             return nil
         }
@@ -118,7 +144,7 @@ final class StartChatContactListDataSource: UITableViewDiffableDataSource<
     }
 
     override func sectionIndexTitles(for tableView: UITableView) -> [String]? {
-        sectionTitles
+        isSearching ? sectionTitles : nil
     }
 
     override func tableView(_ tableView: UITableView, sectionForSectionIndexTitle title: String, at index: Int) -> Int {
@@ -130,30 +156,53 @@ final class StartChatContactListDataSource: UITableViewDiffableDataSource<
             guard let self else {
                 return
             }
-            
-            var snapshot = NSDiffableDataSourceSnapshot<Section, Section.Row>()
+            providerSnapshot = contactSnapshot
+            applyProviderSnapshot()
+        }
+    }
+
+    private func applyProviderSnapshot() {
+        var snapshot = NSDiffableDataSourceSnapshot<Section, Section.Row>()
+
+        // The actions only show when not searching
+        if !isSearching {
             snapshot.appendSections([.actions])
             snapshot.appendItems(
                 [
                     .addContact,
                     .addGroup,
                     StartChatAddItemCell.AddItemKind.distributionList.enabled ? .addDistributionList : nil,
-                ].compactMap { $0 },
+                ].compactMap(\.self),
                 toSection: .actions
             )
-
-            let sectionIdentifiers = contactSnapshot.sectionIdentifiers
-            for sectionID in sectionIdentifiers {
-                let section = Section.contacts(sectionID)
-                snapshot.appendSections([section])
-
-                let items = contactSnapshot.itemIdentifiers(inSection: sectionID)
-                let contactRows = items.map(Section.Row.contact)
-                snapshot.appendItems(contactRows, toSection: section)
-            }
-            
-            apply(snapshot)
         }
+
+        let matchingIDs: Set<NSManagedObjectID>? =
+            !isSearching
+                ? nil
+                : Set(
+                    entityManager.entityFetcher.matchingContactsForContactListSearch(
+                        containing: filterText,
+                        hideStaleContacts: UserSettings.shared().hideStaleContacts
+                    )
+                )
+
+        for sectionID in providerSnapshot.sectionIdentifiers {
+            var items = providerSnapshot.itemIdentifiers(inSection: sectionID)
+            if let matchingIDs {
+                items = items.filter { matchingIDs.contains($0) }
+            }
+
+            guard !items.isEmpty else {
+                continue
+            }
+
+            let section = Section.contacts(sectionID)
+            snapshot.appendSections([section])
+            snapshot.appendItems(items.map(Section.Row.contact), toSection: section)
+        }
+
+        apply(snapshot)
     }
 
     // MARK: - Helpers

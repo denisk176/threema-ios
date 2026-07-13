@@ -17,23 +17,14 @@ final class StartChatViewController: ThemedViewController {
         businessInjector: BusinessInjector.ui,
         style: .insetGrouped
     )
+    /// Searching filters the contacts shown directly
     private lazy var searchController: UISearchController = {
-        var controller = UISearchController(searchResultsController: contactListSearchResultsController)
-        controller.searchResultsUpdater = contactListSearchResultsController
-        controller.obscuresBackgroundDuringPresentation = false
-        controller.searchBar.placeholder = #localize("contact_list_search_bar_placeholder")
-        return controller
-    }()
-
-    private lazy var contactListSearchResultsController = {
-        let controller = ContactListSearchResultViewController(
-            businessInjector: BusinessInjector.ui,
-            cellProvider: cellProvider,
-            provider: provider,
-            allowsMultiselect: false
-        )
+        var controller = UISearchController(searchResultsController: nil)
         controller.delegate = self
-        
+        controller.searchResultsUpdater = self
+        controller.obscuresBackgroundDuringPresentation = false
+        controller.hidesNavigationBarDuringPresentation = false
+        controller.searchBar.placeholder = #localize("contact_list_search_bar_placeholder")
         return controller
     }()
 
@@ -110,5 +101,25 @@ extension StartChatViewController: StartChatContactSelectionHandler {
     
     func selectionFor(id: ItemID) -> Bool {
         false
+    }
+}
+
+// MARK: - UISearchControllerDelegate
+
+extension StartChatViewController: UISearchControllerDelegate {
+    func didDismissSearchController(_ searchController: UISearchController) {
+        tableViewController.cancelFiltering()
+    }
+}
+
+// MARK: - UISearchResultsUpdating
+
+extension StartChatViewController: UISearchResultsUpdating {
+    func updateSearchResults(for searchController: UISearchController) {
+        guard searchController.isActive else {
+            return
+        }
+
+        tableViewController.filterContacts(matching: searchController.searchBar.text ?? "")
     }
 }

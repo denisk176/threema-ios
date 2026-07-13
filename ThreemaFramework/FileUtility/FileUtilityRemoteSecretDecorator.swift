@@ -195,7 +195,15 @@ public final class FileUtilityRemoteSecretDecorator: FileUtilityProtocol {
     public func contentsOfDirectory(atPath path: String) throws -> [String] {
         try wrapped.contentsOfDirectory(atPath: path)
     }
-    
+
+    public func contentsOfDirectory(
+        at url: URL,
+        includingPropertiesForKeys keys: [URLResourceKey]?,
+        options mask: FileManager.DirectoryEnumerationOptions
+    ) throws -> [URL] {
+        try wrapped.contentsOfDirectory(at: url, includingPropertiesForKeys: keys, options: mask)
+    }
+
     public func read(fileURL: URL?) -> Data? {
         guard let fileData = wrapped.read(fileURL: fileURL) else {
             return nil

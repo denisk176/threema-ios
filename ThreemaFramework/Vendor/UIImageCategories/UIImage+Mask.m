@@ -2,7 +2,7 @@
 //  UIImage+Mask.m
 //  Threema
 //
-//  Copyright (c) 2013 Threema GmbH. All rights reserved.
+//  Copyright (c) 2013 Threema AG. All rights reserved.
 //
 
 #import "UIImage+Mask.h"

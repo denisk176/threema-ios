@@ -41,18 +41,52 @@ final class EditContactViewController: ThemedCodeModernGroupedTableViewControlle
     
     private let contact: ContactEntity
     
-    private var profilePictureData: Data?
+    private var profilePictureData: Data? {
+        didSet {
+            updateConfirmationButton()
+        }
+    }
+
     private let profilePictureIsEditable: Bool
-    
-    private var firstName: String?
-    private var lastName: String?
-    
+
+    private var firstName: String? {
+        didSet {
+            updateConfirmationButton()
+        }
+    }
+
+    private var lastName: String? {
+        didSet {
+            updateConfirmationButton()
+        }
+    }
+
+    private var originalProfilePictureData: Data?
+    private var originalFirstName: String?
+    private var originalLastName: String?
+
+    private var hasUnsavedChanges: Bool {
+        (firstName ?? "") != (originalFirstName ?? "")
+            || (lastName ?? "") != (originalLastName ?? "")
+            || profilePictureData != originalProfilePictureData
+    }
+
     private var entityManager = BusinessInjector.ui.entityManager
     
     private var observerContact: NSKeyValueObservation?
 
     // MARK: Subview
-    
+
+    private lazy var cancelBarButtonItem = UIBarButtonItem.closeButton(
+        target: self,
+        selector: #selector(cancelButtonTapped)
+    )
+
+    private lazy var saveBarButtonItem = UIBarButtonItem.saveButton(
+        target: self,
+        selector: #selector(saveButtonTapped)
+    )
+
     private lazy var editProfilePictureView: EditProfilePictureView = {
         
         let businessContact = Contact(contactEntity: self.contact)
@@ -115,7 +149,11 @@ final class EditContactViewController: ThemedCodeModernGroupedTableViewControlle
         
         self.firstName = contact.firstName
         self.lastName = contact.lastName
-        
+
+        self.originalProfilePictureData = self.profilePictureData
+        self.originalFirstName = self.firstName
+        self.originalLastName = self.lastName
+
         super.init()
     }
     
@@ -143,24 +181,14 @@ final class EditContactViewController: ThemedCodeModernGroupedTableViewControlle
     // MARK: - Configuration
     
     private func configureController() {
-        isModalInPresentation = true
+        navigationController?.presentationController?.delegate = self
+        updateConfirmationButton()
     }
     
     private func configureNavigationBar() {
         navigationBarTitle = #localize("edit_contact_title")
         hideNavigationBarTitleBelowAppearanceOffset = true
 
-        let cancelBarButtonItem = UIBarButtonItem(
-            barButtonSystemItem: .cancel,
-            target: self,
-            action: #selector(cancelButtonTapped)
-        )
-        
-        let saveBarButtonItem = UIBarButtonItem.saveButton(
-            target: self,
-            selector: #selector(saveButtonTapped)
-        )
-        
         navigationItem.leftBarButtonItem = cancelBarButtonItem
         navigationItem.rightBarButtonItem = saveBarButtonItem
     }
@@ -250,6 +278,10 @@ final class EditContactViewController: ThemedCodeModernGroupedTableViewControlle
         }
     }
     
+    private func updateConfirmationButton() {
+        saveBarButtonItem.isEnabled = hasUnsavedChanges
+    }
+
     private func updateContentInsets(to newContentInsets: UIEdgeInsets) {
         tableView.contentInset = newContentInsets
         tableView.scrollIndicatorInsets = newContentInsets
@@ -328,5 +360,13 @@ extension EditContactViewController: EditNameTableViewCellDelegate {
         default:
             fatalError("Not supported EditNameTableViewCell.NameType \(editNameTableViewCell.nameType)")
         }
+    }
+}
+
+// MARK: - UIAdaptivePresentationControllerDelegate
+
+extension EditContactViewController: UIAdaptivePresentationControllerDelegate {
+    func presentationControllerShouldDismiss(_ presentationController: UIPresentationController) -> Bool {
+        !hasUnsavedChanges
     }
 }

@@ -564,6 +564,25 @@ public final class DateFormatter: NSObject {
         return accessibilityRelativeDateTimeDateFormatter!.string(from: date)
     }
     
+    // MARK: - RFC 1123 (HTTP date)
+
+    /// Parse an RFC 1123 date string (e.g. HTTP `Expires` header)
+    ///
+    /// Example: "Sat, 01 Feb 2020 12:14:15 GMT"
+    ///
+    /// - Parameter dateString: RFC 1123 formatted date string
+    /// - Returns: Parsed date or nil if parsing failed
+    public static func dateFromRFC1123(_ dateString: String) -> Date? {
+        if rfc1123Formatter == nil {
+            rfc1123Formatter = Foundation.DateFormatter()
+            rfc1123Formatter?.locale = Locale(identifier: "en_US")
+            rfc1123Formatter?.timeZone = TimeZone(abbreviation: "GMT")
+            rfc1123Formatter?.dateFormat = "EEE',' dd MMM yyyy HH':'mm':'ss z"
+        }
+
+        return rfc1123Formatter?.date(from: dateString)
+    }
+
     // MARK: - Locale independent time formatter
     
     /// Date independent of locale, used for file names
@@ -727,6 +746,7 @@ public final class DateFormatter: NSObject {
         accessibilityDateTimeDateFormatter = nil
         accessibilityRelativeDateTimeDateFormatter = nil
         
+        rfc1123Formatter = nil
         webDateFormatter = nil
         exportDateFormatter = nil
         nowDateFormatter = nil
@@ -759,6 +779,7 @@ public final class DateFormatter: NSObject {
     private static var accessibilityDateTimeDateFormatter: Foundation.DateFormatter?
     private static var accessibilityRelativeDateTimeDateFormatter: Foundation.DateFormatter?
     
+    private static var rfc1123Formatter: Foundation.DateFormatter?
     private static var webDateFormatter: Foundation.DateFormatter?
     private static var exportDateFormatter: Foundation.DateFormatter?
     private static var nowDateFormatter: Foundation.DateFormatter?

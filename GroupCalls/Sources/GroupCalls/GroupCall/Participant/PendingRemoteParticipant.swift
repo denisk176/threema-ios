@@ -118,7 +118,7 @@ final class PendingRemoteParticipant: RemoteParticipant {
             let mediaKeys = [
                 localParticipant.protocolMediaKeys,
                 localParticipant.pendingProtocolMediaKeys,
-            ].compactMap { $0 }
+            ].compactMap(\.self)
             
             let authMessage = try handshakeAuthMessage(with: mediaKeys)
             
@@ -160,7 +160,7 @@ final class PendingRemoteParticipant: RemoteParticipant {
             let mediaKeys = [
                 localParticipant.protocolMediaKeys,
                 localParticipant.pendingProtocolMediaKeys,
-            ].compactMap { $0 }
+            ].compactMap(\.self)
             let authMessage = try handshakeAuthMessage(with: mediaKeys)
             
             handshakeState = .await_auth
@@ -319,7 +319,7 @@ final class PendingRemoteParticipant: RemoteParticipant {
         }
         
         guard let helloEnvelope = try? GroupCall_ParticipantToParticipant.Handshake.HelloEnvelope(
-            serializedData: decrypted
+            serializedBytes: decrypted
         ) else {
             throw GroupCallError.decryptionFailure
         }
@@ -389,7 +389,7 @@ final class PendingRemoteParticipant: RemoteParticipant {
         }
         
         guard let authEnvelope = try? GroupCall_ParticipantToParticipant.Handshake.AuthEnvelope(
-            serializedData: decrypted
+            serializedBytes: decrypted
         ) else {
             throw GroupCallError.decryptionFailure
         }

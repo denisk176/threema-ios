@@ -16,7 +16,6 @@ public final class MessageForwardingViewController: ThemedViewController {
 
     private let model: MessageForwardingViewModel
     private let messageInputModel: MessageForwardingBottomViewModel
-    private let searchResultsViewController: RecipientSearchResultsViewController
     private let tip = TipKitManager.ThreemaForwardingCaptionInfoTip()
     private var tipObservation: Task<Void, Never>?
     private var tipPopoverController: TipUIPopoverViewController?
@@ -41,12 +40,19 @@ public final class MessageForwardingViewController: ThemedViewController {
         return stackView
     }()
 
-    private lazy var dataSource = DataSource(tableView: tableView, cellProvider: cellProvider)
+    private lazy var dataSource: DataSource = {
+        let dataSource = DataSource(tableView: tableView, cellProvider: cellProvider)
+        dataSource.defaultRowAnimation = .fade
+        return dataSource
+    }()
 
+    /// Searching filters the items shown in `tableView` in place instead of presenting a separate search
+    /// results controller
     private lazy var searchController: UISearchController = {
-        let controller = UISearchController(searchResultsController: searchResultsViewController)
+        let controller = UISearchController(searchResultsController: nil)
         controller.delegate = self
-        controller.hidesNavigationBarDuringPresentation = true
+        controller.hidesNavigationBarDuringPresentation = false
+        controller.obscuresBackgroundDuringPresentation = false
         controller.searchResultsUpdater = self
         controller.searchBar.placeholder = #localize("contact_list_search_bar_placeholder")
         controller.searchBar.setValue(#localize("Done"), forKey: "cancelButtonText")
@@ -54,7 +60,6 @@ public final class MessageForwardingViewController: ThemedViewController {
         controller.searchBar.autocorrectionType = .no
         controller.searchBar.spellCheckingType = .no
         controller.searchBar.returnKeyType = .done
-        controller.showsSearchResultsController = true
         return controller
     }()
 
@@ -64,13 +69,11 @@ public final class MessageForwardingViewController: ThemedViewController {
 
     public init(
         model: MessageForwardingViewModel,
-        searchResultsViewController: RecipientSearchResultsViewController,
         businessInjector: any BusinessInjectorProtocol
     ) throws {
         let inputModel = try MessageForwardingBottomViewModel(message: model.message)
         self.model = model
         self.messageInputModel = inputModel
-        self.searchResultsViewController = searchResultsViewController
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -131,10 +134,6 @@ public final class MessageForwardingViewController: ThemedViewController {
     }
 
     // MARK: - Private Methods
-
-    private var searchResultsViewModel: RecipientSearchResultsViewModel {
-        searchResultsViewController.model
-    }
 
     private lazy var messageForwardingBottomView: MessageForwardingBottomView = {
         let view = MessageForwardingBottomView(model: self.messageInputModel)
@@ -488,21 +487,19 @@ extension MessageForwardingViewController: SelectedItemsHeaderViewDelegate {
 
 extension MessageForwardingViewController: UISearchResultsUpdating {
     public func updateSearchResults(for searchController: UISearchController) {
-        searchResultsViewModel.updateSearchResults(for: searchController.searchBar.text)
+        guard searchController.isActive else {
+            return
+        }
+
+        model.updateFilterText(searchController.searchBar.text ?? "")
     }
 }
 
 // MARK: - UISearchControllerDelegate
 
 extension MessageForwardingViewController: UISearchControllerDelegate {
-    public func willPresentSearchController(_ searchController: UISearchController) {
-        searchResultsViewModel.updateSelectedItemIdentifiers(model.selectedItemIdentifiers)
-    }
-
-    public func willDismissSearchController(_ searchController: UISearchController) {
-        let ids = searchResultsViewModel.selectedItemIdentifiers
-        model.updateSelectedItemIdentifiers(ids)
-        tableView.reloadData()
+    public func didDismissSearchController(_ searchController: UISearchController) {
+        model.cancelFiltering()
     }
 }
 

@@ -29,7 +29,7 @@ extension BallotEntity {
         type?.intValue == BallotType.intermediate.rawValue
     }
 
-    public var isMultipleChoice: Bool {
+    @objc public var isMultipleChoice: Bool {
         assessmentType?.intValue == BallotAssessmentType.multi.rawValue
     }
     

@@ -44,8 +44,8 @@ struct CustomWallpaperSelectionView: View {
                     }
                 }
             }
-            .navigationBarTitleDisplayMode(.inline)
             .navigationTitle(#localize("settings_chat_wallpaper_title"))
+            .navigationBarTitleDisplayMode(.inline)
             .sheet(isPresented: $showingImagePicker) {
                 SwiftUIImagePicker(image: $selectedUIImage)
             }

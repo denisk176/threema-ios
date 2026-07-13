@@ -15,6 +15,7 @@ final class ShareController: NSObject {
     // If nil, a contact picker will be shown
     var contact: ContactEntity?
 
+    @MainActor
     func startShare() {
         info = [kKeyForceCompose: NSNumber(booleanLiteral: true)]
 
@@ -31,9 +32,11 @@ final class ShareController: NSObject {
             share(of: contact)
         }
         else {
-            guard let viewController = AppDelegate.shared().window.rootViewController,
-                  let navigationController = ContactGroupPickerViewController.pickerFromStoryboard(withDelegate: self),
-                  let picker = navigationController.topViewController as? ContactGroupPickerViewController else {
+            guard
+                let viewController = SharedAppProvider.window?.rootViewController,
+                let navigationController = ContactGroupPickerViewController.pickerFromStoryboard(withDelegate: self),
+                let picker = navigationController.topViewController as? ContactGroupPickerViewController
+            else {
                 return
             }
 

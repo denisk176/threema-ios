@@ -369,8 +369,11 @@ final class AppCoordinatorNotificationHandler {
     private func handleColorThemeChangedNotification() {
         DDLogInfo("Color theme changed, removing cached chat view controllers")
         
-        Colors.update(window: AppDelegate.shared().window)
-        
+        SharedAppProvider.window
+            .map(Colors.update(window:))
+
+        Colors.update(rootViewController: splitViewController)
+
         Colors.update(tabBar: tabBarController.tabBar)
                 
         splitViewController.setNeedsStatusBarAppearanceUpdate()

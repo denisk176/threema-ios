@@ -2,7 +2,7 @@
 //  Scrypt.c
 //  Threema
 //
-//  Copyright © 2018 Threema GmbH. All rights reserved.
+//  Copyright © 2018 Threema AG. All rights reserved.
 //
 
 #include "Scrypt.h"

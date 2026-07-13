@@ -115,8 +115,8 @@ extension MediatorWebSocket: WebSocketDelegate {
                 // Handle chat message
                 if tag == 6 { // TODO: Define tags as constant
                     let (message, length) = MediatorMessageProtocol.extractChatMessageAndLength(data)
-                    if message != nil, length != nil {
-                        delegate.didRead(message!, tag: 7)
+                    if let message, length != nil {
+                        delegate.didRead(message, tag: 7)
                     }
                 }
                 else {

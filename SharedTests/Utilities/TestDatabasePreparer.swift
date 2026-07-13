@@ -215,6 +215,7 @@ public final class TestDatabasePreparer {
 
     @discardableResult public func createAudioMessageEntity(
         conversation: ConversationEntity,
+        audio: AudioDataEntity? = nil,
         duration: Float,
         complete: ((AudioMessageEntity) -> Void)?
     ) -> AudioMessageEntity {
@@ -228,6 +229,8 @@ public final class TestDatabasePreparer {
         audioMessage.date = Date()
         audioMessage.delivered = NSNumber(booleanLiteral: true)
         audioMessage.read = NSNumber(booleanLiteral: false)
+        audioMessage.audio = audio
+        
         if let complete {
             complete(audioMessage)
         }
@@ -236,8 +239,8 @@ public final class TestDatabasePreparer {
 
     @discardableResult public func createImageMessageEntity(
         conversation: ConversationEntity,
-        image: ImageDataEntity,
-        thumbnail: ImageDataEntity,
+        image: ImageDataEntity?,
+        thumbnail: ImageDataEntity?,
         date: Date = Date(),
         delivered: Bool = true,
         id: Data = BytesUtility.generateMessageID(),
@@ -254,6 +257,7 @@ public final class TestDatabasePreparer {
             isOwn: isOwn,
             conversation: conversation
         )
+        
         imageMessageEntity.image = image
         imageMessageEntity.thumbnail = thumbnail
         imageMessageEntity.date = date
@@ -357,7 +361,7 @@ public final class TestDatabasePreparer {
         conversation: ConversationEntity,
         video: VideoDataEntity?,
         duration: Int,
-        thumbnail: ImageDataEntity,
+        thumbnail: ImageDataEntity?,
         date: Date = Date(),
         delivered: Bool = true,
         id: Data = BytesUtility.generateMessageID(),
@@ -375,6 +379,7 @@ public final class TestDatabasePreparer {
             isOwn: isOwn,
             conversation: conversation
         )
+        
         videoMessageEntity.video = video
         videoMessageEntity.duration = NSNumber(integerLiteral: duration)
         videoMessageEntity.thumbnail = thumbnail

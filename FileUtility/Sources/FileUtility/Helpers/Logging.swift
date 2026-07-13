@@ -26,7 +26,6 @@ package func DDLogNotice(
     function: StaticString = #function,
     line: UInt = #line,
     tag: Any? = nil,
-    asynchronous async: Bool = asyncLoggingEnabled,
     ddlog: DDLog = .sharedInstance
 ) {
     _DDLogMessage(
@@ -38,7 +37,7 @@ package func DDLogNotice(
         function: function,
         line: line,
         tag: tag,
-        asynchronous: async,
+        asynchronous: true,
         ddlog: ddlog
     )
 }

@@ -65,7 +65,7 @@ final class TaskDefinitionSendReactionMessage: TaskDefinitionSendMessage {
     required init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.reaction = try CspE2e_Reaction(
-            serializedData: container
+            serializedBytes: container
                 .decode(Data.self, forKey: .reaction)
         )
         let superDecoder = try container.superDecoder()

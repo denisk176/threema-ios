@@ -5,6 +5,10 @@ import Foundation
 
 public final class EntityDestroyer: NSObject {
     
+    enum EntityDestroyerError: Error {
+        case entityForDescriptionNotFound
+    }
+    
     /// Relative to app data (group container) path.
     public static let externalDataBinPath = "_EXTERNAL_DATA_BIN"
 
@@ -362,56 +366,39 @@ public final class EntityDestroyer: NSObject {
         return nil
     }
 
-    /// Delete all kind of messages.
+    /// Delete the Messages dated before the passed date.
+    /// Currently all but open polls and starred messages are affected.
     ///
     /// - Parameters:
-    ///    - olderThan: All message older than that date will be deleted
-    ///    - conversations: Conversation
-    public func deleteMessagesForMessageRetention(olderThan: Date, for conversationsIDs: [NSManagedObjectID]) async {
-        await objCnx.perform {
-            let conversations = conversationsIDs
-                .compactMap { try? self.objCnx.existingObject(with: $0) as? ConversationEntity }
-            let fetchMessages = NSFetchRequest<NSFetchRequestResult>(entityName: "Message")
-            fetchMessages.predicate = NSPredicate(
-                format: "conversation IN %@ AND date < %@",
-                conversations,
-                olderThan as NSDate
-            )
-            self.messageRetentionDelete(with: fetchMessages)
+    ///   - olderThan: All messages older than this date are deleted
+    ///   - conversationIDs: Object IDs of the conversations the messages belong to
+    public func deleteMessagesForMessageRetention(olderThan: Date, for conversationsIDs: [NSManagedObjectID]) {
+        guard !conversationsIDs.isEmpty else {
+            return
         }
+        
+        self.messageRetentionDelete(olderThan: olderThan, for: conversationsIDs)
     }
     
-    /// Fetch number of messages to be deleted for message retention
+    /// Fetch number of messages that will be deleted by message retention
+    /// Currently all but open polls and starred messages are affected.
     ///
-    /// Open ballots are excluded.
     /// - Parameters:
     ///   - olderThan: All message older than that date will be counted
-    ///   - conversations: conversations affected by the filter and counting
-    /// - Returns: the number of messages filtered. Returns 0 if there are no messages to be deleted and if the fetch
-    /// fails
-    public func messagesToBeDeleted(olderThan: Date, for conversationsIDs: [NSManagedObjectID]) async -> Int {
-        await objCnx.perform {
-            let conversations = conversationsIDs
-                .compactMap { try? self.objCnx.existingObject(with: $0) as? ConversationEntity }
-            guard !conversations.isEmpty else {
-                return 0
-            }
-            
-            let fetchMessages = NSFetchRequest<NSFetchRequestResult>(entityName: "Message")
-            fetchMessages.predicate = NSPredicate(
-                format: "conversation IN %@ AND date < %@",
-                conversations,
-                olderThan as NSDate
-            )
-            let messages = (try? self.objCnx.fetch(fetchMessages)) as? [BaseMessageEntity] ?? []
-            // Currently we want to keep open Ballots excluded from deletion
-            let filtered = messages.filter { message in
-                guard let ballotMessage = message as? BallotMessageEntity else {
-                    return true
-                }
-                return ballotMessage.ballot?.isClosed ?? false
-            }
-            return filtered.count
+    ///   - conversationsIDs: Object IDs of the conversations affected by the filter and counting
+    /// - Returns: the number of messages that would be deleted. Returns 0 if there are none or if the fetch fails
+    public func messagesToBeDeleted(olderThan: Date, for conversationsIDs: [NSManagedObjectID]) -> Int {
+        guard !conversationsIDs.isEmpty else {
+            return 0
+        }
+        
+        do {
+            let fetchRequest = try self.messageRetentionFetchRequest(olderThan: olderThan, for: conversationsIDs)
+            return try self.objCnx.count(for: fetchRequest)
+        }
+        catch {
+            DDLogError("[EntityDestroyer] Failed to count messages to be deleted: \(error)")
+            return 0
         }
     }
 
@@ -703,62 +690,89 @@ public final class EntityDestroyer: NSObject {
     
     // MARK: - Private helper methods
     
-    /// Used to Delete the Messages according to the Retention Policy.
-    /// Currently all but Open Polls are affected.
-    ///
-    /// - Parameter fetchRequest: fetchRequest to be used to fetch the messages
-    private func messageRetentionDelete(with fetchRequest: NSFetchRequest<NSFetchRequestResult>) {
-        do {
-            try Task.checkCancellation()
+    private func messageRetentionFetchRequest(
+        olderThan: Date,
+        for conversationIDs: [NSManagedObjectID]
+    ) throws -> NSFetchRequest<NSFetchRequestResult> {
+        guard let ballotMessageEntity = NSEntityDescription.entity(forEntityName: "BallotMessage", in: objCnx) else {
+            throw EntityDestroyerError.entityForDescriptionNotFound
+        }
+        
+        let conversationAndDatePredicate = NSPredicate(
+            format: "conversation IN %@ AND date < %@",
+            conversationIDs,
+            olderThan as NSDate
+        )
+        // A ballot message is kept as long as its ballot is not closed
+        let isOpenBallotMessagePredicate = NSPredicate.and(
+            NSPredicate(format: "self.entity == %@", ballotMessageEntity),
+            .or(
+                NSPredicate(format: "ballotState == nil"),
+                NSPredicate(format: "ballotState != %d", BallotEntity.BallotState.closed.rawValue)
+            )
+        )
+        let isStarredPredicate = NSPredicate.and(
+            NSPredicate(format: "messageMarkers != nil"),
+            NSPredicate(format: "messageMarkers.star == YES")
+        )
 
-            let messages = try (objCnx.fetch(fetchRequest)) as? [BaseMessageEntity] ?? []
-            
-            // Currently we want to keep open ballots and starred messages excluded from deletion
-            let filtered = messages.filter { message in
-                if let ballotMessage = message as? BallotMessageEntity, let isClosed = ballotMessage.ballot?.isClosed,
-                   !isClosed {
-                    return false
-                }
-                
-                if let messageMarkers = message.messageMarkers, messageMarkers.star.boolValue {
-                    return false
-                }
-                
-                return true
+        let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "Message")
+        fetchRequest.predicate = .and(
+            conversationAndDatePredicate,
+            .not(.or(isOpenBallotMessagePredicate, isStarredPredicate))
+        )
+        
+        return fetchRequest
+    }
+
+    private func messageRetentionDelete(olderThan: Date, for conversationIDs: [NSManagedObjectID]) {
+        guard !conversationIDs.isEmpty else {
+            return
+        }
+
+        do {
+            let fetchRequest = try messageRetentionFetchRequest(olderThan: olderThan, for: conversationIDs)
+            fetchRequest.resultType = .managedObjectIDResultType
+
+            let objectIDs = try objCnx.performAndWait {
+                try objCnx.fetch(fetchRequest) as? [NSManagedObjectID] ?? []
             }
 
-            guard !filtered.isEmpty else {
-                DDLogNotice("[Message Retention Delete]: No messages to delete")
+            guard !objectIDs.isEmpty else {
+                DDLogNotice("[EntityDestroyer]: No messages to delete by automatic retention")
                 return
             }
-
-            let deleteFilenames = getExternalFilenames(ofMessages: filtered, includeThumbnail: true)
-
-            nullifyConversationLastMessage(for: filtered)
-
-            // With a batch delete will sometimes the external file of a file message not deleted immediately. If the
-            // external file is remaining, than the only way to delete this is in Settings - Advanced - Delete Orphaned
-            // Files
-            let batch = NSBatchDeleteRequest(objectIDs: filtered.map(\.objectID))
-            batch.resultType = .resultTypeObjectIDs
-            try Task.checkCancellation()
             
+            // Note: With a batch delete sometimes the external file of a file message will not be deleted immediately.
+            // If the external file is remaining, than the only way to delete it, is in Settings - Advanced - Delete
+            // Orphaned Files
+            let batch = NSBatchDeleteRequest(objectIDs: objectIDs)
+            batch.resultType = .resultTypeObjectIDs
+
+            // Update last message of affected conversations and external files of the deleted messages
+            nullifyConversationLastMessage(forObjectIDs: objectIDs)
+            let deleteFilenames = getExternalFilenames(ofObjectIDs: objectIDs, includeThumbnail: true)
+            deleteExternalFiles(list: deleteFilenames)
+                                
             if let deleteResult = try objCnx.execute(batch) as? NSBatchDeleteResult,
                let deletedIDs = deleteResult.result as? [NSManagedObjectID], !deletedIDs.isEmpty {
+
                 refreshDatabaseMainAndDirectContexts(for: deletedIDs)
-
-                deleteExternalFiles(list: deleteFilenames)
-
-                DDLogNotice("[Message Retention Delete]: Deleted \(deletedIDs.count) messages")
+                Task.detached {
+                    DatabaseContext.changed(objectIDs: Set(deletedIDs))
+                }
+                
+                DDLogNotice(
+                    "[EntityDestroyer]: Deleted \(deletedIDs.count) of \(objectIDs.count) messages by automatic retention"
+                )
+                NotificationCenter.default.post(
+                    name: DatabaseContext.batchDeletedOldMessages,
+                    object: nil
+                )
             }
-            
-            NotificationCenter.default.post(
-                name: DatabaseContext.batchDeletedOldMessages,
-                object: nil
-            )
         }
         catch {
-            DDLogError("[Message Retention Delete]: Could not delete messages: \(error)")
+            DDLogError("[EntityDestroyer]: Could not delete messages by automatic retention: \(error)")
         }
     }
     
@@ -951,13 +965,14 @@ public final class EntityDestroyer: NSObject {
 
             nullifyConversationLastMessage(forObjectIDs: objectIDs)
 
-            // With a batch delete will sometimes the external file of a file message not deleted immediately. If the
-            // external file is remaining, than the only way to delete this is in Settings - Advanced - Delete Orphaned
+            // With a batch delete sometimes the external file of a file message will not be deleted immediately. If the
+            // external file is remaining, than the only way to delete it, is in Settings - Advanced - Delete Orphaned
             // Files
             let batch = NSBatchDeleteRequest(fetchRequest: fetchRequest)
             batch.resultType = NSBatchDeleteRequestResultType.resultTypeObjectIDs
-            let deleteResult = try objCnx.execute(batch) as? NSBatchDeleteResult
-            if let deletedIDs = deleteResult?.result as? [NSManagedObjectID], !deletedIDs.isEmpty {
+            
+            if let deleteResult = try objCnx.execute(batch) as? NSBatchDeleteResult,
+               let deletedIDs = deleteResult.result as? [NSManagedObjectID], !deletedIDs.isEmpty {
                 refreshDatabaseMainAndDirectContexts(for: deletedIDs)
 
                 deleteExternalFiles(list: deleteFilenames)
@@ -968,7 +983,7 @@ public final class EntityDestroyer: NSObject {
             return 0
         }
         catch let error as NSError {
-            DDLogError("Could not delete messages. \(error), \(error.userInfo)")
+            DDLogError("[Entity Destroyer] Could not delete messages. \(error), \(error.userInfo)")
         }
 
         return 0
@@ -994,6 +1009,7 @@ public final class EntityDestroyer: NSObject {
 
                 if let conversations = try fetchConversations.execute() as? [ConversationEntity],
                    !conversations.isEmpty {
+                    DDLogNotice("[Entity Destroyer]: Reset las message for \(conversations.count) conversation")
                     for conversation in conversations {
                         conversation.lastMessage = nil
                     }
@@ -1003,7 +1019,7 @@ public final class EntityDestroyer: NSObject {
             }
         }
         catch {
-            DDLogError("Failed to nullify `Conversation.lastMessage`: \(error)")
+            DDLogError("[Entity Destroyer]: Failed to nullify `Conversation.lastMessage`: \(error)")
         }
     }
 

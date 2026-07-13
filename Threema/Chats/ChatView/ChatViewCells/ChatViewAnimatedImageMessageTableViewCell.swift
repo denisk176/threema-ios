@@ -225,8 +225,8 @@ extension ChatViewAnimatedImageMessageTableViewCell: ChatViewMessageActions {
             }
         }
         
-        // Quote
-        let quoteHandler = {
+        // Reply
+        let replyHandler = {
             guard let chatViewTableViewCellDelegate = self.chatViewTableViewCellDelegate else {
                 DDLogError("[CV CxtMenu] Could not show quote view because the delegate was nil.")
                 return
@@ -237,7 +237,7 @@ extension ChatViewAnimatedImageMessageTableViewCell: ChatViewMessageActions {
                 return
             }
             
-            chatViewTableViewCellDelegate.showQuoteView(message: message)
+            chatViewTableViewCellDelegate.showQuoteView(for: message)
         }
         
         // Edit
@@ -326,7 +326,7 @@ extension ChatViewAnimatedImageMessageTableViewCell: ChatViewMessageActions {
             markStarHandler: markStarHandler,
             retryAndCancelHandler: retryAndCancelHandler,
             downloadHandler: downloadHandler,
-            quoteHandler: quoteHandler,
+            replyHandler: replyHandler,
             editHandler: editHandler,
             saveHandler: saveHandler,
             copyHandler: copyHandler,

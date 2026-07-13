@@ -124,7 +124,7 @@ final class VideoMessageProcessor: NSObject {
                        let thumbnailJpegData = thumbnailImage.jpegData(compressionQuality: 1.0) {
                         
                         let thumbnail: ImageDataEntity
-                        if var messageThumbnail = msg.thumbnail {
+                        if let messageThumbnail = msg.thumbnail {
                             messageThumbnail.data = thumbnailJpegData
                             messageThumbnail.width = Int16(thumbnailImage.size.width)
                             messageThumbnail.height = Int16(thumbnailImage.size.height)

@@ -152,9 +152,13 @@ extension CustomGestureViewModifier.LongPressView {
                     var location: CGPoint? = nil
                     switch coordinateSpace {
                     case .global:
-                        if let vc = AppDelegate.shared().currentTopViewController() {
-                            location = touch.location(in: vc.view)
+                        guard let vc = SharedAppProvider.onMain({
+                            SharedAppProvider.currentTopViewController
+                        }) else {
+                            return
                         }
+                        
+                        location = touch.location(in: vc.view)
                         
                     case .local:
                         if let target {

@@ -8,6 +8,19 @@
 
 /* Begin PBXBuildFile section */
 		082966472F63122300A57ABE /* libPhoneNumber in Frameworks */ = {isa = PBXBuildFile; productRef = 082966462F63122300A57ABE /* libPhoneNumber */; };
+		08BFCC5F2FC09F9C00235F00 /* ZipArchive in Frameworks */ = {isa = PBXBuildFile; productRef = 08BFCC5E2FC09F9C00235F00 /* ZipArchive */; };
+		08BFCC612FC0A02000235F00 /* ZipArchive in Frameworks */ = {isa = PBXBuildFile; productRef = 08BFCC602FC0A02000235F00 /* ZipArchive */; };
+		08BFCC632FC0A02900235F00 /* ZipArchive in Frameworks */ = {isa = PBXBuildFile; productRef = 08BFCC622FC0A02900235F00 /* ZipArchive */; };
+		08BFCC652FC0A03000235F00 /* ZipArchive in Frameworks */ = {isa = PBXBuildFile; productRef = 08BFCC642FC0A03000235F00 /* ZipArchive */; };
+		08BFCC672FC0A03600235F00 /* ZipArchive in Frameworks */ = {isa = PBXBuildFile; productRef = 08BFCC662FC0A03600235F00 /* ZipArchive */; };
+		08BFCC692FC0A04200235F00 /* ZipArchive in Frameworks */ = {isa = PBXBuildFile; productRef = 08BFCC682FC0A04200235F00 /* ZipArchive */; };
+		08BFCC6B2FC0A04900235F00 /* ZipArchive in Frameworks */ = {isa = PBXBuildFile; productRef = 08BFCC6A2FC0A04900235F00 /* ZipArchive */; };
+		08BFCC6D2FC0A05E00235F00 /* ZipArchive in Frameworks */ = {isa = PBXBuildFile; productRef = 08BFCC6C2FC0A05E00235F00 /* ZipArchive */; };
+		08BFCC6F2FC0A06900235F00 /* ZipArchive in Frameworks */ = {isa = PBXBuildFile; productRef = 08BFCC6E2FC0A06900235F00 /* ZipArchive */; };
+		08BFCC712FC0A07000235F00 /* ZipArchive in Frameworks */ = {isa = PBXBuildFile; productRef = 08BFCC702FC0A07000235F00 /* ZipArchive */; };
+		08BFCC732FC0A07600235F00 /* ZipArchive in Frameworks */ = {isa = PBXBuildFile; productRef = 08BFCC722FC0A07600235F00 /* ZipArchive */; };
+		08BFCC752FC0A07C00235F00 /* ZipArchive in Frameworks */ = {isa = PBXBuildFile; productRef = 08BFCC742FC0A07C00235F00 /* ZipArchive */; };
+		08BFCC772FC0A08300235F00 /* ZipArchive in Frameworks */ = {isa = PBXBuildFile; productRef = 08BFCC762FC0A08300235F00 /* ZipArchive */; };
 		08F9BADA2F62AE8100E4164B /* libPhoneNumber in Frameworks */ = {isa = PBXBuildFile; productRef = 08F9BAD92F62AE8100E4164B /* libPhoneNumber */; };
 		08F9DE142F62C3F100E4164B /* libPhoneNumber in Frameworks */ = {isa = PBXBuildFile; productRef = 08F9DE132F62C3F100E4164B /* libPhoneNumber */; };
 		08F9DE162F62C40E00E4164B /* libPhoneNumber in Frameworks */ = {isa = PBXBuildFile; productRef = 08F9DE152F62C40E00E4164B /* libPhoneNumber */; };
@@ -965,7 +978,6 @@
 		F2EAFEB42D6CC9C400DFFD48 /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4D61280C1A72D95700AA8821 /* CoreMotion.framework */; };
 		F2EAFEB52D6CC9C400DFFD48 /* LocalAuthentication.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4D73A45E19E5E881007459F5 /* LocalAuthentication.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		F2EAFEB62D6CC9C400DFFD48 /* QuickLook.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4D0FC68619E3F33900CF7BB5 /* QuickLook.framework */; };
-		F2EAFEB72D6CC9C400DFFD48 /* SnapKit in Frameworks */ = {isa = PBXBuildFile; productRef = F2EAFBCF2D6CC9C400DFFD48 /* SnapKit */; };
 		F2EAFEB82D6CC9C400DFFD48 /* CoreImage.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4D08BF12190FB04800458BC4 /* CoreImage.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		F2EAFEB92D6CC9C400DFFD48 /* ThreemaFramework.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0A677B821C6250C90019B361 /* ThreemaFramework.framework */; };
 		F2EAFEBA2D6CC9C400DFFD48 /* AsyncAlgorithms in Frameworks */ = {isa = PBXBuildFile; productRef = F2EAFBE42D6CC9C400DFFD48 /* AsyncAlgorithms */; };
@@ -2330,12 +2342,10 @@
 		F25FD72F2E7043FB00EA8AF3 /* Exceptions for "ThreemaFramework" folder in "ThreemaFramework" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Core/HTTPSURLLoader.h,
 				Message/EncoderDecoder/BallotKeys.h,
 				Message/EncoderDecoder/FileMessageKeys.h,
 				Message/EncoderDecoder/JsonUtil.h,
 				SharedUI/ActivityIndicatorProxy.h,
-				SharedUI/GatewayAvatarMaker.h,
 				SharedUI/LockScreen.swift,
 				SharedUI/TableDataSource/ContactGroupDataSource.h,
 				SharedUI/TableDataSource/ContactTableDataSource.h,
@@ -2362,7 +2372,6 @@
 				Core/ConnectionStateDelegate.h,
 				Core/LoggingDescriptionProtocol.h,
 				Core/ThreemaError.h,
-				Log/FileLoggerCustom.h,
 				Log/LogFormatterCustom.h,
 				Log/LogLevelCustom.h,
 				Message/AbstractMessage/AbstractGroupMessage.h,
@@ -2615,7 +2624,9 @@
 				ManuallyTests/Screenshots/ScreenshotsJsonImporter.swift,
 				"ManuallyTests/Screenshots/ScreenshotsJsonImporter+Codable.swift",
 				Resources/audioAnalyzerTest.m4a,
+				Resources/SmallVoice.mp3,
 				Resources/test_texts.json,
+				"Resources/Video-1.mp4",
 				"Utilities/Swizzling/NSBundle+OverrideLanguage.m",
 				"Utilities/Swizzling/NSBundle+OverrideObjectForInfoDictionaryKey.m",
 				"Utilities/Swizzling/NSDate+DateSwizzling.m",
@@ -2887,6 +2898,7 @@
 				24D8343F2B32BB1F00D25FEF /* CocoaLumberjack in Frameworks */,
 				24D834412B32BB2800D25FEF /* CocoaLumberjackSwift in Frameworks */,
 				242083C32CBCDCC70079D9B8 /* ThreemaMacros in Frameworks */,
+				08BFCC5F2FC09F9C00235F00 /* ZipArchive in Frameworks */,
 				0AC9EF2D1C99AE1700555E62 /* AVFoundation.framework in Frameworks */,
 				08F9BADA2F62AE8100E4164B /* libPhoneNumber in Frameworks */,
 				8DDCF7CC27107FB8000CB4F6 /* SwiftProtobuf in Frameworks */,
@@ -3025,6 +3037,7 @@
 				F2A87DF82E4B68B800646386 /* FLAnimatedImage in Frameworks */,
 				D73A95C427AD0743003E847C /* SDWebImage in Frameworks */,
 				CE7E001E25FA563D0054373A /* Ed25519 in Frameworks */,
+				08BFCC632FC0A02900235F00 /* ZipArchive in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3044,6 +3057,7 @@
 				F2A87DF62E4B68B200646386 /* FLAnimatedImage in Frameworks */,
 				D73A95C827AD0838003E847C /* SDWebImage in Frameworks */,
 				CE12747D25FA488B000840BD /* Ed25519 in Frameworks */,
+				08BFCC612FC0A02000235F00 /* ZipArchive in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3112,6 +3126,7 @@
 				F2A87DFE2E4B68CE00646386 /* FLAnimatedImage in Frameworks */,
 				D73A95CE27AD183A003E847C /* SDWebImage in Frameworks */,
 				CE7E002425FA564B0054373A /* Ed25519 in Frameworks */,
+				08BFCC6B2FC0A04900235F00 /* ZipArchive in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3197,6 +3212,7 @@
 				7EACDD7B2B0CE34400D9BC27 /* ThreemaEssentials in Frameworks */,
 				24EFCD9A2B31EAAB00DD7C66 /* MBProgressHUD in Frameworks */,
 				7EC0229A2B8906F9005024AE /* TrustKit in Frameworks */,
+				08BFCC772FC0A08300235F00 /* ZipArchive in Frameworks */,
 				24B820052B32CE6E00E8D13E /* CocoaLumberjackSwift in Frameworks */,
 				08F9DE2A2F62C46700E4164B /* libPhoneNumber in Frameworks */,
 				242083B72CBCDC9D0079D9B8 /* ThreemaMacros in Frameworks */,
@@ -3217,6 +3233,7 @@
 				24F27BE928AE3D5A00A71494 /* JDStatusBarNotification in Frameworks */,
 				7E0A4BD12AD68EDC00C38A25 /* PromiseKit in Frameworks */,
 				24D834472B32BE5400D25FEF /* CocoaLumberjack in Frameworks */,
+				08BFCC6D2FC0A05E00235F00 /* ZipArchive in Frameworks */,
 				24EFCD812B31E89600DD7C66 /* MBProgressHUD in Frameworks */,
 				08F9DE202F62C44800E4164B /* libPhoneNumber in Frameworks */,
 				242083AF2CBCDC820079D9B8 /* ThreemaMacros in Frameworks */,
@@ -3237,6 +3254,7 @@
 				4D088C4E255C1640002F3129 /* Ed25519 in Frameworks */,
 				7EC022982B8906EF005024AE /* TrustKit in Frameworks */,
 				24B820012B32CE6500E8D13E /* CocoaLumberjackSwift in Frameworks */,
+				08BFCC752FC0A07C00235F00 /* ZipArchive in Frameworks */,
 				7EACDD792B0CE33800D9BC27 /* ThreemaEssentials in Frameworks */,
 				08F9DE282F62C46000E4164B /* libPhoneNumber in Frameworks */,
 				242083B52CBCDC970079D9B8 /* ThreemaMacros in Frameworks */,
@@ -3330,6 +3348,7 @@
 				7EACDD772B0CE32C00D9BC27 /* ThreemaEssentials in Frameworks */,
 				7EC022962B8906E6005024AE /* TrustKit in Frameworks */,
 				24B81FFD2B32CE5F00E8D13E /* CocoaLumberjackSwift in Frameworks */,
+				08BFCC6F2FC0A06900235F00 /* ZipArchive in Frameworks */,
 				24EFCD932B31E98300DD7C66 /* MBProgressHUD in Frameworks */,
 				08F9DE222F62C44F00E4164B /* libPhoneNumber in Frameworks */,
 				242083B12CBCDC890079D9B8 /* ThreemaMacros in Frameworks */,
@@ -3357,6 +3376,7 @@
 				F2850D572E4B59DD00DC9C18 /* FLAnimatedImage in Frameworks */,
 				D73A95BE27AD0628003E847C /* SDWebImage in Frameworks */,
 				CE7E002225FA56470054373A /* Ed25519 in Frameworks */,
+				08BFCC692FC0A04200235F00 /* ZipArchive in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3449,6 +3469,7 @@
 				F2A87DFA2E4B68BF00646386 /* FLAnimatedImage in Frameworks */,
 				D73A95CC27AD1830003E847C /* SDWebImage in Frameworks */,
 				CE7E002025FA56420054373A /* Ed25519 in Frameworks */,
+				08BFCC652FC0A03000235F00 /* ZipArchive in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -3461,6 +3482,7 @@
 				7EACDD7D2B0CE34D00D9BC27 /* ThreemaEssentials in Frameworks */,
 				7EC0229C2B890707005024AE /* TrustKit in Frameworks */,
 				24B820092B32CE7600E8D13E /* CocoaLumberjackSwift in Frameworks */,
+				08BFCC712FC0A07000235F00 /* ZipArchive in Frameworks */,
 				24EFCD982B31E99C00DD7C66 /* MBProgressHUD in Frameworks */,
 				08F9DE242F62C45500E4164B /* libPhoneNumber in Frameworks */,
 				242083B32CBCDC900079D9B8 /* ThreemaMacros in Frameworks */,
@@ -3645,7 +3667,6 @@
 				F2EAFEB42D6CC9C400DFFD48 /* CoreMotion.framework in Frameworks */,
 				F2EAFEB52D6CC9C400DFFD48 /* LocalAuthentication.framework in Frameworks */,
 				F2EAFEB62D6CC9C400DFFD48 /* QuickLook.framework in Frameworks */,
-				F2EAFEB72D6CC9C400DFFD48 /* SnapKit in Frameworks */,
 				F2EAFEB82D6CC9C400DFFD48 /* CoreImage.framework in Frameworks */,
 				F2EAFEB92D6CC9C400DFFD48 /* ThreemaFramework.framework in Frameworks */,
 				F2EAFEBA2D6CC9C400DFFD48 /* AsyncAlgorithms in Frameworks */,
@@ -3701,6 +3722,7 @@
 				F2EAFF5C2D6CCA2400DFFD48 /* ThreemaEssentials in Frameworks */,
 				F2EAFF5D2D6CCA2400DFFD48 /* TrustKit in Frameworks */,
 				F2EAFF5E2D6CCA2400DFFD48 /* CocoaLumberjackSwift in Frameworks */,
+				08BFCC732FC0A07600235F00 /* ZipArchive in Frameworks */,
 				F2EAFF5F2D6CCA2400DFFD48 /* MBProgressHUD in Frameworks */,
 				08F9DE262F62C45B00E4164B /* libPhoneNumber in Frameworks */,
 				F2EAFF602D6CCA2400DFFD48 /* ThreemaMacros in Frameworks */,
@@ -3728,6 +3750,7 @@
 				F2A87DFC2E4B68C600646386 /* FLAnimatedImage in Frameworks */,
 				F2EAFF932D6CCA3700DFFD48 /* SDWebImage in Frameworks */,
 				F2EAFF942D6CCA3700DFFD48 /* Ed25519 in Frameworks */,
+				08BFCC672FC0A03600235F00 /* ZipArchive in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4152,6 +4175,7 @@
 				F2A4C91C2E4B58060062B883 /* FLAnimatedImage */,
 				4250536D2F8E25E400441645 /* OrderedCollections */,
 				08F9BAD92F62AE8100E4164B /* libPhoneNumber */,
+				08BFCC5E2FC09F9C00235F00 /* ZipArchive */,
 			);
 			productName = ThreemaFramework;
 			productReference = 0A677B821C6250C90019B361 /* ThreemaFramework.framework */;
@@ -4301,6 +4325,7 @@
 				F2A87DF72E4B68B800646386 /* FLAnimatedImage */,
 				2DA017A12EAA30E8008EAB3C /* FileUtility */,
 				08F9DE172F62C42000E4164B /* libPhoneNumber */,
+				08BFCC622FC0A02900235F00 /* ZipArchive */,
 			);
 			productName = ThreemaShareExtension;
 			productReference = 0A7DF95F1C9FDD9B002D4DC3 /* Threema Work ShareExtension.appex */;
@@ -4333,6 +4358,7 @@
 				F2A87DF52E4B68B200646386 /* FLAnimatedImage */,
 				2DA0179F2EAA30DF008EAB3C /* FileUtility */,
 				08F9DE152F62C40E00E4164B /* libPhoneNumber */,
+				08BFCC602FC0A02000235F00 /* ZipArchive */,
 			);
 			productName = ThreemaShareExtension;
 			productReference = 0AE435501C636AB500E1ECC8 /* Threema ShareExtension.appex */;
@@ -4472,6 +4498,7 @@
 				F2A87DFD2E4B68CE00646386 /* FLAnimatedImage */,
 				2DA017A72EAA3105008EAB3C /* FileUtility */,
 				08F9DE1D2F62C43700E4164B /* libPhoneNumber */,
+				08BFCC6A2FC0A04900235F00 /* ZipArchive */,
 			);
 			productName = ThreemaShareExtension;
 			productReference = 2D08983524C98984006A70E1 /* Threema Blue ShareExtension.appex */;
@@ -4559,6 +4586,7 @@
 				F2A87DF32E4B68AA00646386 /* FLAnimatedImage */,
 				681766F72E687EA50083D372 /* FileUtility */,
 				08F9DE292F62C46700E4164B /* libPhoneNumber */,
+				08BFCC762FC0A08300235F00 /* ZipArchive */,
 			);
 			productName = ThreemaNotificationExtension;
 			productReference = 2DD445A52511F78F008EC521 /* Threema Blue NotificationExtension.appex */;
@@ -4592,6 +4620,7 @@
 				F2A87DEB2E4B685D00646386 /* FLAnimatedImage */,
 				681766ED2E687E880083D372 /* FileUtility */,
 				08F9DE1F2F62C44800E4164B /* libPhoneNumber */,
+				08BFCC6C2FC0A05E00235F00 /* ZipArchive */,
 			);
 			productName = ThreemaNotificationExtension;
 			productReference = 2DEC550E250A56E100B9826D /* Threema NotificationExtension.appex */;
@@ -4625,6 +4654,7 @@
 				F2850D542E4B59D100DC9C18 /* FLAnimatedImage */,
 				681766F52E687EA00083D372 /* FileUtility */,
 				08F9DE272F62C46000E4164B /* libPhoneNumber */,
+				08BFCC742FC0A07C00235F00 /* ZipArchive */,
 			);
 			productName = ThreemaNotificationExtension;
 			productReference = 2DEC5529250A5F6F00B9826D /* Threema Green NotificationExtension.appex */;
@@ -4713,6 +4743,7 @@
 				F2A87DED2E4B687600646386 /* FLAnimatedImage */,
 				681766EF2E687E8E0083D372 /* FileUtility */,
 				08F9DE212F62C44F00E4164B /* libPhoneNumber */,
+				08BFCC6E2FC0A06900235F00 /* ZipArchive */,
 			);
 			productName = ThreemaNotificationExtension;
 			productReference = 2DEF20012511EDE9001CC54F /* Threema Work NotificationExtension.appex */;
@@ -4745,6 +4776,7 @@
 				F2850D562E4B59DD00DC9C18 /* FLAnimatedImage */,
 				2DA017A52EAA30FC008EAB3C /* FileUtility */,
 				08F9DE132F62C3F100E4164B /* libPhoneNumber */,
+				08BFCC682FC0A04200235F00 /* ZipArchive */,
 			);
 			productName = ThreemaShareExtension;
 			productReference = 2DF99C5524C970CC003AAB74 /* Threema Green ShareExtension.appex */;
@@ -4831,6 +4863,7 @@
 				F2A87DF92E4B68BF00646386 /* FLAnimatedImage */,
 				2D0B4A722EA907C500ACBBF4 /* FileUtility */,
 				08F9DE192F62C42600E4164B /* libPhoneNumber */,
+				08BFCC642FC0A03000235F00 /* ZipArchive */,
 			);
 			productName = ThreemaShareExtension;
 			productReference = 4D088BAE255C1501002F3129 /* Threema OnPrem ShareExtension.appex */;
@@ -4864,6 +4897,7 @@
 				F2A87DEF2E4B687D00646386 /* FLAnimatedImage */,
 				681766F12E687E950083D372 /* FileUtility */,
 				08F9DE232F62C45500E4164B /* libPhoneNumber */,
+				08BFCC702FC0A07000235F00 /* ZipArchive */,
 			);
 			productName = ThreemaNotificationExtension;
 			productReference = 4D088C71255C1680002F3129 /* Threema OnPrem NotificationExtension.appex */;
@@ -5077,7 +5111,6 @@
 				F2EAFBC92D6CC9C400DFFD48 /* Gzip */,
 				F2EAFBCB2D6CC9C400DFFD48 /* MarqueeLabel */,
 				F2EAFBCD2D6CC9C400DFFD48 /* ZipArchive */,
-				F2EAFBCF2D6CC9C400DFFD48 /* SnapKit */,
 				F2EAFBD12D6CC9C400DFFD48 /* Sentry */,
 				F2EAFBD32D6CC9C400DFFD48 /* DSWaveformImage */,
 				F2EAFBD52D6CC9C400DFFD48 /* GroupCalls */,
@@ -5133,6 +5166,7 @@
 				F2A87DF12E4B688400646386 /* FLAnimatedImage */,
 				681766F32E687E9A0083D372 /* FileUtility */,
 				08F9DE252F62C45B00E4164B /* libPhoneNumber */,
+				08BFCC722FC0A07600235F00 /* ZipArchive */,
 			);
 			productName = ThreemaNotificationExtension;
 			productReference = F2EAFF702D6CCA2400DFFD48 /* Custom OnPrem NotificationExtension.appex */;
@@ -5165,6 +5199,7 @@
 				F2A87DFB2E4B68C600646386 /* FLAnimatedImage */,
 				2DA017A32EAA30F4008EAB3C /* FileUtility */,
 				08F9DE1B2F62C42F00E4164B /* libPhoneNumber */,
+				08BFCC662FC0A03600235F00 /* ZipArchive */,
 			);
 			productName = ThreemaShareExtension;
 			productReference = F2EAFFA32D6CCA3700DFFD48 /* Custom OnPrem ShareExtension.appex */;
@@ -5180,7 +5215,7 @@
 				DefaultBuildSystemTypeForWorkspace = Original;
 				LastSwiftUpdateCheck = 1630;
 				LastUpgradeCheck = 1620;
-				ORGANIZATIONNAME = "Threema GmbH";
+				ORGANIZATIONNAME = "Threema AG";
 				TargetAttributes = {
 					0A677B811C6250C90019B361 = {
 						CreatedOnToolsVersion = 7.2;
@@ -6565,7 +6600,6 @@
 				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = NO;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = NO;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CODE_SIGN_IDENTITY = "";
 				CODE_SIGN_STYLE = Manual;
@@ -6588,10 +6622,8 @@
 					"CONFIGURATION_$(CONFIGURATION)",
 					DEBUG,
 				);
-				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
-				GENERATE_INFOPLIST_FILE = NO;
 				HEADER_SEARCH_PATHS = "";
 				INFOPLIST_FILE = ThreemaFramework/SupportingFiles/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
@@ -6602,16 +6634,12 @@
 				);
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++23";
 				MOMC_NO_INVERSE_RELATIONSHIP_WARNINGS = YES;
-				MOMC_SUPPRESS_INVERSE_TRANSIENT_ERROR = NO;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = ThreemaFramework;
 				SUPPORTS_MACCATALYST = NO;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited)";
-				SWIFT_INCLUDE_PATHS = "";
-				SWIFT_OBJC_BRIDGING_HEADER = "";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				SWIFT_PRECOMPILE_BRIDGING_HEADER = YES;
 				SWIFT_VERSION = 5.0;
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
@@ -6638,7 +6666,6 @@
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = NO;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
@@ -6665,13 +6692,11 @@
 					"CONFIGURATION_$(CONFIGURATION)",
 				);
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
-				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				GENERATE_INFOPLIST_FILE = NO;
 				HEADER_SEARCH_PATHS = "";
 				INFOPLIST_FILE = ThreemaFramework/SupportingFiles/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
@@ -6682,16 +6707,12 @@
 				);
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++23";
 				MOMC_NO_INVERSE_RELATIONSHIP_WARNINGS = YES;
-				MOMC_SUPPRESS_INVERSE_TRANSIENT_ERROR = NO;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = ThreemaFramework;
 				SDKROOT = iphoneos;
 				SUPPORTS_MACCATALYST = NO;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited)";
-				SWIFT_INCLUDE_PATHS = "";
-				SWIFT_OBJC_BRIDGING_HEADER = "";
-				SWIFT_PRECOMPILE_BRIDGING_HEADER = YES;
 				SWIFT_VERSION = 5.0;
 				VALIDATE_PRODUCT = YES;
 				VERSIONING_SYSTEM = "apple-generic";
@@ -6719,7 +6740,6 @@
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = NO;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
@@ -6746,13 +6766,11 @@
 					"CONFIGURATION_$(CONFIGURATION)",
 				);
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
-				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				GENERATE_INFOPLIST_FILE = NO;
 				HEADER_SEARCH_PATHS = "";
 				INFOPLIST_FILE = ThreemaFramework/SupportingFiles/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
@@ -6763,16 +6781,12 @@
 				);
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++23";
 				MOMC_NO_INVERSE_RELATIONSHIP_WARNINGS = YES;
-				MOMC_SUPPRESS_INVERSE_TRANSIENT_ERROR = NO;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = ThreemaFramework;
 				SDKROOT = iphoneos;
 				SUPPORTS_MACCATALYST = NO;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited)";
-				SWIFT_INCLUDE_PATHS = "";
-				SWIFT_OBJC_BRIDGING_HEADER = "";
-				SWIFT_PRECOMPILE_BRIDGING_HEADER = YES;
 				SWIFT_VERSION = 5.0;
 				VALIDATE_PRODUCT = YES;
 				VERSIONING_SYSTEM = "apple-generic";
@@ -7110,7 +7124,6 @@
 			buildSettings = {
 				BUILD_NUMBER = "$(BUILD_NUMBER)";
 				CLANG_ENABLE_MODULES = YES;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = NO;
 				CODE_SIGN_ENTITLEMENTS = Threema/SupportingFiles/ThreemaWork/ThreemaWork.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
@@ -7132,7 +7145,6 @@
 					"USE_STD_MAP=1",
 					"CONFIGURATION_$(CONFIGURATION)",
 				);
-				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				HEADER_SEARCH_PATHS = Vendor;
 				INFOPLIST_FILE = "Threema/SupportingFiles/ThreemaWork/ThreemaWork-Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -7166,7 +7178,6 @@
 			buildSettings = {
 				BUILD_NUMBER = "$(BUILD_NUMBER)";
 				CLANG_ENABLE_MODULES = YES;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = NO;
 				CODE_SIGN_ENTITLEMENTS = Threema/SupportingFiles/ThreemaWork/ThreemaWork.entitlements;
 				COPY_PHASE_STRIP = YES;
 				CURRENT_PROJECT_VERSION = "$(BUILD_NUMBER)";
@@ -7186,7 +7197,6 @@
 					"USE_STD_MAP=1",
 					"CONFIGURATION_$(CONFIGURATION)",
 				);
-				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				HEADER_SEARCH_PATHS = Vendor;
 				INFOPLIST_FILE = "Threema/SupportingFiles/ThreemaWork/ThreemaWork-Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -7220,7 +7230,6 @@
 			buildSettings = {
 				BUILD_NUMBER = "$(BUILD_NUMBER)";
 				CLANG_ENABLE_MODULES = YES;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = NO;
 				CODE_SIGN_ENTITLEMENTS = Threema/SupportingFiles/ThreemaWork/ThreemaWork.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Distribution: Threema GmbH (DL5SR3PBJC)";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "Apple Distribution: Threema GmbH (DL5SR3PBJC)";
@@ -7241,7 +7250,6 @@
 					"USE_STD_MAP=1",
 					"CONFIGURATION_$(CONFIGURATION)",
 				);
-				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				HEADER_SEARCH_PATHS = Vendor;
 				INFOPLIST_FILE = "Threema/SupportingFiles/ThreemaWork/ThreemaWork-Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -7272,13 +7280,11 @@
 			baseConfigurationReferenceAnchor = F2FC39052E7054AF00A289D0 /* Configurations */;
 			baseConfigurationReferenceRelativePath = ThreemaWork/ThreemaWorkShareExtensionConfig.xcconfig;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = "";
 				BUILD_NUMBER = "$(BUILD_NUMBER)";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = NO;
 				CODE_SIGN_ENTITLEMENTS = ThreemaShareExtension/SupportingFiles/ThreemaWork/ThreemaWorkShareExtension.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
@@ -7316,7 +7322,6 @@
 			baseConfigurationReferenceRelativePath = ThreemaWork/ThreemaWorkShareExtensionConfig.xcconfig;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = "";
 				BUILD_NUMBER = "$(BUILD_NUMBER)";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
@@ -7328,7 +7333,6 @@
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = NO;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_ENTITLEMENTS = ThreemaShareExtension/SupportingFiles/ThreemaWork/ThreemaWorkShareExtension.entitlements;
@@ -7377,7 +7381,6 @@
 			baseConfigurationReferenceRelativePath = ThreemaWork/ThreemaWorkShareExtensionConfig.xcconfig;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = "";
 				BUILD_NUMBER = "$(BUILD_NUMBER)";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
@@ -7389,7 +7392,6 @@
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = NO;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_ENTITLEMENTS = ThreemaShareExtension/SupportingFiles/ThreemaWork/ThreemaWorkShareExtension.entitlements;
@@ -7436,13 +7438,11 @@
 			baseConfigurationReferenceAnchor = F2FC39052E7054AF00A289D0 /* Configurations */;
 			baseConfigurationReferenceRelativePath = Threema/ThreemaShareExtensionConfig.xcconfig;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = "";
 				BUILD_NUMBER = "$(BUILD_NUMBER)";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = NO;
 				CODE_SIGN_ENTITLEMENTS = ThreemaShareExtension/SupportingFiles/Threema/ThreemaShareExtension.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
@@ -7466,7 +7466,6 @@
 				);
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++23";
 				MTL_ENABLE_DEBUG_INFO = YES;
-				PROVISIONING_PROFILE = "";
 				PROVISIONING_PROFILE_SPECIFIER = "ThreemaShareExtension Development Profile";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) THREEMA_CUSTOMER";
 				SWIFT_INSTALL_OBJC_HEADER = NO;
@@ -7483,7 +7482,6 @@
 			baseConfigurationReferenceRelativePath = Threema/ThreemaShareExtensionConfig.xcconfig;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = "";
 				BUILD_NUMBER = "$(BUILD_NUMBER)";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
@@ -7495,7 +7493,6 @@
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = NO;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_ENTITLEMENTS = ThreemaShareExtension/SupportingFiles/Threema/ThreemaShareExtension.entitlements;
@@ -7525,7 +7522,6 @@
 				);
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++23";
 				MTL_ENABLE_DEBUG_INFO = NO;
-				PROVISIONING_PROFILE = "";
 				PROVISIONING_PROFILE_SPECIFIER = "ThreemaShareExtension Development Profile";
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) THREEMA_CUSTOMER";
@@ -7543,7 +7539,6 @@
 			baseConfigurationReferenceRelativePath = Threema/ThreemaShareExtensionConfig.xcconfig;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = "";
 				BUILD_NUMBER = "$(BUILD_NUMBER)";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
@@ -7555,7 +7550,6 @@
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = NO;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_ENTITLEMENTS = ThreemaShareExtension/SupportingFiles/Threema/ThreemaShareExtension.entitlements;
@@ -7587,7 +7581,6 @@
 				);
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++23";
 				MTL_ENABLE_DEBUG_INFO = NO;
-				PROVISIONING_PROFILE = "";
 				PROVISIONING_PROFILE_SPECIFIER = "Threema ShareExtension App Store";
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) THREEMA_CUSTOMER";
@@ -8308,13 +8301,11 @@
 			baseConfigurationReferenceAnchor = F2FC39052E7054AF00A289D0 /* Configurations */;
 			baseConfigurationReferenceRelativePath = ThreemaBlue/ThreemaBlueShareExtensionConfig.xcconfig;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = "";
 				BUILD_NUMBER = "$(BUILD_NUMBER)";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = NO;
 				CODE_SIGN_ENTITLEMENTS = ThreemaShareExtension/SupportingFiles/ThreemaBlue/ThreemaBlueShareExtension.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "Apple Development";
@@ -8349,7 +8340,6 @@
 			baseConfigurationReferenceRelativePath = ThreemaBlue/ThreemaBlueShareExtensionConfig.xcconfig;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = "";
 				BUILD_NUMBER = "$(BUILD_NUMBER)";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
@@ -8361,7 +8351,6 @@
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = NO;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_ENTITLEMENTS = ThreemaShareExtension/SupportingFiles/ThreemaBlue/ThreemaBlueShareExtension.entitlements;
@@ -8405,7 +8394,6 @@
 			baseConfigurationReferenceRelativePath = ThreemaBlue/ThreemaBlueShareExtensionConfig.xcconfig;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = "";
 				BUILD_NUMBER = "$(BUILD_NUMBER)";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
@@ -8417,7 +8405,6 @@
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = NO;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_ENTITLEMENTS = ThreemaShareExtension/SupportingFiles/ThreemaBlue/ThreemaBlueShareExtension.entitlements;
@@ -8464,11 +8451,9 @@
 			buildSettings = {
 				BUILD_NUMBER = "$(BUILD_NUMBER)";
 				CLANG_ENABLE_MODULES = YES;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = NO;
 				CODE_SIGN_ENTITLEMENTS = Threema/SupportingFiles/ThreemaBlue/ThreemaBlue.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "Apple Development";
-				CURRENT_PROJECT_VERSION = "";
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = DL5SR3PBJC;
@@ -8516,10 +8501,8 @@
 			buildSettings = {
 				BUILD_NUMBER = "$(BUILD_NUMBER)";
 				CLANG_ENABLE_MODULES = YES;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = NO;
 				CODE_SIGN_ENTITLEMENTS = Threema/SupportingFiles/ThreemaBlue/ThreemaBlue.entitlements;
 				COPY_PHASE_STRIP = YES;
-				CURRENT_PROJECT_VERSION = "";
 				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = DL5SR3PBJC;
 				ENABLE_BITCODE = NO;
@@ -8564,12 +8547,10 @@
 			buildSettings = {
 				BUILD_NUMBER = "$(BUILD_NUMBER)";
 				CLANG_ENABLE_MODULES = YES;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = NO;
 				CODE_SIGN_ENTITLEMENTS = Threema/SupportingFiles/ThreemaBlue/ThreemaBlue.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Distribution: Threema GmbH (DL5SR3PBJC)";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "Apple Distribution: Threema GmbH (DL5SR3PBJC)";
 				COPY_PHASE_STRIP = YES;
-				CURRENT_PROJECT_VERSION = "";
 				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = DL5SR3PBJC;
 				ENABLE_BITCODE = NO;
@@ -8628,7 +8609,6 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 2569;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = DL5SR3PBJC;
@@ -8642,10 +8622,8 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 4.6.2;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++23";
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
-				MTL_FAST_MATH = YES;
 				PROVISIONING_PROFILE_SPECIFIER = "Threema Blue NotificationExtension Development";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) THREEMA_WORK";
 				SWIFT_OBJC_BRIDGING_HEADER = "$PROJECT_DIR/ThreemaNotificationExtension/ThreemaNotificationExtension-Bridging-Header.h";
@@ -8694,7 +8672,6 @@
 				CODE_SIGN_ENTITLEMENTS = ThreemaNotificationExtension/SupportingFiles/ThreemaBlue/ThreemaBlueNotificationExtension.entitlements;
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 2569;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = DL5SR3PBJC;
@@ -8715,10 +8692,8 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 4.6.2;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++23";
 				MTL_ENABLE_DEBUG_INFO = NO;
-				MTL_FAST_MATH = YES;
 				PROVISIONING_PROFILE_SPECIFIER = "Threema Blue NotificationExtension Development";
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) THREEMA_WORK";
@@ -8772,7 +8747,6 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "Apple Distribution: Threema GmbH (DL5SR3PBJC)";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 2569;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = DL5SR3PBJC;
@@ -8793,10 +8767,8 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 4.6.2;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++23";
 				MTL_ENABLE_DEBUG_INFO = NO;
-				MTL_FAST_MATH = YES;
 				PROVISIONING_PROFILE_SPECIFIER = "Threema Blue NotificationExtension App Store";
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) THREEMA_WORK";
@@ -8826,12 +8798,10 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = NO;
-				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_ENTITLEMENTS = ThreemaNotificationExtension/SupportingFiles/Threema/ThreemaNotificationExtension.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 2569;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = DL5SR3PBJC;
@@ -8845,13 +8815,10 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 4.6.2;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++23";
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
-				MTL_FAST_MATH = YES;
 				PROVISIONING_PROFILE_SPECIFIER = "ThreemaNotificationExtension Development";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) THREEMA_CUSTOMER";
-				SWIFT_INSTALL_OBJC_HEADER = YES;
 				SWIFT_OBJC_BRIDGING_HEADER = "$PROJECT_DIR/ThreemaNotificationExtension/ThreemaNotificationExtension-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_PRECOMPILE_BRIDGING_HEADER = NO;
@@ -8892,14 +8859,12 @@
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
-				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_ENTITLEMENTS = ThreemaNotificationExtension/SupportingFiles/Threema/ThreemaNotificationExtension.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 2569;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = DL5SR3PBJC;
@@ -8920,15 +8885,12 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 4.6.2;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++23";
 				MTL_ENABLE_DEBUG_INFO = NO;
-				MTL_FAST_MATH = YES;
 				PROVISIONING_PROFILE_SPECIFIER = "ThreemaNotificationExtension Development";
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) THREEMA_CUSTOMER";
 				SWIFT_COMPILATION_MODE = wholemodule;
-				SWIFT_INSTALL_OBJC_HEADER = YES;
 				SWIFT_OBJC_BRIDGING_HEADER = "$PROJECT_DIR/ThreemaNotificationExtension/ThreemaNotificationExtension-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_PRECOMPILE_BRIDGING_HEADER = NO;
@@ -8970,7 +8932,6 @@
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
-				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_ENTITLEMENTS = ThreemaNotificationExtension/SupportingFiles/Threema/ThreemaNotificationExtension.entitlements;
@@ -8978,7 +8939,6 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "Apple Distribution: Threema GmbH (DL5SR3PBJC)";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 2569;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = DL5SR3PBJC;
@@ -8999,15 +8959,12 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 4.6.2;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++23";
 				MTL_ENABLE_DEBUG_INFO = NO;
-				MTL_FAST_MATH = YES;
 				PROVISIONING_PROFILE_SPECIFIER = "Threema NotificationExtension App Store";
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) THREEMA_CUSTOMER";
 				SWIFT_COMPILATION_MODE = wholemodule;
-				SWIFT_INSTALL_OBJC_HEADER = YES;
 				SWIFT_OBJC_BRIDGING_HEADER = "$PROJECT_DIR/ThreemaNotificationExtension/ThreemaNotificationExtension-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_PRECOMPILE_BRIDGING_HEADER = NO;
@@ -9038,7 +8995,6 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 2569;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = DL5SR3PBJC;
@@ -9053,12 +9009,9 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 4.6.2;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++23";
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				"MTL_ENABLE_DEBUG_INFO[arch=*]" = INCLUDE_SOURCE;
-				MTL_FAST_MATH = YES;
-				OTHER_LDFLAGS = "";
 				PROVISIONING_PROFILE_SPECIFIER = "Threema Green NotificationExtension Development";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "Threema Green NotificationExtension Development";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) THREEMA_CUSTOMER";
@@ -9108,7 +9061,6 @@
 				CODE_SIGN_ENTITLEMENTS = ThreemaNotificationExtension/SupportingFiles/ThreemaGreen/ThreemaGreenNotificationExtension.entitlements;
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 2569;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = DL5SR3PBJC;
@@ -9130,11 +9082,8 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 4.6.2;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++23";
 				MTL_ENABLE_DEBUG_INFO = NO;
-				MTL_FAST_MATH = YES;
-				OTHER_LDFLAGS = "";
 				PROVISIONING_PROFILE_SPECIFIER = "Threema Green NotificationExtension Development";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "Threema Green NotificationExtension Development";
 				SDKROOT = iphoneos;
@@ -9189,7 +9138,6 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "Apple Distribution: Threema GmbH (DL5SR3PBJC)";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 2569;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = DL5SR3PBJC;
@@ -9211,11 +9159,8 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 4.6.2;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++23";
 				MTL_ENABLE_DEBUG_INFO = NO;
-				MTL_FAST_MATH = YES;
-				OTHER_LDFLAGS = "";
 				PROVISIONING_PROFILE_SPECIFIER = "Threema Green NotificationExtension App Store";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "Threema Green NotificationExtension App Store";
 				SDKROOT = iphoneos;
@@ -9237,14 +9182,11 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				BUILD_NUMBER = "$(BUILD_NUMBER)";
-				CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES = NO;
 				CLANG_ENABLE_MODULES = YES;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = NO;
 				CODE_SIGN_ENTITLEMENTS = Threema/SupportingFiles/ThreemaGreen/ThreemaGreen.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "Apple Development";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = "$(BUILD_NUMBER)";
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = DL5SR3PBJC;
@@ -9262,7 +9204,6 @@
 					"USE_STD_MAP=1",
 					"CONFIGURATION_$(CONFIGURATION)",
 				);
-				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				HEADER_SEARCH_PATHS = Vendor;
 				INFOPLIST_FILE = "Threema/SupportingFiles/ThreemaGreen/ThreemaGreen-Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -9276,14 +9217,11 @@
 					"-ObjC",
 					"$(inherited)",
 				);
-				PROVISIONING_PROFILE = "";
 				PROVISIONING_PROFILE_SPECIFIER = "Threema Green Development";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) THREEMA_CUSTOMER";
-				SWIFT_INCLUDE_PATHS = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "$PROJECT_DIR/Threema/Threema-Bridging-Header.h";
 				SWIFT_OBJC_INTERFACE_HEADER_NAME = "$(PROJECT_NAME)-Swift.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				SWIFT_PRECOMPILE_BRIDGING_HEADER = YES;
 				SWIFT_VERSION = 5.0;
 				VALIDATE_WORKSPACE = YES;
 				VERSION_NUMBER = "$(VERSION_NUMBER)";
@@ -9298,13 +9236,10 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				BUILD_NUMBER = "$(BUILD_NUMBER)";
-				CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES = NO;
 				CLANG_ENABLE_MODULES = YES;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = NO;
 				CODE_SIGN_ENTITLEMENTS = Threema/SupportingFiles/ThreemaGreen/ThreemaGreen.entitlements;
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = YES;
-				CURRENT_PROJECT_VERSION = "$(BUILD_NUMBER)";
 				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = DL5SR3PBJC;
 				ENABLE_BITCODE = NO;
@@ -9320,7 +9255,6 @@
 					"USE_STD_MAP=1",
 					"CONFIGURATION_$(CONFIGURATION)",
 				);
-				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				HEADER_SEARCH_PATHS = Vendor;
 				INFOPLIST_FILE = "Threema/SupportingFiles/ThreemaGreen/ThreemaGreen-Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -9334,13 +9268,10 @@
 					"-ObjC",
 					"$(inherited)",
 				);
-				PROVISIONING_PROFILE = "";
 				PROVISIONING_PROFILE_SPECIFIER = "Threema Green Development";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) THREEMA_CUSTOMER";
-				SWIFT_INCLUDE_PATHS = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "$PROJECT_DIR/Threema/Threema-Bridging-Header.h";
 				SWIFT_OBJC_INTERFACE_HEADER_NAME = "$(PROJECT_NAME)-Swift.h";
-				SWIFT_PRECOMPILE_BRIDGING_HEADER = YES;
 				SWIFT_VERSION = 5.0;
 				VALIDATE_WORKSPACE = YES;
 				VERSION_NUMBER = "$(VERSION_NUMBER)";
@@ -9355,15 +9286,12 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				BUILD_NUMBER = "$(BUILD_NUMBER)";
-				CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES = NO;
 				CLANG_ENABLE_MODULES = YES;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = NO;
 				CODE_SIGN_ENTITLEMENTS = Threema/SupportingFiles/ThreemaGreen/ThreemaGreen.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Distribution: Threema GmbH (DL5SR3PBJC)";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "Apple Distribution: Threema GmbH (DL5SR3PBJC)";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = YES;
-				CURRENT_PROJECT_VERSION = "$(BUILD_NUMBER)";
 				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = DL5SR3PBJC;
 				"DEVELOPMENT_TEAM[sdk=iphoneos*]" = DL5SR3PBJC;
@@ -9380,7 +9308,6 @@
 					"USE_STD_MAP=1",
 					"CONFIGURATION_$(CONFIGURATION)",
 				);
-				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				HEADER_SEARCH_PATHS = Vendor;
 				INFOPLIST_FILE = "Threema/SupportingFiles/ThreemaGreen/ThreemaGreen-Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -9394,14 +9321,11 @@
 					"-ObjC",
 					"$(inherited)",
 				);
-				PROVISIONING_PROFILE = "";
 				PROVISIONING_PROFILE_SPECIFIER = "Threema Green App Store";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "Threema Green App Store";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) THREEMA_CUSTOMER";
-				SWIFT_INCLUDE_PATHS = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "$PROJECT_DIR/Threema/Threema-Bridging-Header.h";
 				SWIFT_OBJC_INTERFACE_HEADER_NAME = "$(PROJECT_NAME)-Swift.h";
-				SWIFT_PRECOMPILE_BRIDGING_HEADER = YES;
 				SWIFT_VERSION = 5.0;
 				VALIDATE_WORKSPACE = YES;
 				VERSION_NUMBER = "$(VERSION_NUMBER)";
@@ -9424,13 +9348,11 @@
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = NO;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_ENTITLEMENTS = ThreemaNotificationExtension/SupportingFiles/ThreemaWork/ThreemaWorkNotificationExtension.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 2569;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = DL5SR3PBJC;
@@ -9444,10 +9366,8 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 4.6.2;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++23";
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
-				MTL_FAST_MATH = YES;
 				PROVISIONING_PROFILE_SPECIFIER = "Threema Work NotificationExtension Development";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) THREEMA_WORK";
 				SWIFT_OBJC_BRIDGING_HEADER = "$PROJECT_DIR/ThreemaNotificationExtension/ThreemaNotificationExtension-Bridging-Header.h";
@@ -9486,7 +9406,6 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = NO;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -9497,7 +9416,6 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 2569;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = DL5SR3PBJC;
@@ -9519,10 +9437,8 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 4.6.2;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++23";
 				MTL_ENABLE_DEBUG_INFO = NO;
-				MTL_FAST_MATH = YES;
 				PROVISIONING_PROFILE_SPECIFIER = "Threema Work NotificationExtension Development";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "Threema Work NotificationExtension Ad Hoc";
 				SDKROOT = iphoneos;
@@ -9565,7 +9481,6 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = NO;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -9577,7 +9492,6 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "Apple Distribution: Threema GmbH (DL5SR3PBJC)";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 2569;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = DL5SR3PBJC;
@@ -9598,10 +9512,8 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 4.6.2;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++23";
 				MTL_ENABLE_DEBUG_INFO = NO;
-				MTL_FAST_MATH = YES;
 				PROVISIONING_PROFILE_SPECIFIER = "Threema Work NotificationExtension App Store";
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) THREEMA_WORK";
@@ -9620,13 +9532,11 @@
 			baseConfigurationReferenceAnchor = F2FC39052E7054AF00A289D0 /* Configurations */;
 			baseConfigurationReferenceRelativePath = ThreemaGreen/ThreemaGreenShareExtensionConfig.xcconfig;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = "";
 				BUILD_NUMBER = "$(BUILD_NUMBER)";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = NO;
 				CODE_SIGN_ENTITLEMENTS = ThreemaShareExtension/SupportingFiles/ThreemaGreen/ThreemaGreenShareExtension.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "Apple Development";
@@ -9649,7 +9559,6 @@
 				);
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++23";
 				MTL_ENABLE_DEBUG_INFO = YES;
-				PROVISIONING_PROFILE = "";
 				PROVISIONING_PROFILE_SPECIFIER = "Threema Green ShareExtension Development";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) THREEMA_CUSTOMER";
 				SWIFT_VERSION = 5.0;
@@ -9663,7 +9572,6 @@
 			baseConfigurationReferenceRelativePath = ThreemaGreen/ThreemaGreenShareExtensionConfig.xcconfig;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = "";
 				BUILD_NUMBER = "$(BUILD_NUMBER)";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
@@ -9675,7 +9583,6 @@
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = NO;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_ENTITLEMENTS = ThreemaShareExtension/SupportingFiles/ThreemaGreen/ThreemaGreenShareExtension.entitlements;
@@ -9705,7 +9612,6 @@
 				);
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++23";
 				MTL_ENABLE_DEBUG_INFO = NO;
-				PROVISIONING_PROFILE = "";
 				PROVISIONING_PROFILE_SPECIFIER = "Threema Green ShareExtension Development";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=*]" = "Threema Green ShareExtension App Store";
 				SDKROOT = iphoneos;
@@ -9722,7 +9628,6 @@
 			baseConfigurationReferenceRelativePath = ThreemaGreen/ThreemaGreenShareExtensionConfig.xcconfig;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = "";
 				BUILD_NUMBER = "$(BUILD_NUMBER)";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
@@ -9734,7 +9639,6 @@
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = NO;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_ENTITLEMENTS = ThreemaShareExtension/SupportingFiles/ThreemaGreen/ThreemaGreenShareExtension.entitlements;
@@ -9767,7 +9671,6 @@
 				);
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++23";
 				MTL_ENABLE_DEBUG_INFO = NO;
-				PROVISIONING_PROFILE = "";
 				PROVISIONING_PROFILE_SPECIFIER = "Threema Green ShareExtension App Store";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "Threema Green ShareExtension App Store";
 				SDKROOT = iphoneos;
@@ -9785,7 +9688,6 @@
 			buildSettings = {
 				BUILD_NUMBER = "$(BUILD_NUMBER)";
 				CLANG_ENABLE_MODULES = YES;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = NO;
 				CODE_SIGN_ENTITLEMENTS = Threema/SupportingFiles/ThreemaOnPrem/ThreemaOnPrem.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
@@ -9807,7 +9709,6 @@
 					"DISABLE_SENTRY=1",
 					"CONFIGURATION_$(CONFIGURATION)",
 				);
-				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				HEADER_SEARCH_PATHS = Vendor;
 				INFOPLIST_FILE = "Threema/SupportingFiles/ThreemaOnPrem/ThreemaOnPrem-Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -9841,7 +9742,6 @@
 			buildSettings = {
 				BUILD_NUMBER = "$(BUILD_NUMBER)";
 				CLANG_ENABLE_MODULES = YES;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = NO;
 				CODE_SIGN_ENTITLEMENTS = Threema/SupportingFiles/ThreemaOnPrem/ThreemaOnPrem.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				COPY_PHASE_STRIP = YES;
@@ -9861,7 +9761,6 @@
 					"DISABLE_SENTRY=1",
 					"CONFIGURATION_$(CONFIGURATION)",
 				);
-				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				HEADER_SEARCH_PATHS = Vendor;
 				INFOPLIST_FILE = "Threema/SupportingFiles/ThreemaOnPrem/ThreemaOnPrem-Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -9894,7 +9793,6 @@
 			buildSettings = {
 				BUILD_NUMBER = "$(BUILD_NUMBER)";
 				CLANG_ENABLE_MODULES = YES;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = NO;
 				CODE_SIGN_ENTITLEMENTS = Threema/SupportingFiles/ThreemaOnPrem/ThreemaOnPrem.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Distribution: Threema GmbH (DL5SR3PBJC)";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "Apple Distribution: Threema GmbH (DL5SR3PBJC)";
@@ -9915,7 +9813,6 @@
 					"DISABLE_SENTRY=1",
 					"CONFIGURATION_$(CONFIGURATION)",
 				);
-				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				HEADER_SEARCH_PATHS = Vendor;
 				INFOPLIST_FILE = "Threema/SupportingFiles/ThreemaOnPrem/ThreemaOnPrem-Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -9946,13 +9843,11 @@
 			baseConfigurationReferenceAnchor = F2FC39052E7054AF00A289D0 /* Configurations */;
 			baseConfigurationReferenceRelativePath = ThreemaOnPrem/ThreemaOnPremShareExtensionConfig.xcconfig;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = "";
 				BUILD_NUMBER = "$(BUILD_NUMBER)";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = NO;
 				CODE_SIGN_ENTITLEMENTS = ThreemaShareExtension/SupportingFiles/ThreemaOnPrem/ThreemaOnPremShareExtension.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
@@ -9988,7 +9883,6 @@
 			baseConfigurationReferenceRelativePath = ThreemaOnPrem/ThreemaOnPremShareExtensionConfig.xcconfig;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = "";
 				BUILD_NUMBER = "$(BUILD_NUMBER)";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
@@ -10000,7 +9894,6 @@
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = NO;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_ENTITLEMENTS = ThreemaShareExtension/SupportingFiles/ThreemaOnPrem/ThreemaOnPremShareExtension.entitlements;
@@ -10045,7 +9938,6 @@
 			baseConfigurationReferenceRelativePath = ThreemaOnPrem/ThreemaOnPremShareExtensionConfig.xcconfig;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = "";
 				BUILD_NUMBER = "$(BUILD_NUMBER)";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
@@ -10057,7 +9949,6 @@
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = NO;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_ENTITLEMENTS = ThreemaShareExtension/SupportingFiles/ThreemaOnPrem/ThreemaOnPremShareExtension.entitlements;
@@ -10112,13 +10003,11 @@
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = NO;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_ENTITLEMENTS = ThreemaNotificationExtension/SupportingFiles/ThreemaOnPrem/ThreemaOnPremNotificationExtension.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
-				CURRENT_PROJECT_VERSION = 2775;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = DL5SR3PBJC;
@@ -10132,10 +10021,8 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 4.6.7;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++23";
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
-				MTL_FAST_MATH = YES;
 				PROVISIONING_PROFILE_SPECIFIER = "Threema OnPrem NotificationExtension Development";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) THREEMA_ONPREM DISABLE_SENTRY";
 				SWIFT_OBJC_BRIDGING_HEADER = "$PROJECT_DIR/ThreemaNotificationExtension/ThreemaNotificationExtension-Bridging-Header.h";
@@ -10174,7 +10061,6 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = NO;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -10185,7 +10071,6 @@
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 2775;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = DL5SR3PBJC;
@@ -10206,10 +10091,8 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 4.6.7;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++23";
 				MTL_ENABLE_DEBUG_INFO = NO;
-				MTL_FAST_MATH = YES;
 				PROVISIONING_PROFILE_SPECIFIER = "Threema OnPrem NotificationExtension Ad Hoc";
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) THREEMA_ONPREM DISABLE_SENTRY";
@@ -10251,7 +10134,6 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = NO;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -10263,7 +10145,6 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "Apple Distribution: Threema GmbH (DL5SR3PBJC)";
 				CODE_SIGN_STYLE = Manual;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 2775;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEFINES_MODULE = YES;
 				DEVELOPMENT_TEAM = DL5SR3PBJC;
@@ -10284,10 +10165,8 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 4.6.7;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++23";
 				MTL_ENABLE_DEBUG_INFO = NO;
-				MTL_FAST_MATH = YES;
 				PROVISIONING_PROFILE_SPECIFIER = "Threema OnPrem NotificationExtension App Store";
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) THREEMA_ONPREM DISABLE_SENTRY";
@@ -10471,7 +10350,6 @@
 				BUILD_NUMBER = $BUILD_NUMBER;
 				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++23";
-				CLANG_ENABLE_MODULES = NO;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
@@ -10483,9 +10361,7 @@
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
-				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = NO;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = NO;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -10494,8 +10370,7 @@
 				CODE_SIGN_IDENTITY = "Apple Distribution";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "Apple Distribution";
 				COPY_PHASE_STRIP = YES;
-				COREDATA_VERSION = 55;
-				DEFINES_MODULE = NO;
+				COREDATA_VERSION = 56;
 				DEPLOYMENT_POSTPROCESSING = YES;
 				ENABLE_BITCODE = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -10509,7 +10384,6 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IBC_WARNINGS = YES;
 				IBSC_WARNINGS = NO;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				OTHER_CFLAGS = "-DNS_BLOCK_ASSERTIONS=1";
@@ -10580,10 +10454,8 @@
 					"-ObjC",
 					"-Wl,-sectcreate,_RESTRICT,_restrict,/dev/null",
 				);
-				PROVISIONING_PROFILE = "";
 				PROVISIONING_PROFILE_SPECIFIER = "Threema App Store";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) THREEMA_CUSTOMER";
-				SWIFT_INCLUDE_PATHS = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "$PROJECT_DIR/Threema/Threema-Bridging-Header.h";
 				SWIFT_OBJC_INTERFACE_HEADER_NAME = "$(PROJECT_NAME)-Swift.h";
 				SWIFT_PRECOMPILE_BRIDGING_HEADER = YES;
@@ -10605,7 +10477,6 @@
 				BUILD_NUMBER = $BUILD_NUMBER;
 				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++23";
-				CLANG_ENABLE_MODULES = NO;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
@@ -10617,9 +10488,7 @@
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
-				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = NO;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = NO;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -10628,20 +10497,17 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "Apple Development";
 				COPY_PHASE_STRIP = NO;
-				COREDATA_VERSION = 55;
-				DEFINES_MODULE = NO;
+				COREDATA_VERSION = 56;
 				ENABLE_BITCODE = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
-				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
 					"$(inherited)",
 				);
-				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_MISSING_PROTOTYPES = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
@@ -10649,7 +10515,6 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IBC_WARNINGS = YES;
 				IBSC_WARNINGS = NO;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				OTHER_CPLUSPLUSFLAGS = (
@@ -10682,7 +10547,6 @@
 				BUILD_NUMBER = $BUILD_NUMBER;
 				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++23";
-				CLANG_ENABLE_MODULES = NO;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
@@ -10694,9 +10558,7 @@
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
-				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = NO;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = NO;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -10705,8 +10567,7 @@
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				COPY_PHASE_STRIP = YES;
-				COREDATA_VERSION = 55;
-				DEFINES_MODULE = NO;
+				COREDATA_VERSION = 56;
 				DEPLOYMENT_POSTPROCESSING = YES;
 				ENABLE_BITCODE = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -10720,7 +10581,6 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IBC_WARNINGS = YES;
 				IBSC_WARNINGS = NO;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				OTHER_CFLAGS = "-DNS_BLOCK_ASSERTIONS=1";
@@ -10793,10 +10653,8 @@
 					"-Wl,-sectcreate,_RESTRICT,_restrict,/dev/null",
 					"-fprofile-instr-generate",
 				);
-				PROVISIONING_PROFILE = "";
 				PROVISIONING_PROFILE_SPECIFIER = "Threema Development Profile";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) THREEMA_CUSTOMER";
-				SWIFT_INCLUDE_PATHS = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "$PROJECT_DIR/Threema/Threema-Bridging-Header.h";
 				SWIFT_OBJC_INTERFACE_HEADER_NAME = "$(PROJECT_NAME)-Swift.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -10852,10 +10710,8 @@
 					"-ObjC",
 					"-Wl,-sectcreate,_RESTRICT,_restrict,/dev/null",
 				);
-				PROVISIONING_PROFILE = "";
 				PROVISIONING_PROFILE_SPECIFIER = "Threema Development Profile";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) THREEMA_CUSTOMER";
-				SWIFT_INCLUDE_PATHS = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "$PROJECT_DIR/Threema/Threema-Bridging-Header.h";
 				SWIFT_OBJC_INTERFACE_HEADER_NAME = "$(PROJECT_NAME)-Swift.h";
 				SWIFT_PRECOMPILE_BRIDGING_HEADER = YES;
@@ -11582,7 +11438,6 @@
 			buildSettings = {
 				BUILD_NUMBER = "$(BUILD_NUMBER)";
 				CLANG_ENABLE_MODULES = YES;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = NO;
 				CODE_SIGN_ENTITLEMENTS = Threema/SupportingFiles/CustomOnPrem/CustomOnPrem.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
@@ -11604,7 +11459,6 @@
 					"DISABLE_SENTRY=1",
 					"CONFIGURATION_$(CONFIGURATION)",
 				);
-				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				HEADER_SEARCH_PATHS = Vendor;
 				INFOPLIST_FILE = "Threema/SupportingFiles/CustomOnPrem/CustomOnPrem-Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -11639,7 +11493,6 @@
 			buildSettings = {
 				BUILD_NUMBER = "$(BUILD_NUMBER)";
 				CLANG_ENABLE_MODULES = YES;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = NO;
 				CODE_SIGN_ENTITLEMENTS = Threema/SupportingFiles/CustomOnPrem/CustomOnPrem.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				COPY_PHASE_STRIP = YES;
@@ -11659,7 +11512,6 @@
 					"DISABLE_SENTRY=1",
 					"CONFIGURATION_$(CONFIGURATION)",
 				);
-				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				HEADER_SEARCH_PATHS = Vendor;
 				INFOPLIST_FILE = "Threema/SupportingFiles/CustomOnPrem/CustomOnPrem-Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -11693,7 +11545,6 @@
 			buildSettings = {
 				BUILD_NUMBER = "$(BUILD_NUMBER)";
 				CLANG_ENABLE_MODULES = YES;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = NO;
 				CODE_SIGN_ENTITLEMENTS = Threema/SupportingFiles/CustomOnPrem/CustomOnPrem.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Distribution";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "Apple Distribution";
@@ -11714,7 +11565,6 @@
 					"DISABLE_SENTRY=1",
 					"CONFIGURATION_$(CONFIGURATION)",
 				);
-				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				HEADER_SEARCH_PATHS = Vendor;
 				INFOPLIST_FILE = "Threema/SupportingFiles/CustomOnPrem/CustomOnPrem-Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -11756,7 +11606,6 @@
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = NO;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CODE_SIGN_ENTITLEMENTS = ThreemaNotificationExtension/SupportingFiles/CustomOnPrem/CustomOnPremNotificationExtension.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
@@ -11777,7 +11626,6 @@
 				);
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++23";
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
-				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(APP_NAME) NotificationExtension";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) THREEMA_ONPREM DISABLE_SENTRY";
@@ -11817,7 +11665,6 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = NO;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -11850,7 +11697,6 @@
 				);
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++23";
 				MTL_ENABLE_DEBUG_INFO = NO;
-				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(APP_NAME) NotificationExtension";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = iphoneos;
@@ -11893,7 +11739,6 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = NO;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -11927,7 +11772,6 @@
 				);
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++23";
 				MTL_ENABLE_DEBUG_INFO = NO;
-				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(APP_NAME) NotificationExtension";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = iphoneos;
@@ -11947,13 +11791,11 @@
 			baseConfigurationReferenceAnchor = F2FC39052E7054AF00A289D0 /* Configurations */;
 			baseConfigurationReferenceRelativePath = CustomOnPrem/CustomOnPremShareExtensionConfig.xcconfig;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = "";
 				BUILD_NUMBER = "$(BUILD_NUMBER)";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = NO;
 				CODE_SIGN_ENTITLEMENTS = ThreemaShareExtension/SupportingFiles/CustomOnPrem/CustomOnPremShareExtension.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "Apple Development";
@@ -11990,7 +11832,6 @@
 			baseConfigurationReferenceRelativePath = CustomOnPrem/CustomOnPremShareExtensionConfig.xcconfig;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = "";
 				BUILD_NUMBER = "$(BUILD_NUMBER)";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
@@ -12002,7 +11843,6 @@
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = NO;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_ENTITLEMENTS = ThreemaShareExtension/SupportingFiles/CustomOnPrem/CustomOnPremShareExtension.entitlements;
@@ -12049,7 +11889,6 @@
 			baseConfigurationReferenceRelativePath = CustomOnPrem/CustomOnPremShareExtensionConfig.xcconfig;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = "";
 				BUILD_NUMBER = "$(BUILD_NUMBER)";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
@@ -12061,7 +11900,6 @@
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = NO;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_ENTITLEMENTS = ThreemaShareExtension/SupportingFiles/CustomOnPrem/CustomOnPremShareExtension.entitlements;
@@ -12669,14 +12507,6 @@
 				version = 2.4.2;
 			};
 		};
-		F2EAFBD02D6CC9C400DFFD48 /* XCRemoteSwiftPackageReference "SnapKit" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/SnapKit/SnapKit";
-			requirement = {
-				kind = exactVersion;
-				version = 5.7.0;
-			};
-		};
 		F2EAFBD22D6CC9C400DFFD48 /* XCRemoteSwiftPackageReference "sentry-cocoa" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/threema-ch/sentry-cocoa";
@@ -12844,6 +12674,71 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 08F9BAD82F62AE8100E4164B /* XCRemoteSwiftPackageReference "libPhoneNumber-iOS" */;
 			productName = libPhoneNumber;
+		};
+		08BFCC5E2FC09F9C00235F00 /* ZipArchive */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8DDCF7CD27108162000CB4F6 /* XCRemoteSwiftPackageReference "ZipArchive" */;
+			productName = ZipArchive;
+		};
+		08BFCC602FC0A02000235F00 /* ZipArchive */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8DDCF7CD27108162000CB4F6 /* XCRemoteSwiftPackageReference "ZipArchive" */;
+			productName = ZipArchive;
+		};
+		08BFCC622FC0A02900235F00 /* ZipArchive */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8DDCF7CD27108162000CB4F6 /* XCRemoteSwiftPackageReference "ZipArchive" */;
+			productName = ZipArchive;
+		};
+		08BFCC642FC0A03000235F00 /* ZipArchive */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8DDCF7CD27108162000CB4F6 /* XCRemoteSwiftPackageReference "ZipArchive" */;
+			productName = ZipArchive;
+		};
+		08BFCC662FC0A03600235F00 /* ZipArchive */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8DDCF7CD27108162000CB4F6 /* XCRemoteSwiftPackageReference "ZipArchive" */;
+			productName = ZipArchive;
+		};
+		08BFCC682FC0A04200235F00 /* ZipArchive */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8DDCF7CD27108162000CB4F6 /* XCRemoteSwiftPackageReference "ZipArchive" */;
+			productName = ZipArchive;
+		};
+		08BFCC6A2FC0A04900235F00 /* ZipArchive */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8DDCF7CD27108162000CB4F6 /* XCRemoteSwiftPackageReference "ZipArchive" */;
+			productName = ZipArchive;
+		};
+		08BFCC6C2FC0A05E00235F00 /* ZipArchive */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8DDCF7CD27108162000CB4F6 /* XCRemoteSwiftPackageReference "ZipArchive" */;
+			productName = ZipArchive;
+		};
+		08BFCC6E2FC0A06900235F00 /* ZipArchive */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8DDCF7CD27108162000CB4F6 /* XCRemoteSwiftPackageReference "ZipArchive" */;
+			productName = ZipArchive;
+		};
+		08BFCC702FC0A07000235F00 /* ZipArchive */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8DDCF7CD27108162000CB4F6 /* XCRemoteSwiftPackageReference "ZipArchive" */;
+			productName = ZipArchive;
+		};
+		08BFCC722FC0A07600235F00 /* ZipArchive */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8DDCF7CD27108162000CB4F6 /* XCRemoteSwiftPackageReference "ZipArchive" */;
+			productName = ZipArchive;
+		};
+		08BFCC742FC0A07C00235F00 /* ZipArchive */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8DDCF7CD27108162000CB4F6 /* XCRemoteSwiftPackageReference "ZipArchive" */;
+			productName = ZipArchive;
+		};
+		08BFCC762FC0A08300235F00 /* ZipArchive */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8DDCF7CD27108162000CB4F6 /* XCRemoteSwiftPackageReference "ZipArchive" */;
+			productName = ZipArchive;
 		};
 		08F9BAD92F62AE8100E4164B /* libPhoneNumber */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -14541,11 +14436,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = F2EAFBCE2D6CC9C400DFFD48 /* XCRemoteSwiftPackageReference "ZipArchive" */;
 			productName = ZipArchive;
-		};
-		F2EAFBCF2D6CC9C400DFFD48 /* SnapKit */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = F2EAFBD02D6CC9C400DFFD48 /* XCRemoteSwiftPackageReference "SnapKit" */;
-			productName = SnapKit;
 		};
 		F2EAFBD12D6CC9C400DFFD48 /* Sentry */ = {
 			isa = XCSwiftPackageProductDependency;

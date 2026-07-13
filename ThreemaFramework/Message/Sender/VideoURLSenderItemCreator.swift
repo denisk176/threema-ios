@@ -4,25 +4,29 @@ import PromiseKit
 import UIKit
 
 enum VideoURLSenderItemCreatorError: Error {
-    case thumbnailCreationFailed
     case couldNotCreateExportSession
     case generalError
 }
 
-public protocol VideoConversionProgressDelegate {
-    func videoExportSession(exportSession: AVAssetExportSession)
+public protocol VideoConversionProgressDelegate: AnyObject {
+    func videoExportSession(exportSession: any VideoExportSession)
 }
 
 public final class VideoURLSenderItemCreator: NSObject {
     
-    public static let temporaryDirectory = "tmpVideoCreator"
+    private static let temporaryDirectory = "tmpVideoCreator"
     
-    public var encodeProgressDelegate: VideoConversionProgressDelegate?
-    var exportSession: AVAssetExportSession?
-    var timer: Timer? = nil
+    public weak var encodeProgressDelegate: (any VideoConversionProgressDelegate)?
 
+    // MARK: - Private properties
+    
     private let videoConversionHelper: VideoConversionHelper
+   
+    private var exportSession: (any VideoExportSession)?
+    private var timer: Timer? = nil
 
+    // MARK: - Lifecycle
+    
     @objc override public init() {
         self.videoConversionHelper = VideoConversionHelper()
     }
@@ -33,17 +37,7 @@ public final class VideoURLSenderItemCreator: NSObject {
         }
     #endif
 
-    func getThumbnail(asset: AVAsset) -> Promise<UIImage> {
-        Promise { seal in
-            guard let thumbnail = MediaConverter.getThumbnailForVideo(asset) else {
-                seal.reject(VideoURLSenderItemCreatorError.thumbnailCreationFailed)
-                return
-            }
-            seal.resolve(thumbnail, nil)
-        }
-    }
-
-    func getExportSession(asset: AVAsset) -> Promise<AVAssetExportSession> {
+    private func getExportSession(asset: AVAsset) -> Promise<any VideoExportSession> {
         Promise { seal in
             guard let outputURL = MediaConverter.getAssetOutputURL() else {
                 DDLogError("Could not get output URL for asset \(asset.debugDescription)")
@@ -52,31 +46,32 @@ public final class VideoURLSenderItemCreator: NSObject {
             }
 
             Task {
-                guard let session = await self.videoConversionHelper
-                    .getAVAssetExportSession(from: asset, outputURL: outputURL)
-                else {
+                do {
+                    let session = try await self.videoConversionHelper
+                        .getAVAssetExportSession(from: asset, outputURL: outputURL)
+                    self.exportSession = session
+                    
+                    DispatchQueue.main.async {
+                        self.timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { timer in
+                            guard let progress = self.exportSession?.progress else {
+                                timer.invalidate()
+                                return
+                            }
+
+                            self.encodeProgressDelegate?.videoExportSession(exportSession: session)
+
+                            if progress > 0.9 {
+                                timer.invalidate()
+                            }
+                        }
+                    }
+
+                    seal.fulfill(session)
+                }
+                catch {
                     seal.reject(VideoURLSenderItemCreatorError.couldNotCreateExportSession)
                     return
                 }
-
-                self.exportSession = session
-
-                DispatchQueue.main.async {
-                    self.timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { timer in
-                        guard let progress = self.exportSession?.progress else {
-                            timer.invalidate()
-                            return
-                        }
-
-                        self.encodeProgressDelegate?.videoExportSession(exportSession: session)
-
-                        if progress > 0.9 {
-                            timer.invalidate()
-                        }
-                    }
-                }
-
-                seal.fulfill(session)
             }
         }
     }
@@ -87,13 +82,13 @@ public final class VideoURLSenderItemCreator: NSObject {
         change: [NSKeyValueChangeKey: Any]?,
         context: UnsafeMutableRawPointer?
     ) {
-        if let exportSession = object as? AVAssetExportSession {
+        if let exportSession = object as? VideoExportSession {
             encodeProgressDelegate?.videoExportSession(exportSession: exportSession)
         }
     }
     
-    public func getExportSession(for asset: AVAsset) -> AVAssetExportSession? {
-        var newExportSession: AVAssetExportSession?
+    public func getExportSession(for asset: AVAsset) -> (any VideoExportSession)? {
+        var newExportSession: VideoExportSession?
         let sema = DispatchSemaphore(value: 0)
         
         DispatchQueue.global(qos: .userInitiated).async {
@@ -115,22 +110,18 @@ public final class VideoURLSenderItemCreator: NSObject {
         }
     }
     
-    func convertVideo(on exportSession: AVAssetExportSession, asset: AVAsset) -> Promise<URL> {
+    func convertVideo(on exportSession: any VideoExportSession, asset: AVAsset) -> Promise<URL> {
         self.exportSession = exportSession
         return Promise { seal in
-            MediaConverter.convertVideo(with: exportSession, onCompletion: { completionURL in
-                guard let url = completionURL else {
-                    seal.reject(VideoURLSenderItemCreatorError.generalError)
-                    return
+            Task {
+                do {
+                    let url = try await exportSession.runExport()
+                    seal.fulfill(url)
                 }
-                return seal.fulfill(url)
-            }, onError: { completionError in
-                guard let error = completionError else {
-                    seal.reject(VideoURLSenderItemCreatorError.generalError)
-                    return
+                catch {
+                    seal.reject(error)
                 }
-                seal.reject(error)
-            })
+            }
         }
     }
     
@@ -180,7 +171,7 @@ public final class VideoURLSenderItemCreator: NSObject {
         return senderItem
     }
     
-    public func senderItem(from asset: AVAsset, on exportSession: AVAssetExportSession) -> URLSenderItem? {
+    public func senderItem(from asset: AVAsset, on exportSession: any VideoExportSession) -> URLSenderItem? {
         var senderItem: URLSenderItem?
         let sema = DispatchSemaphore(value: 0)
         
@@ -245,13 +236,5 @@ public final class VideoURLSenderItemCreator: NSObject {
             return false
         }
         return true
-    }
-    
-    /// Returns a pseudorandom string
-    /// - Parameter length: the length of the returned String
-    /// - Returns: A pseudorandom string of the given length
-    private static func pseudoRandomString(length: Int) -> String {
-        let letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-        return String((0..<length).map { _ in letters.randomElement()! })
     }
 }

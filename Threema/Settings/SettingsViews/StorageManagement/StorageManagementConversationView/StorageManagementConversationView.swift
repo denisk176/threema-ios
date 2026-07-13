@@ -1,3 +1,4 @@
+import CocoaLumberjackSwift
 import SwiftUI
 import ThreemaFramework
 import ThreemaMacros
@@ -136,7 +137,11 @@ struct StorageManagementConversationView: View {
     }
     
     private func showActionSheet(_ type: ActionSheetType) {
-        guard let topVC = AppDelegate.shared().currentTopViewController(), let view = topVC.view else {
+        guard
+            let topVC = SharedAppProvider.currentTopViewController,
+            let view = topVC.view
+        else {
+            DDLogError("`SharedAppProvider.currentTopViewController` not available.")
             return
         }
         

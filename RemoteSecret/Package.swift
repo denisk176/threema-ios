@@ -1,4 +1,4 @@
-// swift-tools-version: 6.1
+// swift-tools-version: 6.3
 
 import PackageDescription
 
@@ -48,6 +48,5 @@ let package = Package(
                 .enableUpcomingFeature("ExistentialAny"),
             ]
         ),
-    ],
-    swiftLanguageModes: [.v6]
+    ]
 )

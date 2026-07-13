@@ -8,18 +8,6 @@ import ThreemaFramework
 import ThreemaMacros
 import UIKit
 
-// MARK: - WindowResolver
-
-enum WindowResolver {
-    static var window: UIWindow? {
-        #if SCENE_DELEGATE_ROOT_COORDINATOR_DEVELOPMENT
-            SceneDelegate.current?.window
-        #else
-            AppDelegate.shared().window
-        #endif
-    }
-}
-
 // MARK: - RemoteSecretConfiguration
 
 struct RemoteSecretConfiguration {
@@ -270,7 +258,7 @@ final class SetupApp: NSObject {
     }
     
     private func setupRemoteSecretManagerFetch() async throws -> RemoteSecretManagerProtocol {
-        let window = WindowResolver.window
+        let window = SharedAppProvider.window
         
         // Store current view hierarchy to restore it later
         previousVC = window?.rootViewController
@@ -439,7 +427,7 @@ final class SetupApp: NSObject {
             /// but we need to revisit it soon.
             try await AppDelegate.shared().presentSpinner(
                 label: #localize("updating_database"),
-                window: WindowResolver.window
+                window: SharedAppProvider.window
             ) {
                 try AppLaunchManager.shared.importRepairedDatabase(databaseManager: databaseManager)
             }
@@ -450,7 +438,7 @@ final class SetupApp: NSObject {
             /// but we need to revisit it soon.
             try await AppDelegate.shared().presentSpinner(
                 label: #localize("updating_database"),
-                window: WindowResolver.window
+                window: SharedAppProvider.window
             ) {
                 try AppLaunchManager.shared.migrateDatabase(databaseManager: databaseManager)
             }
@@ -471,7 +459,7 @@ final class SetupApp: NSObject {
         if AppSetup.hasPreexistingDatabaseFile {
             try await AppDelegate.shared().presentSpinner(
                 label: #localize("updating_database"),
-                window: WindowResolver.window
+                window: SharedAppProvider.window
             ) {
                 try appMigration.run()
             }

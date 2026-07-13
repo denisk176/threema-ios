@@ -40,7 +40,7 @@ struct DeltaSyncContact: Codable {
 
         let dataSyncContact = try container.decode(Data.self, forKey: .syncContact)
 
-        self.syncContact = try D2dSync_Contact(contiguousBytes: dataSyncContact)
+        self.syncContact = try D2dSync_Contact(serializedBytes: dataSyncContact)
         self.syncAction = try container.decode(SyncAction.self, forKey: .syncAction)
         self.profilePicture = try container.decode(DeltaUpdateType.self, forKey: .profilePicture)
         self.image = try? container.decode(Data.self, forKey: .image)

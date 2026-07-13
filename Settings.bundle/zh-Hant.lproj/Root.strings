@@ -8,5 +8,5 @@
 "safe_mode_switch" = "進階支援模式";
 
 /* (No Comment) */
-"sentry_switch" = "停用 Sentry";
+"sentry_deactivation_switch_title" = "停用匿名錯誤報告";
 

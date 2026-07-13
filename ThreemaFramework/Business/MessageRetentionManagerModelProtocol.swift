@@ -3,9 +3,9 @@ import Foundation
 public protocol MessageRetentionManagerModelProtocol {
     var selection: Int { get set }
     var isMDM: Bool { get }
-    func deleteOldMessages() async
-    func numberOfMessagesToDelete(for retentionDays: Int?) async -> Int
-    func set(_ days: Int, completion: (() -> Void)?)
+    func deleteOldMessages()
+    func numberOfMessagesToDelete(for retentionDays: Int?) -> Int
+    func set(_ days: Int)
 }
 
 extension MessageRetentionManagerModelProtocol {

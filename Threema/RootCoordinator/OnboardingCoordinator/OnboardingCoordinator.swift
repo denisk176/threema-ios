@@ -407,25 +407,6 @@ extension OnboardingCoordinator: SplashViewControllerDelegate {
         
     func splashViewController(
         _ viewController: SplashViewController,
-        didAnswerRemoteSecretQuestion restore: Bool
-    ) {
-        if restore {
-            /// User wants to restore. Show restore options.
-            Task {
-                await handleRestoreTapped()
-            }
-        }
-        else {
-            /// User wants fresh start. Delete keychain.
-            bootstrapIdentityService.deleteAllKeychainItems()
-            Task {
-                await showSetupViewController()
-            }
-        }
-    }
-        
-    func splashViewController(
-        _ viewController: SplashViewController,
         didGenerateRandomSeed seed: Data
     ) {
         Task {
@@ -602,10 +583,9 @@ extension OnboardingCoordinator {
         from viewController: RestoreSafeViewController
     ) async {
         do {
-            let logFile = LogManager.safeRestoreLogFile
-            LogManager.deleteLogFile(logFile)
-            LogManager.addFileLogger(logFile)
-            
+            LogManager.clearLoggerOutput(for: .safeRestoreFileLog)
+            LogManager.addLogger(for: .safeRestoreFileLog)
+
             // Phase 1: download backup + restore identity store
             let preparation = try await restoreSafeManager.prepareRestore(with: info)
 
@@ -620,7 +600,7 @@ extension OnboardingCoordinator {
                 remoteSecretManager: remoteSecretManager
             )
             
-            LogManager.removeFileLogger(LogManager.safeRestoreLogFile)
+            LogManager.removeLogger(for: .safeRestoreFileLog)
 
             // Complete onboarding directly — safe restore already handled
             // migrations + Safe, so no setupConfiguration needed
@@ -698,7 +678,18 @@ extension OnboardingCoordinator {
             remoteSecretManager: remoteSecretManager,
             keychainManager: keychainManager,
             bootstrap: bootstrap,
-            wcSessionManager: WCSessionManagerAdapter()
+            passcodeLock: KKPasscodeLockAdapter(),
+            wcSessionManager: WCSessionManagerAdapter(),
+            newMessageToaster: NewMessageToaster(
+                previewSetting: UserSettings.shared(),
+                bannerPresenter: DefaultNotificationBannerPresenter(),
+                pushSettingManager: businessInjector.pushSettingManager,
+                entityManager: businessInjector.entityManager,
+                notificationCenter: .default
+            ),
+            incomingMessageManager: IncomingMessageManager(),
+            groupCallUIHelper: GroupCallUIHelper(),
+            typingIndicatorManager: TypingIndicatorManager.sharedInstance
         )
         delegate?.onboardingDidComplete(self, appContainer: appContainer)
     }

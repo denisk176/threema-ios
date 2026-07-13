@@ -197,16 +197,16 @@ final class StatusNavigationController: UINavigationController {
         }
     }
     
+    @MainActor
     private func showViewController(_ vc: UIViewController) {
-        let appDelegate = AppDelegate.shared()
-        if let appCoordinator = appDelegate?.appCoordinator as? AppCoordinator {
+        if let appCoordinator = SharedAppProvider.appCoordinator {
             appCoordinator.showModal(for: vc)
         }
         else {
             let modalVC = ModalNavigationController()
             modalVC.showDoneButton = true
             modalVC.pushViewController(vc, animated: true)
-            AppDelegate.shared().currentTopViewController().show(modalVC, sender: nil)
+            SharedAppProvider.currentTopViewController?.show(modalVC, sender: nil)
         }
     }
 }

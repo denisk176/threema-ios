@@ -9,7 +9,7 @@ extension BaseMessageEntity {
             return false
         }
         else {
-            return blobDataMessage.isDataAvailable
+            return blobDataMessage.isDataShareable
         }
     }
     
@@ -23,7 +23,7 @@ extension BaseMessageEntity {
             return false
         }
         else {
-            return blobDataMessage.isDataAvailable
+            return blobDataMessage.isDataShareable
         }
     }
     
@@ -36,7 +36,7 @@ extension BaseMessageEntity {
         // Forwarding is also allowed if the `disableShareMedia` MDM parameter is set. In combination with
         // `blockUnknown` this allows forwarding of media to known contacts, but prevents sharing to any other place.
         
-        return blobDataMessage.isDataAvailable
+        return blobDataMessage.isDataShareable
     }
     
     /// Is sharing of this message using a share sheet allowed?
@@ -49,7 +49,7 @@ extension BaseMessageEntity {
             return false
         }
         else {
-            return blobDataMessage.isDataAvailable
+            return blobDataMessage.isDataShareable
         }
     }
 }

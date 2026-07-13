@@ -28,7 +28,7 @@
 			<key>Type</key>
 			<string>PSToggleSwitchSpecifier</string>
 			<key>Title</key>
-			<string>sentry_switch</string>
+			<string>sentry_deactivation_switch_title</string>
 			<key>Key</key>
 			<string>sentry_switch</string>
 			<key>DefaultValue</key>

@@ -39,4 +39,10 @@ public protocol DHSessionStoreProtocol: AnyObject {
     func hasInvalidDHSessions(myIdentity: String, peerIdentity: String) throws -> Bool
     
     func executeNull() throws
+
+    /// Closes any open underlying connection. Use before unlinking the database file from disk.
+    func close()
+
+    /// Deletes the session DB (temporary closing the connection during this operation).
+    func resetSessionDB()
 }

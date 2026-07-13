@@ -52,7 +52,7 @@ final class ChatViewTableViewVoiceMessageCellDelegate: NSObject, ChatViewTableVi
     private var finishedCallback: ((Bool) -> Void)?
     private var progressCallback: ((TimeInterval, CGFloat) -> Void)?
     private var pauseCallback: (() -> Void)?
-    private var playTimer: Timer?
+    private var playTimer: DispatchSourceTimer?
     
     private var progressDictionary = [NSManagedObjectID: CGFloat]()
     
@@ -127,7 +127,7 @@ final class ChatViewTableViewVoiceMessageCellDelegate: NSObject, ChatViewTableVi
             audioPlayer?.stop()
             audioPlayer = nil
             
-            playTimer?.invalidate()
+            playTimer?.cancel()
             cleanupTemporaryFiles()
             finishedCallback?(true)
         }
@@ -148,15 +148,29 @@ final class ChatViewTableViewVoiceMessageCellDelegate: NSObject, ChatViewTableVi
             return
         }
         
-        playTimer = Timer
-            .scheduledTimer(withTimeInterval: config.progressCallbackInterval, repeats: true) { timer in
-                if !audioPlayer.isPlaying {
-                    timer.invalidate()
-                }
-                
-                let progress = audioPlayer.currentTime / audioPlayer.duration
-                progressCallback(audioPlayer.currentTime, progress)
+        // DispatchSourceTimer on a background queue instead of Timer on the main run loop:
+        // AVAudioPlayer.currentTime makes a synchronous XPC call to the audio server, which can
+        // block for seconds and hang the app if called from the main thread. The progress callback
+        // is dispatched back to main for UI updates.
+        let interval = Double(config.progressCallbackInterval)
+        let timer = DispatchSource.makeTimerSource(queue: .global(qos: .userInitiated))
+        timer.schedule(deadline: .now() + interval, repeating: interval)
+        timer.setEventHandler {
+            guard audioPlayer.isPlaying else {
+                return
             }
+            let currentTime = audioPlayer.currentTime
+            let duration = audioPlayer.duration
+            guard duration > 0 else {
+                return
+            }
+            let progress = currentTime / duration
+            DispatchQueue.main.async {
+                progressCallback(currentTime, progress)
+            }
+        }
+        timer.resume()
+        playTimer = timer
     }
     
     private func cleanupTemporaryFiles() {
@@ -250,7 +264,7 @@ final class ChatViewTableViewVoiceMessageCellDelegate: NSObject, ChatViewTableVi
     }
     
     func pausePlaying() {
-        playTimer?.invalidate()
+        playTimer?.cancel()
         
         if let audioPlayer, let currentlyPlaying {
             let progress = CGFloat(audioPlayer.currentTime / audioPlayer.duration)
@@ -296,7 +310,7 @@ final class ChatViewTableViewVoiceMessageCellDelegate: NSObject, ChatViewTableVi
             return
         }
 
-        playTimer?.invalidate()
+        playTimer?.cancel()
         self.audioPlayer?.currentTime = audioPlayer.duration * progress
         if audioPlayer.isPlaying {
             createPlaybackProgressTimer()
@@ -341,7 +355,7 @@ final class ChatViewTableViewVoiceMessageCellDelegate: NSObject, ChatViewTableVi
         }
         
         finishedCallback?(cancel)
-        playTimer?.invalidate()
+        playTimer?.cancel()
         
         UIDevice.current.isProximityMonitoringEnabled = false
         audioPlayer?.stop()

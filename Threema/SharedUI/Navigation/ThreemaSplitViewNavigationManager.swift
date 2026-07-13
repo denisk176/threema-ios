@@ -102,7 +102,7 @@ final class ThreemaSplitViewNavigationManager: NSObject {
         /// In compact mode: set navigation in selected tab controller
         else if let selectedTabNavigationController {
             if !controllers.isEmpty {
-                var fullStack = [selectedTabNavigationController.viewControllers.first].compactMap { $0 }
+                var fullStack = [selectedTabNavigationController.viewControllers.first].compactMap(\.self)
                 fullStack.append(contentsOf: controllers)
                 selectedTabNavigationController.setViewControllers(fullStack, animated: false)
             }
@@ -264,7 +264,27 @@ extension ThreemaSplitViewNavigationManager: UITabBarControllerDelegate {
     ) -> Bool {
         /// Store current tab's navigation stack before switching
         storeCurrentViewControllerStack()
-        return true
+
+        /// Same-tab re-tap: let UIKit handle it (pop to root); `didSelect` reconciles the stored stack.
+        guard viewController !== tabBarController.selectedViewController else {
+            return true
+        }
+
+        /// Different tab: perform the switch ourselves, without animation, and tell UIKit not to.
+        /// iPadOS animates tab changes with a cross-fade that renders the tab content in a transition
+        /// context where Liquid Glass elements (such as the navigation bar search field) cannot sample
+        /// their backdrop and flash dark until the transition ends.
+        UIView.performWithoutAnimation {
+            tabBarController.selectedViewController = viewController
+        }
+
+        if let threemaTabBarController = tabBarController as? ThreemaTabBarController {
+            let selectedTab = threemaTabBarController.selectedThreemaTab
+            previousSelectedTab = selectedTab
+            restoreViewControllerStack(for: selectedTab)
+        }
+
+        return false
     }
     
     func tabBarController(_ tabBarController: UITabBarController, didSelect viewController: UIViewController) {

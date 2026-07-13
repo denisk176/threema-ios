@@ -1,7 +1,7 @@
 //
 //  GCDAsyncSOCKSProxySocket.h
 //
-//  Copyright © 2019 Threema GmbH. All rights reserved.
+//  Copyright © 2019 Threema AG. All rights reserved.
 //  Derived from ProxyKit, Copyright (c) 2014 Chris Ballinger
 //
 

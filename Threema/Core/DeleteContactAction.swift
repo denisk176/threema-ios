@@ -258,6 +258,7 @@ extension DeleteContactAction {
     /// - Parameter exclude: Add to exclusion list depending on flag, if it's `nil` the user is asked
     /// - Parameter willDelete: Called before deletion starts
     /// - Parameter completion: Completion handler
+    @MainActor
     private func deleteContact(
         exclude: Bool?,
         willDelete: WillDeleteHandler?,
@@ -358,9 +359,13 @@ extension DeleteContactAction {
                 tempContactDisplayName
             )
             
+            guard let rootViewController = SharedAppProvider.window?.rootViewController else {
+                return
+            }
+            
             UIAlertTemplate.showAlert(
                 // There should always be a root view controller at this point
-                owner: AppDelegate.shared().window.rootViewController!,
+                owner: rootViewController,
                 title: localizedTitle,
                 message: #localize("exclude_deleted_id_message"),
                 titleOk: #localize("exclude_deleted_id_exclude_button"),

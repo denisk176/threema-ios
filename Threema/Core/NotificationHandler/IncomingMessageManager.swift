@@ -24,6 +24,12 @@ final class IncomingMessageManager: NSObject {
     ).dirtyObjectManager
 
     private var completionHandler: (() -> Void)?
+    
+    private var isAppActive: Bool {
+        SharedAppProvider.onMain {
+            SharedAppProvider.isAppActive
+        }
+    }
 
     required init(
         pendingUserNotificationManager: PendingUserNotificationManagerProtocol,
@@ -143,7 +149,7 @@ final class IncomingMessageManager: NSObject {
         entityManager: EntityManager
     ) -> Guarantee<Bool> {
         Guarantee { seal in
-            if !AppDelegate.shared().active {
+            if !isAppActive {
                 manager
                     .startTimedUserNotification(pendingUserNotification: pendingUserNotification)
                     .done(on: .global(), flags: .inheritQoS) { started in
@@ -249,10 +255,12 @@ extension IncomingMessageManager: MessageProcessorDelegate {
     }
 
     func changedManagedObjectID(_ objectID: NSManagedObjectID) {
-        if !AppDelegate.shared().active {
-            dirtyObjectManager.markAsDirty(objectID: objectID) {
-                AppGroup.notifySyncNeeded()
-            }
+        guard !isAppActive else {
+            return
+        }
+        
+        dirtyObjectManager.markAsDirty(objectID: objectID) {
+            AppGroup.notifySyncNeeded()
         }
     }
     
@@ -281,7 +289,7 @@ extension IncomingMessageManager: MessageProcessorDelegate {
         businessInjector.entityManager.performAndWaitSave {
             if let msg = self.businessInjector.entityManager.entityFetcher
                 .managedObject(with: baseMessage.objectID) as? BaseMessageEntity {
-                if !AppDelegate.shared().active {
+                if !self.isAppActive {
                     self.dirtyObjectManager.markAsDirty(objectID: msg.objectID) {
                         AppGroup.notifySyncNeeded()
                     }
@@ -381,7 +389,7 @@ extension IncomingMessageManager: MessageProcessorDelegate {
         
         // Mark contact & conversation as dirty
         
-        guard !AppDelegate.shared().active else {
+        guard !isAppActive else {
             // Don't mark anything as dirty if the app is active
             return
         }

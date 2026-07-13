@@ -58,6 +58,8 @@ public final class AppMigration {
             businessInjector.userSettings.appMigratedToVersion = newValue.rawValue
         }
     }
+    
+    private lazy var persistenceMigration = PersistenceMigration(entityManager: businessInjector.entityManager)
 
     public init(
         businessInjector: BusinessInjectorProtocol,
@@ -180,6 +182,10 @@ public final class AppMigration {
             if migratedTo < .v7_1 {
                 try migrateTo7_1()
                 migratedTo = .v7_1
+            }
+            if migratedTo < .v7_3 {
+                try migrateTo7_3()
+                migratedTo = .v7_3
             }
 
             // Add here a check if migration is necessary for a particular version...
@@ -976,11 +982,41 @@ public final class AppMigration {
             Colors.resolveTheme()
         }
 
-        #if SCENE_DELEGATE_ROOT_COORDINATOR_DEVELOPMENT
+        if SharedAppProvider.onMain({
+            SharedAppProvider.isSceneDelegateDevelopment
+        }) {
             migrateUserInterfaceStyleStoringKey()
-        #endif
+        }
 
         os_signpost(.end, log: osPOILog, name: "7.1 migration")
         DDLogNotice("[AppMigration] App migration to version 7.1 successfully finished")
+    }
+    
+    /// Migrate to version 7.3:
+    /// Checks if data is available for file message types and sets a bool on them for efficient checking
+    private func migrateTo7_3() throws {
+        DDLogNotice("[AppMigration] App migration to version 7.3 started")
+        os_signpost(.begin, log: osPOILog, name: "7.3 migration")
+
+        // Shared info
+        let remoteSecretEnabled = RemoteSecretProvider.isRemoteSecretEnabled
+        
+        try persistenceMigration.migrateDataAvailable(remoteSecretEnabled: remoteSecretEnabled)
+
+        // Removing legacy log files
+        for filename in [
+            "debug_log.txt",
+            "validation_log.txt",
+            "db-migration.log",
+        ] {
+            if let utility = FileUtility.shared,
+               let url = utility.appDataDirectory(appGroupID: AppGroup.groupID())?.appendingPathComponent(filename),
+               utility.fileExists(at: url) {
+                try? utility.delete(at: url)
+            }
+        }
+        
+        os_signpost(.end, log: osPOILog, name: "7.3 migration")
+        DDLogNotice("[AppMigration] App migration to version 7.3 successfully finished")
     }
 }

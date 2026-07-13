@@ -1,4 +1,4 @@
-// swift-tools-version: 6.1
+// swift-tools-version: 6.3
 
 import PackageDescription
 
@@ -35,6 +35,5 @@ let package = Package(
             name: "FileUtilityTests",
             dependencies: ["FileUtility", "FileUtilityTestHelper"]
         ),
-    ],
-    swiftLanguageModes: [.v5],
+    ]
 )

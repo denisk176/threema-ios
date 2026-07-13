@@ -134,21 +134,34 @@ extension Colors {
     }
     
     @objc public class func update(window: UIWindow) {
+        let style = currentOverrideUserInterfaceStyle
+        if window.overrideUserInterfaceStyle != style {
+            window.overrideUserInterfaceStyle = style
+        }
+    }
+
+    /// Anchors the interface-style override on the root view controller in addition to the window.
+    ///
+    /// On iPadOS, `UITabBarController` animates tab changes and renders the tab content (incl. navigation and
+    /// search bars) outside the window's trait environment during the transition. A window-level override is not
+    /// inherited there, so the bars briefly resolve the *system* appearance (e.g. black bars in light theme on a
+    /// dark-mode device) until the transition ends. An override on the root view controller travels with the view
+    /// controller hierarchy and keeps trait resolution correct during such transitions.
+    @objc public class func update(rootViewController: UIViewController) {
+        let style = currentOverrideUserInterfaceStyle
+        if rootViewController.overrideUserInterfaceStyle != style {
+            rootViewController.overrideUserInterfaceStyle = style
+        }
+    }
+
+    private class var currentOverrideUserInterfaceStyle: UIUserInterfaceStyle {
         switch UserSettings.shared().interfaceStyle {
         case UIUserInterfaceStyle.light.rawValue:
-            if window.overrideUserInterfaceStyle != .light {
-                window.overrideUserInterfaceStyle = .light
-            }
-
+            .light
         case UIUserInterfaceStyle.dark.rawValue:
-            if window.overrideUserInterfaceStyle != .dark {
-                window.overrideUserInterfaceStyle = .dark
-            }
-
+            .dark
         default:
-            if window.overrideUserInterfaceStyle != .unspecified {
-                window.overrideUserInterfaceStyle = .unspecified
-            }
+            .unspecified
         }
     }
     

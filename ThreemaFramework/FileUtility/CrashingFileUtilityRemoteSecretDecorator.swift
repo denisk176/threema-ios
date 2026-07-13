@@ -192,7 +192,15 @@ final class CrashingFileUtilityRemoteSecretDecorator: FileUtilityProtocol {
     func contentsOfDirectory(atPath path: String) throws -> [String] {
         try wrapped.contentsOfDirectory(atPath: path)
     }
-    
+
+    func contentsOfDirectory(
+        at url: URL,
+        includingPropertiesForKeys keys: [URLResourceKey]?,
+        options mask: FileManager.DirectoryEnumerationOptions
+    ) throws -> [URL] {
+        try wrapped.contentsOfDirectory(at: url, includingPropertiesForKeys: keys, options: mask)
+    }
+
     func read(fileURL: URL?) -> Data? {
         guard shouldAllowOperation(fileURL) else {
             fatalError(

@@ -106,8 +106,8 @@ struct CallSettingsView: View {
                 Text(#localize("settings_threema_calls_group_calls_header"))
             }
         }
-        .navigationBarTitleDisplayMode(.inline)
         .navigationTitle(#localize("settings_threema_calls"))
+        .navigationBarTitleDisplayMode(.inline)
         .tint(.accentColor)
     }
     

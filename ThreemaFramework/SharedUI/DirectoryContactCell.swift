@@ -217,7 +217,7 @@ public final class DirectoryContactCell: ThemedCodeTableViewCell {
                 metadataLabel.text,
                 identityLabel.text,
             ]
-            .compactMap { $0 }
+            .compactMap(\.self)
             .filter { !$0.isEmpty }
             .joined(separator: ". ")
         }

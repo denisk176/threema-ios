@@ -68,7 +68,7 @@ final class ImageDataEntityTests: XCTestCase {
 
         if encrypted {
             XCTAssertEqual(testDatabase.remoteSecretCryptoMock.decryptCalls, 0)
-            XCTAssertEqual(testDatabase.remoteSecretCryptoMock.encryptCalls, 3)
+            XCTAssertEqual(testDatabase.remoteSecretCryptoMock.encryptCalls, 4)
 
             // Test faulting
             testDatabase.context.main.refresh(fetchedImageDataEntity, mergeChanges: false)
@@ -76,9 +76,10 @@ final class ImageDataEntityTests: XCTestCase {
             XCTAssertEqual(data, fetchedImageDataEntity.data)
             XCTAssertEqual(Int16(image.size.height), fetchedImageDataEntity.height)
             XCTAssertEqual(Int16(image.size.width), fetchedImageDataEntity.width)
+            XCTAssertTrue(imageMessageEntity.isDataAvailable)
 
             XCTAssertEqual(testDatabase.remoteSecretCryptoMock.decryptCalls, 3)
-            XCTAssertEqual(testDatabase.remoteSecretCryptoMock.encryptCalls, 3)
+            XCTAssertEqual(testDatabase.remoteSecretCryptoMock.encryptCalls, 4)
         }
         else {
             XCTAssertEqual(testDatabase.remoteSecretCryptoMock.decryptCalls, 0)

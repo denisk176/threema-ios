@@ -41,7 +41,7 @@ final class VotePollViewModel: ObservableObject {
     let cancelAlertTitle = #localize("voteCancelTitle")
     let cancelAlertMessage = #localize("voteCancelMessage")
 
-    let discardTitle = #localize("discardVoteTitle")
+    let discardTitle = #localize("Discard")
 
     let closeButtonTitle = #localize("ballot_close")
     let okTitle = #localize("ok")
@@ -54,6 +54,10 @@ final class VotePollViewModel: ObservableObject {
     }
     
     let showVotesButtonTitle = #localize("poll_show_votes")
+
+    var isInteractiveDismissDisabled: Bool {
+        didChangeSelection
+    }
 
     // MARK: - Private properties
     

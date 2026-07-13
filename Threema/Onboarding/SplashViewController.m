@@ -887,11 +887,6 @@
         [self hideIDExistsQuestion];
         [self.delegate splashViewController:self didAnswerIDExistsQuestion:YES];
     }
-    else if (sender.tag == 3) {
-        // Remote Secret question - Yes = restore
-        [self hideRemoteSecretExistsQuestion];
-        [self.delegate splashViewController:self didAnswerRemoteSecretQuestion:YES];
-    }
     return;
     #endif
     
@@ -939,11 +934,6 @@
         // ID Exists question - No = create new
         [self hideIDExistsQuestion];
         [self.delegate splashViewController:self didAnswerIDExistsQuestion:NO];
-    }
-    else if (sender.tag == 3) {
-        // Remote Secret question - No = start fresh
-        [self hideRemoteSecretExistsQuestion];
-        [self.delegate splashViewController:self didAnswerRemoteSecretQuestion:NO];
     }
     return;
     #endif
@@ -1023,22 +1013,21 @@
     // The App Setup Steps should be called as the last step of the onboarding and if they fail they need to be retried.
     // We log the steps (incl. retries) to a separate file in the document directory such that this can be requested in
     // support inquiries.
-    
-    NSURL *appSetupStepsLogFile = [LogManager appSetupStepsLogFile];
-    [LogManager deleteLogFile:appSetupStepsLogFile];
-    [LogManager addFileLogger:appSetupStepsLogFile];
-    
+
+    [self clearAppSetupStepsLoggerOutput];
+    [self addAppSetupStepsLogger];
+
     [self runWorkDataUpdateWithCompletion:^{
         [self runAppSetupStepsWithCompletion:^{
-            [LogManager removeFileLogger:appSetupStepsLogFile];
-            
+            [self removeAppSetupStepsLogger];
+
             // The setup is only completed if the App Setup Steps are successfully completed
             [AppSetup setState:AppSetupStateComplete];
                         
             [self showApplicationUI];
             
             // Delete log file again
-            [LogManager deleteLogFile:appSetupStepsLogFile];
+            [self clearAppSetupStepsLoggerOutput];
         }];
     }];
 }

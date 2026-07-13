@@ -136,4 +136,12 @@ final class InMemoryDHSessionStore: DHSessionStoreProtocol {
     func executeNull() throws {
         // Noop
     }
+
+    func close() {
+        // Noop
+    }
+
+    func resetSessionDB() {
+        dhSessionList.removeAll()
+    }
 }

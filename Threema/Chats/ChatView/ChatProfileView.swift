@@ -662,7 +662,7 @@ final class ChatProfileView: UIStackView {
                 
                 let businessContact = Contact(contactEntity: contact)
                 let label = [businessContact.verificationLevelAccessibilityLabel]
-                    .compactMap { $0 }
+                    .compactMap(\.self)
                     .filter { !$0.isEmpty }
                     .joined(separator: ". ")
                 

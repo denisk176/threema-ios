@@ -14,11 +14,7 @@
 #define kGroupCreatorLen 8
 #define kBallotIdLen 8
 #define kDeviceIdLen 8
-#define kExtensionTypeLength = 1
-#define kExtensionLengthLength = 2
-#define kExtensionDataMaxLength = 256
 #define kVouchLen 32
-#define kEphemeralKeyHashLen 32
 #define kGCKLen 32
 #define kConnectTimeout 15
 #define kReadTimeout 20
@@ -30,8 +26,6 @@
 #define kEchoRequestMDInterval 15
 #define kEchoRequestTimeout 10
 #define kErrorDisplayInterval 30
-#define kBlobLoadTimeout 180
-#define kBlobUploadTimeout 120
 #define kConnectionIdleTimeout 120 // min 30, max 600
 #define kConnectionIdleMDTimeout 30 // min 30, max 600
 
@@ -49,17 +43,11 @@ static NSInteger const kWebClientMediaPreviewSize = 50;
 static NSInteger const kWebClientMediaThumbnailSize = 350;
 static Float32 const kWebClientMediaQuality = 0.6;
 
-#define kMaxVideoDurationLowMinutes 15
-#define kMaxVideoDurationHighMinutes 3
-#define kMaxVideoSizeLow 480
-#define kMaxVideoSizeHigh 848
 #define kVideoBitrateLow 384000
 #define kVideoBitrateMedium 1500000
-#define kVideoBitrateHigh 2000000
 #define kAudioBitrateLow 32000
 #define kAudioBitrateMedium 64000
 #define kAudioBitrateHigh 128000
-#define kAudioChannelsLow 1
 #define kAudioChannelsHigh 2
 
 #define kGroupPeriodicSyncInterval 7*86400
@@ -158,15 +146,10 @@ static Float32 const kWebClientMediaQuality = 0.6;
 #define FEATURE_MASK_DELETE_MESSAGE     0x200
 #define FEATURE_MASK_REACTION           0x400
 
-#define PUSHFILTER_TYPE_NONE            0
-#define PUSHFILTER_TYPE_ALLOW_LISTED	1
-#define PUSHFILTER_TYPE_BLOCK_LISTED	2
-
 #define kJPEGCompressionQualityLow 0.8
 #define kJPEGCompressionQualityHigh 0.81
 
 #define kNSETimeout 25.0
-
 
 static Float64 const kShareExtensionMaxImagePreviewSize = 15*1024*1024;
 static Float64 const kShareExtensionMaxFileShareSize = 45*1024*1024;

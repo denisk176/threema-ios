@@ -59,7 +59,7 @@ final class TaskDefinitionSendGroupCallStartMessage: TaskDefinitionSendMessage {
         self.toMembers = try container.decode([String].self, forKey: .toMembers)
         self
             .groupCallStartMessage = try CspE2e_GroupCallStart(
-                serializedData: container
+                serializedBytes: container
                     .decode(Data.self, forKey: .groupCallStartMessage)
             )
         

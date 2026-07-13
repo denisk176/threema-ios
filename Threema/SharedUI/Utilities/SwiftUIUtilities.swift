@@ -4,7 +4,7 @@ import ThreemaFramework
 
 extension View {
     var topViewController: UIViewController? {
-        AppDelegate.shared().currentTopViewController()
+        SharedAppProvider.currentTopViewController
     }
     
     func loadingOverlay(_ isLoading: Bool) -> some View {

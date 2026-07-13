@@ -31,7 +31,7 @@ final class WebChunkCache: NSObject {
     
     func transfer(fromCache: [[UInt8]?]) {
         DDLogVerbose("[Threema Web] Web Chunk Cache --> start transfer cache")
-        let tmpCache = cache.compactMap { $0 }
+        let tmpCache = cache.compactMap(\.self)
         cache = tmpCache
         for chunk in fromCache {
             if chunk != nil {

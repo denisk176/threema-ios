@@ -1,6 +1,6 @@
 // This file is based on third party code, see below for the original author
 // and original license.
-// Modifications are (c) by Threema GmbH and licensed under the AGPLv3.
+// Modifications are (c) by Threema AG and licensed under the AGPLv3.
 
 //
 //  MWPhotoBrowser.h

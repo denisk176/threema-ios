@@ -128,7 +128,7 @@ public class DKImageManager: DKBaseManager {
 	}
 	
 	public func fetchImageDataForAsset(_ asset: DKAsset, options: PHImageRequestOptions?, completeBlock: @escaping (_ data: Data?, _ info: [AnyHashable: Any]?) -> Void) {
-		self.manager.requestImageData(for: asset.originalAsset!,
+		self.manager.requestImageDataAndOrientation(for: asset.originalAsset!,
 		                                      options: options ?? self.defaultImageRequestOptions) { (data, dataUTI, orientation, info) in
 												if let isInCloud = info?[PHImageResultIsInCloudKey] as AnyObject?
 													, data == nil && isInCloud.boolValue && self.autoDownloadWhenAssetIsInCloud {

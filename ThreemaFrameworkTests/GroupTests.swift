@@ -463,7 +463,7 @@ final class GroupTests: XCTestCase {
 
         let group = try await groupManager.createOrUpdateDB(
             for: groupIdentity,
-            members: Set(members.map(\.identity).compactMap { $0 }),
+            members: Set(members.map(\.identity).compactMap(\.self)),
             systemMessageDate: Date(),
             sourceCaller: .local
         )
@@ -544,7 +544,7 @@ final class GroupTests: XCTestCase {
 
         let group = try await groupManager.createOrUpdateDB(
             for: groupIdentity,
-            members: Set(members.map(\.identity).compactMap { $0 }),
+            members: Set(members.map(\.identity).compactMap(\.self)),
             systemMessageDate: Date(),
             sourceCaller: .local
         )

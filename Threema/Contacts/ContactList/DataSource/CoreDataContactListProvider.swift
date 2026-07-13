@@ -37,7 +37,7 @@ class CoreDataContactListProvider<Entity: NSObject, BusinessEntity: NSObject>: N
             .blacklist
             .publisher
             .sink(receiveValue: { [weak self] _ in
-                guard let self else {
+                guard self != nil else {
                     return
                 }
                 try? fetchedResultsController.performFetch()

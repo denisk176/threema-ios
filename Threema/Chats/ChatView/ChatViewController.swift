@@ -62,6 +62,14 @@ final class ChatViewController: UIViewController {
     
     private let contextMenuController = CustomContextMenuController()
     
+    /// Set when this chat started closing because its conversation is being deleted.
+    /// Prevents double-calls (KVO + `didDismissModalNavigationController`).
+    private var isClosingDeletedConversation = false
+    
+    /// Called once when this chat's conversation is being deleted. The delegate
+    /// (ConversationListCoordinator) is responsible for all UI cleanup.
+    weak var conversationDeletedDelegate: ChatViewControllerConversationDeletedDelegate?
+    
     // MARK: - Debug
     
     private let initTime = CACurrentMediaTime()
@@ -784,7 +792,14 @@ final class ChatViewController: UIViewController {
         super.viewDidDisappear(animated)
         
         DDLogVerbose("\(#function)")
-        
+
+        guard
+            !conversation.willBeDeleted,
+            conversation.managedObjectContext != nil
+        else {
+            return
+        }
+
         chatViewTableViewVoiceMessageCellDelegate.pausePlaying()
         
         saveCurrentScrollPosition()
@@ -831,14 +846,16 @@ final class ChatViewController: UIViewController {
 
         // Observe `Conversation.willBeDeleted` to close this view
         observerConversation = conversation.observe(\.willBeDeleted) { [weak self] conversation, _ in
-            guard
-                let self,
-                conversation.willBeDeleted
-            else {
+            guard conversation.willBeDeleted else {
                 return
             }
 
-            navigationController?.popViewController(animated: true)
+            // `prepareForDeletion` is invoked inside NSManagedObjectContext.save().
+            // Never drive UIKit navigation synchronously from there, and the deleting
+            // context is not guaranteed to be the main-queue context.
+            DispatchQueue.main.async {
+                self?.closeBecauseConversationWasDeleted()
+            }
         }
 
         NotificationCenter.default.addObserver(
@@ -905,6 +922,7 @@ final class ChatViewController: UIViewController {
         
         GlobalGroupCallManagerSingleton.shared
             .globalGroupCallObserver.publisher.pub
+            .debounce(for: .milliseconds(500), scheduler: DispatchQueue.main)
             .filter { [weak self] update in
                 guard let self else {
                     return false
@@ -1045,6 +1063,10 @@ final class ChatViewController: UIViewController {
     
     func isChat(for contact: ContactEntity) -> Bool {
         contact == conversation.contact
+    }
+    
+    func isDisplayingChat(for conv: ConversationEntity) -> Bool {
+        conversation.objectID == conv.objectID
     }
     
     // MARK: - Overrides
@@ -1347,6 +1369,15 @@ extension ChatViewController {
         }
     }
     
+    private func closeBecauseConversationWasDeleted() {
+        guard !isClosingDeletedConversation else {
+            return
+        }
+        isClosingDeletedConversation = true
+
+        conversationDeletedDelegate?.chatViewControllerConversationWasDeleted(self)
+    }
+
     func chatProfileViewTapped() {
         let detailsViewController: UIViewController
         
@@ -1986,7 +2017,9 @@ extension ChatViewController {
         chatBarCoordinator.showChatBar()
         updateContentInsets()
         
-        scrollToBottomButton.isHidden = false
+        if !isAtBottomOfView {
+            scrollToBottomButton.isHidden = false
+        }
     }
     
     private func hideScrollToBottomButtonAndChatBar() {
@@ -2819,11 +2852,6 @@ extension ChatViewController: UIScrollViewDelegate {
         if insetAdjustedBottomOffset < bottomOffsetThreshold {
             isLoading = true
             
-            // Needed for the WORKAROUND after loading is completed
-            let currentHeight = scrollView.contentSize.height
-            // If offset is less than 0 due to elasticity of the scroll view, assume 0
-            let initialContentOffSet = max(tableView.contentOffset.y, 0)
-            
             dataSource.loadMessagesAtBottom().done { _ in
                 DDLogVerbose("loadMessagesAtBottom completed")
             }.ensure {
@@ -3108,7 +3136,7 @@ extension ChatViewController: UIScrollViewDelegate {
 extension ChatViewController: ModalNavigationControllerDelegate {
     func didDismissModalNavigationController() {
         if conversation.willBeDeleted {
-            navigationController?.popViewController(animated: true)
+            closeBecauseConversationWasDeleted()
         }
         
         chatBarCoordinator.updateSettings()
@@ -3322,4 +3350,11 @@ extension ChatViewController: VNDocumentCameraViewControllerDelegate {
         let sendMediaAction = SendMediaAction(chatViewController: self)
         sendMediaAction.showPreviewForAssets(assets: [PhotosAccessHelper.storePDFToTmpDir(pdfData: pdfData)])
     }
+}
+
+/// Called by ChatViewController when its conversation is being deleted.
+/// The delegate handles all UI cleanup: dismissing presented VC, popping/resetting
+/// navigation, and clearing coordinator state.
+protocol ChatViewControllerConversationDeletedDelegate: AnyObject {
+    func chatViewControllerConversationWasDeleted(_ chatViewController: ChatViewController)
 }

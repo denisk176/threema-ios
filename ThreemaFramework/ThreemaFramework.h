@@ -35,7 +35,6 @@
 #import <ThreemaFramework/DeliveryReceiptMessage.h>
 #import <ThreemaFramework/DeviceGroupKeys.h>
 #import <ThreemaFramework/ErrorHandler.h>
-#import <ThreemaFramework/FileLoggerCustom.h>
 #import <ThreemaFramework/Old_FileMessageSender.h>
 #import <ThreemaFramework/MediaConverter.h>
 #import <ThreemaFramework/FileMessageDecoder.h>

@@ -306,4 +306,23 @@ final class DateFormatterTests_en_US: XCTestCase {
         
         XCTAssertEqual(actual, expectedAccessibilityRelativeDayTime_en_US)
     }
+
+    // MARK: - RFC 1123
+
+    func testDateFromRFC1123() {
+        let result = DateFormatter.dateFromRFC1123("Sat, 01 Feb 2020 12:14:15 GMT")
+
+        var components = DateComponents()
+        components.day = 1
+        components.month = 2
+        components.year = 2020
+        components.hour = 12
+        components.minute = 14
+        components.second = 15
+        components.timeZone = TimeZone(abbreviation: "GMT")
+
+        let expected = Calendar.current.date(from: components)
+
+        XCTAssertEqual(result, expected)
+    }
 }

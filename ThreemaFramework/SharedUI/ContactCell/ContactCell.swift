@@ -242,7 +242,7 @@ public final class ContactCell: ThemedCodeTableViewCell, Reusable {
                 otherThreemaTypeIconAccessibilityLabel,
                 verificationLevelImageView.accessibilityLabel,
             ]
-            .compactMap { $0 }
+            .compactMap(\.self)
             .filter { !$0.isEmpty }
             .joined(separator: ". ")
         }

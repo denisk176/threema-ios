@@ -85,6 +85,31 @@ struct ThreemaSafePasswordViewModelTests {
         #expect(sut.isRightButtonDisabled == true)
     }
 
+    @Test(
+        "Interactive dismiss is disabled when any password / server field is not empty",
+        arguments: [("value", "", "", ""), ("", "value", "", ""), ("", "", "value", ""), ("", "", "", "value")]
+    )
+    func interactiveDismiss(value: (pass: String, confirmation: String, serverUser: String, serverPass: String)) async throws {
+        let sut = ThreemaSafePasswordViewModel(
+            appFlavor: .mock,
+            myIdentityStore: .mock,
+            safeConfigManager: .mock,
+            safeManager: .mock,
+            mdmSetup: .mock
+        )
+
+        sut.onAppear()
+
+        #expect(sut.isInteractiveDismissDisabled == false)
+
+        sut.passwordTextInput = value.pass
+        sut.confirmationPasswordTextInput = value.confirmation
+        sut.serverUsernameInput = value.serverUser
+        sut.serverPasswordInput = value.serverPass
+
+        #expect(sut.isInteractiveDismissDisabled == true)
+    }
+
     @Test("Right button is enabled when password is preset by admin")
     func rightButtonStateEnabledWhenPasswordPreset() async throws {
         let sut = ThreemaSafePasswordViewModel(

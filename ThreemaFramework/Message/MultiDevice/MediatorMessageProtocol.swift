@@ -134,7 +134,7 @@ final class MediatorMessageProtocol: NSObject, MediatorMessageProtocolProtocol {
 
     func encodeBeginTransactionMessage(messageType: MediatorMessageType, reason: D2d_TransactionScope.Scope) -> Data? {
         guard let dgtsk = deviceGroupKeys?.dgtsk else {
-            DDLogError(MediatorMessageProtocol.device_group_keys_missing)
+            DDLogError("\(MediatorMessageProtocol.device_group_keys_missing)")
             return nil
         }
 
@@ -257,47 +257,47 @@ final class MediatorMessageProtocol: NSObject, MediatorMessageProtocolProtocol {
     // MARK: Decoding multi device messages
 
     func decodeDeviceInfo(message: Data) -> D2d_DeviceInfo? {
-        try? D2d_DeviceInfo(serializedData: message)
+        try? D2d_DeviceInfo(serializedBytes: message)
     }
 
     func decodeDevicesInfo(message: Data) -> D2m_DevicesInfo? {
         try? D2m_DevicesInfo(
-            serializedData: message
+            serializedBytes: message
                 .subdata(in: MediatorMessageProtocol.MEDIATOR_COMMON_HEADER_LENGTH..<message.count)
         )
     }
 
     func decodeDropDeviceAck(message: Data) -> D2m_DropDeviceAck? {
         try? D2m_DropDeviceAck(
-            serializedData: message
+            serializedBytes: message
                 .subdata(in: MediatorMessageProtocol.MEDIATOR_COMMON_HEADER_LENGTH..<message.count)
         )
     }
 
     func decodeServerHello(message: Data) -> D2m_ServerHello? {
         try? D2m_ServerHello(
-            serializedData: message
+            serializedBytes: message
                 .subdata(in: MediatorMessageProtocol.MEDIATOR_COMMON_HEADER_LENGTH..<message.count)
         )
     }
 
     func decodeServerInfo(message: Data) -> D2m_ServerInfo? {
         try? D2m_ServerInfo(
-            serializedData: message
+            serializedBytes: message
                 .subdata(in: MediatorMessageProtocol.MEDIATOR_COMMON_HEADER_LENGTH..<message.count)
         )
     }
 
     func decodeReflectionQueueDry(message: Data) -> D2m_ReflectionQueueDry? {
         try? D2m_ReflectionQueueDry(
-            serializedData: message
+            serializedBytes: message
                 .subdata(in: MediatorMessageProtocol.MEDIATOR_COMMON_HEADER_LENGTH..<message.count)
         )
     }
 
     func decodeRolePromotedToLeader(message: Data) -> D2m_RolePromotedToLeader? {
         try? D2m_RolePromotedToLeader(
-            serializedData: message
+            serializedBytes: message
                 .subdata(in: MediatorMessageProtocol.MEDIATOR_COMMON_HEADER_LENGTH..<message.count)
         )
     }
@@ -338,11 +338,11 @@ final class MediatorMessageProtocol: NSObject, MediatorMessageProtocolProtocol {
     }
 
     static func decodeTransactionLocked(_ message: Data) -> D2m_TransactionRejected? {
-        try? D2m_TransactionRejected(serializedData: message.subdata(in: MEDIATOR_COMMON_HEADER_LENGTH..<message.count))
+        try? D2m_TransactionRejected(serializedBytes: message.subdata(in: MEDIATOR_COMMON_HEADER_LENGTH..<message.count))
     }
 
     static func decodeTransactionEnded(_ message: Data) -> D2m_TransactionEnded? {
-        try? D2m_TransactionEnded(serializedData: message.subdata(in: MEDIATOR_COMMON_HEADER_LENGTH..<message.count))
+        try? D2m_TransactionEnded(serializedBytes: message.subdata(in: MEDIATOR_COMMON_HEADER_LENGTH..<message.count))
     }
 
     // MARK: Encrypt / decrypt
@@ -649,7 +649,7 @@ final class MediatorMessageProtocol: NSObject, MediatorMessageProtocolProtocol {
                         withKey: dgrk,
                         nonce: nonce
                     ) {
-                    return try D2d_Envelope(serializedData: decryptedData)
+                    return try D2d_Envelope(serializedBytes: decryptedData)
                 }
                 else {
                     DDLogError("Could not decrypt envelope")

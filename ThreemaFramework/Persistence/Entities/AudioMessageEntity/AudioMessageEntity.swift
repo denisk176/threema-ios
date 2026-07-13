@@ -5,9 +5,12 @@ import ThreemaMacros
 @objc(AudioMessageEntity)
 public final class AudioMessageEntity: BaseMessageEntity {
 
+    static let entityName = "AudioMessage"
+
     enum Field: String {
         case audio
         case audioBlobID
+        case dataAvailable
 
         static func name(for field: Field, encrypted: Bool) -> String {
             switch field {
@@ -15,6 +18,8 @@ public final class AudioMessageEntity: BaseMessageEntity {
                 field.rawValue
             case .audioBlobID:
                 encrypted ? encryptedAudioBlobIDName : audioBlobIDName
+            case .dataAvailable:
+                encrypted ? encryptedDataAvailableName : dataAvailableName
             }
         }
     }
@@ -65,12 +70,36 @@ public final class AudioMessageEntity: BaseMessageEntity {
             setEncryptionKey(newValue)
         }
     }
+    
+    @EncryptedField
+    @objc public internal(set) dynamic var dataAvailable: NSNumber {
+        get {
+            getDataAvailable()
+        }
+
+        set {
+            setDataAvailable(newValue)
+        }
+    }
 
     @NSManaged public var progress: NSNumber?
 
     // MARK: Relationships
 
-    @NSManaged public var audio: AudioDataEntity?
+    @objc public dynamic var audio: AudioDataEntity? {
+        get {
+            willAccessValue(forKey: #keyPath(AudioMessageEntity.audio))
+            let value = primitiveValue(forKey: #keyPath(AudioMessageEntity.audio)) as? AudioDataEntity
+            didAccessValue(forKey: #keyPath(AudioMessageEntity.audio))
+            return value
+        }
+        set {
+            willChangeValue(forKey: #keyPath(AudioMessageEntity.audio))
+            setPrimitiveValue(newValue, forKey: #keyPath(AudioMessageEntity.audio))
+            didChangeValue(forKey: #keyPath(AudioMessageEntity.audio))
+            dataAvailable = NSNumber(booleanLiteral: newValue?.data != nil)
+        }
+    }
 
     // MARK: Private properties
 
@@ -79,6 +108,7 @@ public final class AudioMessageEntity: BaseMessageEntity {
     private var decryptedAudioSize: Int32?
     private var decryptedDuration: Float? // Non optional
     private var decryptedEncryptionKey: Data?
+    private var decryptedDataAvailable: Bool?
 
     // MARK: - Lifecycle
 
@@ -139,7 +169,7 @@ public final class AudioMessageEntity: BaseMessageEntity {
 
     #if !DEBUG
         override public var debugDescription: String {
-            "<\(type(of: self))>:\(AudioMessageEntity.self), audioBlobId = \("***"), audioSize = \(audioSize?.description ?? "nil"), duration = \(duration.description), encryptionKey = \("***"), progress = \(progress?.description ?? "nil"), audio = \(audio?.description ?? "nil")"
+            "<\(type(of: self))>:\(AudioMessageEntity.self), audioBlobId = \("***"), audioSize = \(audioSize?.description ?? "nil"), duration = \(duration.description), encryptionKey = \("***"), progress = \(progress?.description ?? "nil"), audio = \(audio?.description ?? "nil"), dataAvailable = \(dataAvailable)"
         }
     #endif
 
@@ -292,6 +322,44 @@ public final class AudioMessageEntity: BaseMessageEntity {
             didChangeValue(forKey: Self.encryptionKeyName)
         }
     }
+    
+    // MARK: DataAvailable
+    
+    private func getDataAvailable() -> NSNumber {
+        var value: NSNumber = NSNumber(value: false)
+        guard let managedObjectContext else {
+            return value
+        }
+
+        if managedObjectContext.usesAdditionallyEncryptedModel {
+            decryptOptional(&decryptedDataAvailable, forKey: Self.encryptedDataAvailableName)
+            if let decryptedDataAvailable {
+                value = NSNumber(booleanLiteral: decryptedDataAvailable)
+            }
+        }
+        else {
+            willAccessValue(forKey: Self.dataAvailableName)
+            value = primitiveValue(forKey: Self.dataAvailableName) as? NSNumber ?? value
+            didAccessValue(forKey: Self.dataAvailableName)
+        }
+        return value
+    }
+    
+    private func setDataAvailable(_ newValue: NSNumber?) {
+        guard let managedObjectContext else {
+            return
+        }
+        
+        if managedObjectContext.usesAdditionallyEncryptedModel {
+            encryptOptional(newValue?.boolValue, forKey: Self.encryptedDataAvailableName)
+            decryptedDataAvailable = newValue?.boolValue
+        }
+        else {
+            willChangeValue(forKey: Self.dataAvailableName)
+            setPrimitiveValue(newValue, forKey: Self.dataAvailableName)
+            didChangeValue(forKey: Self.dataAvailableName)
+        }
+    }
 
     // MARK: - Clearing cached values
     
@@ -308,6 +376,9 @@ public final class AudioMessageEntity: BaseMessageEntity {
         else if key == Self.encryptedEncryptionKeyName {
             decryptedEncryptionKey = nil
         }
+        else if key == Self.encryptedDataAvailableName {
+            decryptedDataAvailable = nil
+        }
         super.didChangeValue(forKey: key)
     }
 
@@ -316,6 +387,7 @@ public final class AudioMessageEntity: BaseMessageEntity {
         decryptedAudioSize = nil
         decryptedDuration = nil
         decryptedEncryptionKey = nil
+        decryptedDataAvailable = nil
         super.didTurnIntoFault()
     }
 }

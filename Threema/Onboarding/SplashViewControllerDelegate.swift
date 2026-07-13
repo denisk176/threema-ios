@@ -36,12 +36,6 @@ protocol SplashViewControllerDelegate: AnyObject {
     ///   - useExisting: `true` if user wants to use existing ID, `false` to create new
     func splashViewController(_ viewController: SplashViewController, didAnswerIDExistsQuestion useExisting: Bool)
     
-    /// Called when user responds to the "Remote Secret exists" question.
-    /// - Parameters:
-    ///   - viewController: The SplashViewController
-    ///   - restore: `true` if user wants to restore, `false` to start fresh (deletes keychain)
-    func splashViewController(_ viewController: SplashViewController, didAnswerRemoteSecretQuestion restore: Bool)
-    
     // MARK: - Identity Creation
     
     /// Called when RandomSeedViewController has generated a random seed.

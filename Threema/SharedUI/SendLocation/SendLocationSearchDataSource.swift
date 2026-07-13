@@ -138,25 +138,29 @@ extension SendLocationSearchDataSource {
         
         // Don't fetch if POI are disabled in privacy settings
         guard UserSettings.shared().enablePoi,
-              let baseString = mapsServerInfo?.poiNamesURL else {
+              let poiNamesURL = mapsServerInfo?.poiNamesURL,
+              var components = URLComponents(string: poiNamesURL) else {
             return
         }
-        
-        var urlString = ""
-        
-        if locationManager.locationGranted {
-            if let location = locationManager.location {
-                urlString = baseString + String(location.coordinate.latitude) + "/" +
-                    String(location.coordinate.longitude) + "/" + term + "/"
-            }
+                
+        if locationManager.locationGranted,
+           let location = locationManager.location {
+            components.path = SendLocationURLBuilder.replacingPlaceholders(in: components.path, with: [
+                "{latitude}": String(location.coordinate.latitude),
+                "{longitude}": String(location.coordinate.longitude),
+                "{query}": term,
+            ])
         }
         else {
             // Zurich coordinates
-            urlString = baseString + "47.366869/8.543220/" + term + "/"
+            components.path = SendLocationURLBuilder.replacingPlaceholders(in: components.path, with: [
+                "{latitude}": "47.366869",
+                "{longitude}": "8.543220",
+                "{query}": term,
+            ])
         }
-        
-        guard let urlstr = urlString.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
-              let url = URL(string: urlstr) else {
+                
+        guard let url = components.url else {
             DDLogError("POI URL could not be created")
             return
         }

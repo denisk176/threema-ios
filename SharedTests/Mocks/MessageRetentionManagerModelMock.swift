@@ -6,14 +6,13 @@ final class MessageRetentionManagerModelMock: MessageRetentionManagerModelProtoc
     
     var isMDM = false
     
-    func deleteOldMessages() async { }
+    func deleteOldMessages() { }
     
-    func numberOfMessagesToDelete(for retentionDays: Int?) async -> Int {
+    func numberOfMessagesToDelete(for retentionDays: Int?) -> Int {
         0
     }
     
-    func set(_ days: Int, completion: (() -> Void)?) {
+    func set(_ days: Int) {
         selection = days
-        completion?()
     }
 }

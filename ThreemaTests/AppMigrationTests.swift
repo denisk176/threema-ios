@@ -42,7 +42,7 @@ final class AppMigrationTests: XCTestCase {
         DDLog.remove(ddLoggerMock)
     }
 
-    func testRunMigrationToLatestVersion() throws {
+    func testRunMigrationToLatestVersion() async throws {
         setupDataForMigrationVersion4_8()
         setupDataForMigrationVersion5_5()
         setupDataForMigrationVersion5_6()
@@ -56,7 +56,7 @@ final class AppMigrationTests: XCTestCase {
         setupDataForMigrationVersion6_8_8()
         setupDataForMigrationVersion6_9()
         setupDataForMigrationVersion7_0_4()
-        setupDataForMigrationVersion7_1()
+        await setupDataForMigrationVersion7_1()
         
         // Verify that the migration was started by `doMigrate` and not some other function accidentally accessing the
         // database before the proper migration was initialized.
@@ -80,8 +80,9 @@ final class AppMigrationTests: XCTestCase {
         let appMigration = AppMigration(
             businessInjector: businessInjectorMock
         )
-        XCTAssertNoThrow(try appMigration.run())
-
+        
+        try appMigration.run()
+       
         DDLog.sharedInstance.flushLog()
 
         XCTAssertTrue(ddLoggerMock.exists(message: "[AppMigration] App migration to version 4.8 started"))
@@ -151,6 +152,12 @@ final class AppMigrationTests: XCTestCase {
         XCTAssertTrue(
             ddLoggerMock
                 .exists(message: "[AppMigration] App migration to version 7.0.4 successfully finished")
+        )
+        
+        XCTAssertTrue(ddLoggerMock.exists(message: "[AppMigration] App migration to version 7.3 started"))
+        XCTAssertTrue(
+            ddLoggerMock
+                .exists(message: "[AppMigration] App migration to version 7.3 successfully finished")
         )
         
         XCTAssertEqual(1, keychainManagerMock.migrateToVersion0Calls)
@@ -331,13 +338,13 @@ final class AppMigrationTests: XCTestCase {
 
         // Checks for 7.1 migration
 
-        #if SCENE_DELEGATE_ROOT_COORDINATOR_DEVELOPMENT
+        if await SharedAppProvider.isSceneDelegateDevelopment {
             // Key added with computed value
             XCTAssertEqual(AppGroup.userDefaults().integer(forKey: kPreferenceInterfaceStyleKey), 2)
             // Values in old keys are removed
             XCTAssertNil(AppGroup.userDefaults().value(forKey: "DarkTheme"))
             XCTAssertNil(AppGroup.userDefaults().value(forKey: "UseSystemTheme"))
-        #endif
+        }
     }
 
     private func setupDataForMigrationVersion4_8() {
@@ -721,15 +728,14 @@ final class AppMigrationTests: XCTestCase {
         UserDefaults.standard.set(dict, forKey: "threema_mdm_configuration")
     }
     
-    func setupDataForMigrationVersion7_1() {
+    func setupDataForMigrationVersion7_1() async {
 
-        #if SCENE_DELEGATE_ROOT_COORDINATOR_DEVELOPMENT
-
+        if await SharedAppProvider.isSceneDelegateDevelopment {
+            
             // Test data for UIUserInterfaceStyle migration
             AppGroup.userDefaults().setValue(nil, forKey: kPreferenceInterfaceStyleKey)
             AppGroup.userDefaults().setValue(true, forKey: "DarkTheme")
             AppGroup.userDefaults().setValue(false, forKey: "UseSystemTheme")
-
-        #endif
+        }
     }
 }

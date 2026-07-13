@@ -289,6 +289,7 @@ final class MessageThumbnailTapView: UIView {
         }
         
         // Thumbnail
+        // We use full-res data if its smaller than a predefined threshold
         var didSetImage = false
         if thumbnailDisplayMessage is ImageMessage || thumbnailDisplayMessage is StickerMessage,
            thumbnailDisplayMessage?.blobSize ?? 0 <= ChatViewConfiguration.Thumbnail

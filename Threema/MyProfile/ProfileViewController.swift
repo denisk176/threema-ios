@@ -61,6 +61,8 @@ final class ProfileViewController: UIViewController {
     // MARK: - Configuration
     
     private func configureView() {
+        navigationController?.navigationBar.prefersLargeTitles = true
+        
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(collectionView)
         

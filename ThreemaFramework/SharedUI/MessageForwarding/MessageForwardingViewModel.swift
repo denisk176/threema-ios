@@ -24,6 +24,9 @@ public final class MessageForwardingViewModel {
     }
 
     /// The item identifiers of the conversations in their order.
+    ///
+    /// While a filter is set, this contains the matching contacts, groups and distribution lists instead (see
+    /// `applyFilter()`).
     private(set) var itemIdentifiers = [ItemID]()
 
     /// The selected conversation item identifiers in their order.
@@ -68,6 +71,18 @@ public final class MessageForwardingViewModel {
     @ObservationIgnored
     private(set) var previouslySelectedItemIdentifiers = Set<ItemID>()
 
+    /// All loaded conversation item identifiers, independent of the current filter
+    @ObservationIgnored
+    private var allItemIdentifiers = [ItemID]()
+
+    /// The current search filter (see `updateFilterText(_:)`)
+    @ObservationIgnored
+    private var filterText = ""
+
+    var isSearching: Bool {
+        !filterText.isEmpty
+    }
+    
     // MARK: - Lifecycle
 
     public init(businessInjector: any BusinessInjectorProtocol, message: BaseMessageEntity) {
@@ -134,15 +149,23 @@ public final class MessageForwardingViewModel {
         selectedItemIdentifiers.contains(itemIdentifier)
     }
 
-    func updateSelectedItemIdentifiers(_ newSelectedIdentifiers: [ItemID]) {
-        let additional = newSelectedIdentifiers.filter { id in
-            itemIdentifiers.contains(id) == false
+    /// Filters the shown items to the contacts, groups and distribution lists matching the passed text. Pass an
+    /// empty string to show the conversation list again.
+    func updateFilterText(_ text: String) {
+        // Treat blank text (empty or whitespace-only) as no filter, so the full list stays visible
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard trimmed != filterText else {
+            return
         }
 
-        itemIdentifiers += additional
-        selectedItemIdentifiers = newSelectedIdentifiers
+        filterText = trimmed
+        applyFilter()
     }
 
+    func cancelFiltering() {
+        filterText = ""
+    }
+    
     func handleConfirmationButtonTapped(sendAsFile: Bool, additionalContent: MessageForwarder.AdditionalContent?) {
         let conversationEntities = entityManager.performAndWait {
             self.selectedItemIdentifiers.compactMap {
@@ -183,6 +206,45 @@ public final class MessageForwardingViewModel {
         let ids = entityManager.performAndWait {
             self.entityFetcher.conversationOrContactIDs(excludeArchived: true, excludePrivate: excludePrivate)
         }
-        itemIdentifiers = ids
+        allItemIdentifiers = ids
+        applyFilter()
+    }
+
+    private func applyFilter() {
+        if !isSearching {
+            // Keep selected items visible that are not part of the conversation list (e.g. a contact without an
+            // existing conversation that was selected while searching)
+            let additional = selectedItemIdentifiers.filter { allItemIdentifiers.contains($0) == false }
+            itemIdentifiers = allItemIdentifiers + additional
+        }
+        else {
+            // Search all contacts, groups and distribution lists. This intentionally goes beyond filtering the
+            // conversation list, so recipients without an existing conversation can be found too.
+            itemIdentifiers = searchResultObjectIDs(for: filterText)
+        }
+    }
+
+    /// Fetches the contacts, groups and distribution lists matching `query` and returns their item identifiers,
+    /// grouped by type in that order.
+    ///
+    /// The three result types live in separate Core Data entities and therefore can't share a single fetch
+    /// request, but they are all fetched within one managed object context transaction.
+    private func searchResultObjectIDs(for query: String) -> [ItemID] {
+        entityManager.performAndWait {
+            let contactObjectIDs = self.entityFetcher.matchingContactsForContactListSearch(
+                containing: query,
+                hideStaleContacts: self.settingsStore.hideStaleContacts
+            )
+
+            let groupObjectIDs = self.entityFetcher.filteredGroupConversationEntities(
+                by: [query], excludePrivate: self.settingsStore.hidePrivateChats
+            ).map(\.objectID)
+
+            let distributionListObjectIDs = self.entityFetcher.filteredDistributionListEntities(
+                by: [query], excludePrivate: self.settingsStore.hidePrivateChats
+            ).map(\.conversation.objectID)
+
+            return contactObjectIDs + groupObjectIDs + distributionListObjectIDs
+        }
     }
 }

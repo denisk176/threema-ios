@@ -8,5 +8,5 @@
 "safe_mode_switch" = "Erwiiterete Support-Modus";
 
 /* (No Comment) */
-"sentry_switch" = "Sentry deaktiviere";
+"sentry_deactivation_switch_title" = "Anonymi Fehlermeldig deaktiviere";
 

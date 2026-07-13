@@ -52,7 +52,7 @@ import ThreemaProtocols
     }
     
     @objc func fromRawProtoBufMessage(rawProtobufMessage: NSData) throws {
-        decoded = try CspE2e_Reaction(serializedData: rawProtobufMessage as Data)
+        decoded = try CspE2e_Reaction(serializedBytes: rawProtobufMessage as Data)
     }
     
     private enum CodingKeys: String, CodingKey {
@@ -70,7 +70,7 @@ import ThreemaProtocols
             guard let data = coder.decodeObject(of: NSData.self, forKey: CodingKeys.cspMessage.rawValue) else {
                 throw CodingError.decodeObjectFailed
             }
-            self.decoded = try CspE2e_Reaction(serializedData: Data(data))
+            self.decoded = try CspE2e_Reaction(serializedBytes: Data(data))
         }
         catch {
             DDLogError("Decoding failed: \(error)")

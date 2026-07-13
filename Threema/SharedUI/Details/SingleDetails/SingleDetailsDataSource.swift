@@ -278,7 +278,7 @@ final class SingleDetailsDataSource: UITableViewDiffableDataSource<SingleDetails
     
     func sortedGroupMembershipConversations() -> [ConversationEntity]? {
         contact.groupConversations?
-            .compactMap { $0 }
+            .compactMap(\.self)
             .sortedDescendingByLastUpdatedDate()
     }
     
@@ -548,8 +548,9 @@ extension SingleDetailsDataSource {
         return [quickAction]
     }
 
+    @MainActor
     private var topViewController: UIViewController {
-        AppDelegate.shared().currentTopViewController() ?? .init()
+        SharedAppProvider.currentTopViewController ?? .init()
     }
 
     private func scanIdentityQuickAction(in viewController: UIViewController) -> [QuickAction] {
@@ -603,7 +604,9 @@ extension SingleDetailsDataSource {
                 }
             }
             model.onCancel = { [weak self] in
-                self?.topViewController.dismiss(animated: true)
+                Task { @MainActor in
+                    self?.topViewController.dismiss(animated: true)
+                }
             }
             strongViewController.present(nav, animated: true)
         }

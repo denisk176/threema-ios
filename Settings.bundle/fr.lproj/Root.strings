@@ -8,5 +8,5 @@
 "safe_mode_switch" = "Mode de support avancé";
 
 /* (No Comment) */
-"sentry_switch" = "Désactiver la sentinelle";
+"sentry_deactivation_switch_title" = "Désactiver le rapport d'erreurs anonyme";
 

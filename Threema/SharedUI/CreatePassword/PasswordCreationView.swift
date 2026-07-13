@@ -108,6 +108,7 @@ struct PasswordCreationView: View {
         }
         .navigationTitle(title)
         .navigationBarTitleDisplayMode(.inline)
+        .interactiveDismissDisabled(!password.isEmpty || !confirmationPassword.isEmpty)
     }
     
     private func donePressed() {

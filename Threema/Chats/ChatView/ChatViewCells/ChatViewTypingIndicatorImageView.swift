@@ -87,7 +87,7 @@ final class ChatViewTypingIndicatorImageView: UIImageView {
                 animationFrames.append(typingIndicatorImage(forAnimationFrame: i, in: frame))
             }
             let image = UIImage.animatedImage(
-                with: animationFrames.compactMap { $0 },
+                with: animationFrames.compactMap(\.self),
                 duration: Config.animationDuration
             )
             continuation.resume(returning: image)

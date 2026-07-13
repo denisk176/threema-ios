@@ -18,5 +18,6 @@ struct LinkPhoneNumberDeciderView: View {
             }
         }
         .navigationTitle(#localize("profile_linked_phone"))
+        .navigationBarTitleDisplayMode(.inline)
     }
 }

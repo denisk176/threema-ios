@@ -6,6 +6,8 @@ import ThreemaMacros
 @objc(FileMessageEntity)
 public final class FileMessageEntity: BaseMessageEntity {
 
+    static let entityName = "FileMessage"
+
     public enum FileMessageBaseType: Int {
         // Default file message
         case file = 0
@@ -45,7 +47,8 @@ public final class FileMessageEntity: BaseMessageEntity {
         case blobID
         case data
         case mimeType
-
+        case dataAvailable
+        
         static func name(for field: Field, encrypted: Bool) -> String {
             switch field {
             case .blobID:
@@ -54,6 +57,8 @@ public final class FileMessageEntity: BaseMessageEntity {
                 field.rawValue
             case .mimeType:
                 encrypted ? encryptedMimeTypeName : mimeTypeName
+            case .dataAvailable:
+                encrypted ? encryptedDataAvailableName : dataAvailableName
             }
         }
     }
@@ -161,6 +166,17 @@ public final class FileMessageEntity: BaseMessageEntity {
             setMimeType(newValue)
         }
     }
+    
+    @EncryptedField
+    @objc public internal(set) dynamic var dataAvailable: NSNumber {
+        get {
+            getDataAvailable()
+        }
+
+        set {
+            setDataAvailable(newValue)
+        }
+    }
 
     @NSManaged public var origin: NSNumber?
     @NSManaged public var progress: NSNumber?
@@ -178,7 +194,21 @@ public final class FileMessageEntity: BaseMessageEntity {
 
     // MARK: Relationships
 
-    @NSManaged public var data: FileDataEntity?
+    @objc public dynamic var data: FileDataEntity? {
+        get {
+            willAccessValue(forKey: #keyPath(FileMessageEntity.data))
+            let value = primitiveValue(forKey: #keyPath(FileMessageEntity.data)) as? FileDataEntity
+            didAccessValue(forKey: #keyPath(FileMessageEntity.data))
+            return value
+        }
+        set {
+            willChangeValue(forKey: #keyPath(FileMessageEntity.data))
+            setPrimitiveValue(newValue, forKey: #keyPath(FileMessageEntity.data))
+            didChangeValue(forKey: #keyPath(FileMessageEntity.data))
+            dataAvailable = NSNumber(booleanLiteral: newValue?.data != nil)
+        }
+    }
+
     @NSManaged public var thumbnail: ImageDataEntity?
 
     // MARK: Private properties
@@ -197,6 +227,7 @@ public final class FileMessageEntity: BaseMessageEntity {
     private var decryptedJson: String?
     private var decryptedMimeType: String?
     private var decryptedType: Int16?
+    private var decryptedDataAvailable: Bool?
 
     // MARK: - Lifecycle
 
@@ -641,6 +672,44 @@ public final class FileMessageEntity: BaseMessageEntity {
             didChangeValue(forKey: Self.typeName)
         }
     }
+    
+    // MARK: DataAvailable
+    
+    private func getDataAvailable() -> NSNumber {
+        var value: NSNumber = NSNumber(value: false)
+        guard let managedObjectContext else {
+            return value
+        }
+
+        if managedObjectContext.usesAdditionallyEncryptedModel {
+            decryptOptional(&decryptedDataAvailable, forKey: Self.encryptedDataAvailableName)
+            if let decryptedDataAvailable {
+                value = NSNumber(booleanLiteral: decryptedDataAvailable)
+            }
+        }
+        else {
+            willAccessValue(forKey: Self.dataAvailableName)
+            value = primitiveValue(forKey: Self.dataAvailableName) as? NSNumber ?? value
+            didAccessValue(forKey: Self.dataAvailableName)
+        }
+        return value
+    }
+    
+    private func setDataAvailable(_ newValue: NSNumber?) {
+        guard let managedObjectContext else {
+            return
+        }
+        
+        if managedObjectContext.usesAdditionallyEncryptedModel {
+            encryptOptional(newValue?.boolValue, forKey: Self.encryptedDataAvailableName)
+            decryptedDataAvailable = newValue?.boolValue
+        }
+        else {
+            willChangeValue(forKey: Self.dataAvailableName)
+            setPrimitiveValue(newValue, forKey: Self.dataAvailableName)
+            didChangeValue(forKey: Self.dataAvailableName)
+        }
+    }
 
     // MARK: - Properties
 
@@ -723,7 +792,7 @@ public final class FileMessageEntity: BaseMessageEntity {
 
     #if !DEBUG
         override public var debugDescription: String {
-            "<\(Swift.type(of: self))>:\(Self.self), encryptionKey = ***, blobId = ***, blobThumbnailID = ****, fileName = \(fileName?.description ?? "nil"), progress = \(progress?.description ?? "nil"), type = \(type?.description ?? "nil"), mimeType = \(mimeType?.description ?? "nil"), data = \(data?.description ?? "nil"), thumbnail = \(thumbnail?.description ?? "nil"), json = ****,"
+            "<\(Swift.type(of: self))>:\(Self.self), encryptionKey = ***, blobId = ***, blobThumbnailID = ****, fileName = \(fileName?.description ?? "nil"), progress = \(progress?.description ?? "nil"), type = \(type?.description ?? "nil"), mimeType = \(mimeType?.description ?? "nil"), dataAvailable = \(dataAvailable), data = \(data?.description ?? "nil"), thumbnail = \(thumbnail?.description ?? "nil"), json = ****,"
         }
     #endif
 
@@ -786,6 +855,9 @@ public final class FileMessageEntity: BaseMessageEntity {
         else if key == Self.encryptedTypeName {
             decryptedType = nil
         }
+        else if key == Self.encryptedDataAvailableName {
+            decryptedDataAvailable = nil
+        }
         super.didChangeValue(forKey: key)
     }
 
@@ -800,6 +872,7 @@ public final class FileMessageEntity: BaseMessageEntity {
         decryptedJson = nil
         decryptedMimeType = nil
         decryptedType = nil
+        decryptedDataAvailable = nil
         super.didTurnIntoFault()
     }
 }

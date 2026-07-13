@@ -5,9 +5,12 @@ import ThreemaMacros
 @objc(VideoMessageEntity)
 public final class VideoMessageEntity: BaseMessageEntity {
 
+    static let entityName = "VideoMessage"
+
     enum Field: String {
         case video
         case videoBlobID
+        case dataAvailable
 
         static func name(for field: Field, encrypted: Bool) -> String {
             switch field {
@@ -15,6 +18,8 @@ public final class VideoMessageEntity: BaseMessageEntity {
                 field.rawValue
             case .videoBlobID:
                 encrypted ? encryptedVideoBlobIDName : videoBlobIDName
+            case .dataAvailable:
+                encrypted ? encryptedDataAvailableName : dataAvailableName
             }
         }
     }
@@ -67,11 +72,35 @@ public final class VideoMessageEntity: BaseMessageEntity {
             setVideoSize(newValue)
         }
     }
+    
+    @EncryptedField
+    @objc public internal(set) dynamic var dataAvailable: NSNumber {
+        get {
+            getDataAvailable()
+        }
+
+        set {
+            setDataAvailable(newValue)
+        }
+    }
 
     // MARK: Relationships
 
     @NSManaged public var thumbnail: ImageDataEntity?
-    @NSManaged public var video: VideoDataEntity?
+    @objc public dynamic var video: VideoDataEntity? {
+        get {
+            willAccessValue(forKey: #keyPath(VideoMessageEntity.video))
+            let value = primitiveValue(forKey: #keyPath(VideoMessageEntity.video)) as? VideoDataEntity
+            didAccessValue(forKey: #keyPath(VideoMessageEntity.video))
+            return value
+        }
+        set {
+            willChangeValue(forKey: #keyPath(VideoMessageEntity.video))
+            setPrimitiveValue(newValue, forKey: #keyPath(VideoMessageEntity.video))
+            didChangeValue(forKey: #keyPath(VideoMessageEntity.video))
+            dataAvailable = NSNumber(booleanLiteral: newValue?.data != nil)
+        }
+    }
 
     // MARK: Private properties
 
@@ -80,6 +109,7 @@ public final class VideoMessageEntity: BaseMessageEntity {
     private var decryptedEncryptionKey: Data?
     private var decryptedVideoBlobID: Data?
     private var decryptedVideoSize: Int32?
+    private var decryptedDataAvailable: Bool?
 
     // MARK: - Lifecycle
 
@@ -146,7 +176,8 @@ public final class VideoMessageEntity: BaseMessageEntity {
             videoSize = \(videoSize?.description ?? "nil"), \
             video = \(video?.description ?? "nil"), \
             thumbnail = \(thumbnail?.description ?? "nil"), \
-            duration = \(duration.description)
+            duration = \(duration.description), \
+            dataAvailable = \(dataAvailable)
             """
         }
     #endif
@@ -300,6 +331,44 @@ public final class VideoMessageEntity: BaseMessageEntity {
             didChangeValue(forKey: Self.videoSizeName)
         }
     }
+    
+    // MARK: DataAvailable
+    
+    private func getDataAvailable() -> NSNumber {
+        var value: NSNumber = NSNumber(value: false)
+        guard let managedObjectContext else {
+            return value
+        }
+
+        if managedObjectContext.usesAdditionallyEncryptedModel {
+            decryptOptional(&decryptedDataAvailable, forKey: Self.encryptedDataAvailableName)
+            if let decryptedDataAvailable {
+                value = NSNumber(booleanLiteral: decryptedDataAvailable)
+            }
+        }
+        else {
+            willAccessValue(forKey: Self.dataAvailableName)
+            value = primitiveValue(forKey: Self.dataAvailableName) as? NSNumber ?? value
+            didAccessValue(forKey: Self.dataAvailableName)
+        }
+        return value
+    }
+    
+    private func setDataAvailable(_ newValue: NSNumber?) {
+        guard let managedObjectContext else {
+            return
+        }
+        
+        if managedObjectContext.usesAdditionallyEncryptedModel {
+            encryptOptional(newValue?.boolValue, forKey: Self.encryptedDataAvailableName)
+            decryptedDataAvailable = newValue?.boolValue
+        }
+        else {
+            willChangeValue(forKey: Self.dataAvailableName)
+            setPrimitiveValue(newValue, forKey: Self.dataAvailableName)
+            didChangeValue(forKey: Self.dataAvailableName)
+        }
+    }
 
     // MARK: - Reset cached values
 
@@ -316,6 +385,9 @@ public final class VideoMessageEntity: BaseMessageEntity {
         else if key == Self.encryptedVideoSizeName {
             decryptedVideoSize = nil
         }
+        else if key == Self.encryptedDataAvailableName {
+            decryptedDataAvailable = nil
+        }
         super.didChangeValue(forKey: key)
     }
 
@@ -324,6 +396,7 @@ public final class VideoMessageEntity: BaseMessageEntity {
         decryptedEncryptionKey = nil
         decryptedVideoBlobID = nil
         decryptedVideoSize = nil
+        decryptedDataAvailable = nil
         super.didTurnIntoFault()
     }
 }

@@ -211,4 +211,12 @@ public final class FileUtilityMock: FileUtilityProtocol {
     public func contentsOfDirectory(atPath path: String) throws -> [String] {
         []
     }
+
+    public func contentsOfDirectory(
+        at url: URL,
+        includingPropertiesForKeys keys: [URLResourceKey]?,
+        options mask: FileManager.DirectoryEnumerationOptions
+    ) throws -> [URL] {
+        []
+    }
 }

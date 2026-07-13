@@ -16,7 +16,7 @@ public final class LoggingFilesManager: LoggingFilesManagerProtocol {
             fileUtility.appDocumentsDirectory,
             fileUtility.appCachesDirectory,
             FileManager.default.temporaryDirectory,
-        ].compactMap { $0 }
+        ].compactMap(\.self)
 
         urls.forEach { fileUtility.logDirectoriesAndFiles(pathURL: $0) }
     }

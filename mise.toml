@@ -45,11 +45,11 @@ run = "echo 'All dependencies cleaned.'"
 
 [tasks.libthreema-hash]
 description = "Write libthreema submodule hash to .libthreema-version"
-run = "if [ -d libthreema/.git ]; then echo $(git submodule status libthreema) | cut -d ' ' -f1 > .libthreema-version; fi"
+run = "if [ -f libthreema/.git ]; then echo $(git submodule status libthreema) | sed 's/^+//g' | cut -d ' ' -f1 > .libthreema-version; fi"
 
 [tasks.saltyrtc-hash]
 description = "Write SaltyRTC submodule hash to .saltyrtc-version"
-run = "if [ -d saltyrtc-task-relayed-data-rs/.git ]; then echo $(git submodule status saltyrtc-task-relayed-data-rs) | cut -d ' ' -f1 > .saltyrtc-version; fi"
+run = "if [ -f saltyrtc-task-relayed-data-rs/.git ]; then echo $(git submodule status saltyrtc-task-relayed-data-rs) | cut -d ' ' -f1 > .saltyrtc-version; fi"
 
 #- Setup -#
 
@@ -103,8 +103,22 @@ description = """
 Setup Rust toolchain and build libthreema.
 If you are offline this might not work. Use `libthreema` instead.
 """
-depends = ["libthreema-rust", "libthreema"]
-run = "echo 'libthreema ready.'"
+usage = '''
+flag "--no-update-of-submodules" help="No update of submodules, it is usfull when upgrading libthreema!"
+'''
+run = """
+{% if usage.no_update_of_submodules %}
+  echo 'No update of submodules'
+  mise run libthreema-rust --no-update-of-submodules
+  mise run libthreema --no-update-of-submodules
+{% else %}
+  echo 'Update of submodules'
+  mise run update-submodules
+  mise run libthreema-rust
+  mise run libthreema
+{% endif %}
+echo 'libthreema ready.'
+"""
 
 # Notes:
 # - If we would set a build folder inside a Swift Package used in Xcode it will reload multiple times during a build
@@ -114,8 +128,16 @@ run = "echo 'libthreema ready.'"
 #   (https://github.com/mozilla/uniffi-rs/issues/2276)
 [tasks.libthreema]
 description = "Build libthreema xcframework and generate Swift bindings"
-depends = ["update-submodules"]
+usage = '''
+flag "--no-update-of-submodules" help="No update of submodules, it is usfull when upgrading libthreema!"
+'''
 run = """
+{% if usage.no_update_of_submodules %}
+  echo 'No update of submodules'
+{% else %}
+  echo 'Update of submodules'
+  mise run update-submodules
+{% endif %}
 # Sync Rust version
 VERSION=$(awk -F'"' '/channel/ {print $2}' libthreema/rust-toolchain.toml)
 CURRENT=$(awk -F'"' '/^rust =/ {print $2}' mise.toml)
@@ -145,8 +167,18 @@ description = """
 Install Rust targets for libthreema.
 The toolchain version is managed by mise (see [tools] above), sourced from libthreema/rust-toolchain.toml.
 """
-depends = ["update-submodules"]
-run = "cd {{vars.libthreema_path}} && mise exec -- rustup target add {{vars.rust_targets}}"
+usage = '''
+flag "--no-update-of-submodules" help="No update of submodules, it is usfull when upgrading libthreema!"
+'''
+run = """
+{% if usage.no_update_of_submodules %}
+  echo 'No update of submodules'
+{% else %}
+  echo 'Update of submodules'
+  mise run update-submodules
+{% endif %}
+cd {{vars.libthreema_path}} && mise exec -- rustup target add {{vars.rust_targets}}
+"""
 
 [tasks.libthreema-clean]
 description = "Clean libthreema build artifacts"

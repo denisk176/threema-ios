@@ -8,7 +8,7 @@ public final class NotificationPublishedState<Value> {
 
     public var wrappedValue: AnyNotificationPublisher<Value> {
         subject
-            .compactMap { $0 }
+            .compactMap(\.self)
             .eraseToAnyPublisher()
     }
     

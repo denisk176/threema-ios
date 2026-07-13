@@ -9,49 +9,89 @@
   static const DDLogLevel ddLogLevel = DDLogLevelWarning;
 #endif
 
-static int currentPortIndex = 0;
+// Tracks the index of the last port that won a connection race. Shared across all instances
+// so each new connection starts from the previously successful port.
+static NSUInteger _lastConnectedPortIndex = 0;
 
-@implementation ChatTcpSocket  {
-    NSString *server;
-    NSArray *ports;
-    id<SocketProtocolDelegate> delegate;
-    dispatch_queue_t queue;
-    
-    NSNumber *port;
-    GCDAsyncSocket *socket;
+@implementation ChatTcpSocket {
+    NSString *_server;
+    NSArray<NSNumber *> *_ports;
+    id<SocketProtocolDelegate> _delegate;
+    dispatch_queue_t _queue;
+    BOOL _preferIPv6;
+
+    // Sockets still racing to connect, with their corresponding port at the same index.
+    // Cleared once a winner is chosen or all candidates fail.
+    NSMutableArray<GCDAsyncSocket *> *pendingSockets;
+    NSMutableArray<NSNumber *> *pendingPorts;
+
+    // Set once a socket wins the race; nil until then.
+    GCDAsyncSocket *activeSocket;
 }
 
-- (nullable instancetype)initWithServer:(NSString * _Nonnull)server ports:(NSArray<NSNumber *> * _Nonnull)ports preferIPv6:(BOOL)preferIPv6 delegate:(id<SocketProtocolDelegate> _Nonnull)delegate queue:(dispatch_queue_t _Nonnull)queue error:(NSError * _Nullable __autoreleasing * _Nullable)error {
-    
+- (nullable instancetype)initWithServer:(NSString * _Nonnull)server
+                                  ports:(NSArray<NSNumber *> * _Nonnull)ports
+                             preferIPv6:(BOOL)preferIPv6
+                               delegate:(id<SocketProtocolDelegate> _Nonnull)delegate
+                                  queue:(dispatch_queue_t _Nonnull)queue
+                                  error:(NSError * _Nullable __autoreleasing * _Nullable)error {
     self = [super init];
     if (self) {
-        self->server = server;
-        self->ports = ports;
-        self->delegate = delegate;
-        self->queue = queue;
-        
-        self->port = [self->ports objectAtIndex:currentPortIndex];
-        
-        socket = [GCDAsyncSocketFactory proxyAwareAsyncSocketForHost:server port:port delegate:self delegateQueue:queue];
-        [socket setIPv4PreferredOverIPv6:!preferIPv6];
+        self->_server = server;
+        self->_ports = ports;
+        self->_delegate = delegate;
+        self->_queue = queue;
+        self->_preferIPv6 = preferIPv6;
 
-        _isProxyConnection = (socket != nil && ![socket isMemberOfClass:[GCDAsyncSocket class]]);
+        pendingSockets = [NSMutableArray array];
+        pendingPorts = [NSMutableArray array];
+
+        // Rotate from the last known-good port so it enters the race first.
+        NSUInteger count = _ports.count;
+        NSUInteger startPortIndex = (count > 0) ? (_lastConnectedPortIndex % count) : 0;
+        for (NSUInteger i = 0; i < count; i++) {
+            NSUInteger portIndex = (startPortIndex + i) % count;
+            NSNumber *port = _ports[portIndex];
+            GCDAsyncSocket *socket = [GCDAsyncSocketFactory proxyAwareAsyncSocketForHost:server
+                                                                                  port:port
+                                                                              delegate:self
+                                                                         delegateQueue:queue];
+            [socket setIPv4PreferredOverIPv6:!_preferIPv6];
+            [pendingSockets addObject:socket];
+            [pendingPorts addObject:port];
+        }
+
+        // All sockets share the same proxy configuration, so the first one is representative.
+        GCDAsyncSocket *firstSocket = pendingSockets.firstObject;
+        _isProxyConnection = (firstSocket != nil && ![firstSocket isMemberOfClass:[GCDAsyncSocket class]]);
     }
-    
     return self;
 }
 
-- (BOOL)isIPv6
-{
-    return [socket isIPv6];
+- (BOOL)isIPv6 {
+    return [activeSocket isIPv6];
 }
 
 - (BOOL)connect {
-    DDLogInfo(@"Connecting to %@:%@...", server, port);
-    
-    NSError *error;
-    if (![socket connectToHost:self->server onPort:[self->port intValue] withTimeout:kConnectTimeout error:&error]) {
-        DDLogWarn(@"Connect failed: %@", error);
+    DDLogInfo(@"[ChatTcpSocket] Connecting to %@ on ports %@ simultaneously...", _server, pendingPorts);
+
+    NSMutableIndexSet *failedItems = [NSMutableIndexSet indexSet];
+    for (NSUInteger i = 0; i < pendingSockets.count; i++) {
+        NSError *err;
+        if (![pendingSockets[i] connectToHost:_server
+                                       onPort:[pendingPorts[i] unsignedShortValue]
+                                  withTimeout:kConnectTimeout
+                                        error:&err]) {
+            DDLogWarn(@"[ChatTcpSocket] Could not start connect on port %@: %@", pendingPorts[i], err);
+            [failedItems addIndex:i];
+        }
+    }
+
+    [pendingSockets removeObjectsAtIndexes:failedItems];
+    [pendingPorts removeObjectsAtIndexes:failedItems];
+
+    if (pendingSockets.count == 0) {
+        DDLogWarn(@"[ChatTcpSocket] All connect attempts failed to start");
         return NO;
     }
     return YES;
@@ -59,24 +99,33 @@ static int currentPortIndex = 0;
 
 - (void)disconnect {
     // Give the socket time for pending writes, but force disconnect if it takes too long for them to complete
-    [socket disconnectAfterWriting];
-    
-    GCDAsyncSocket *socketToDisconnect = socket;
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(kDisconnectTimeout * NSEC_PER_SEC)), queue, ^{
-        if (socket == socketToDisconnect) {
-            DDLogInfo(@"Socket still not disconnected - forcing disconnect now");
+    if (activeSocket != nil) {
+        [activeSocket disconnectAfterWriting];
+
+        GCDAsyncSocket *socketToDisconnect = activeSocket;
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(kDisconnectTimeout * NSEC_PER_SEC)), _queue, ^{
+            if (self->activeSocket == socketToDisconnect) {
+                DDLogInfo(@"[ChatTcpSocket] Socket still not disconnected - forcing disconnect now");
+                [self->activeSocket disconnect];
+            }
+        });
+    } else {
+        // Race not yet decided — cancel all pending sockets.
+        NSArray<GCDAsyncSocket *> *toCancel = [pendingSockets copy];
+        [pendingSockets removeAllObjects];
+        [pendingPorts removeAllObjects];
+        for (GCDAsyncSocket *socket in toCancel) {
             [socket disconnect];
         }
-    });
+    }
 }
 
 - (void)readWithLength:(uint32_t)length timeout:(int16_t)timeout tag:(int16_t)tag {
-    [socket readDataToLength:length withTimeout:timeout tag:tag];
+    [activeSocket readDataToLength:length withTimeout:timeout tag:tag];
 }
 
-
 - (void)writeWithData:(NSData * _Nonnull)data tag:(int16_t)tag {
-    [socket writeData:data withTimeout:kWriteTimeout tag:tag];
+    [activeSocket writeData:data withTimeout:kWriteTimeout tag:tag];
 }
 
 - (void)writeWithData:(NSData * _Nonnull)data {
@@ -85,68 +134,94 @@ static int currentPortIndex = 0;
 #pragma mark - GCDAsyncSocketDelegate
 
 - (void)socket:(GCDAsyncSocket *)sender didConnectToHost:(NSString *)host port:(UInt16)port {
-    if (sender != socket) {
-        DDLogWarn(@"didConnectToHost from old socket");
+    if (activeSocket != nil) {
+        // Another socket already won the race — disconnect this latecomer silently.
+        [sender disconnect];
         return;
     }
-    
-    DDLogInfo(@"Connected to %@:%d", host, port);
-    [delegate didConnect];
+
+    NSUInteger winnerIndex = [pendingSockets indexOfObject:sender];
+    if (winnerIndex == NSNotFound) {
+        [sender disconnect];
+        return;
+    }
+
+    activeSocket = sender;
+
+    // Persist the winning port index so the next instance starts its race from here.
+    NSNumber *winningPort = pendingPorts[winnerIndex];
+    NSUInteger globalPortIndex = [_ports indexOfObject:winningPort];
+    _lastConnectedPortIndex = (globalPortIndex != NSNotFound) ? globalPortIndex : 0;
+
+    // Disconnect all other pending sockets. Their socketDidDisconnect callbacks
+    // will be ignored because they are no longer in pendingSockets.
+    NSArray<GCDAsyncSocket *> *defeatedSockets = [pendingSockets copy];
+    [pendingSockets removeAllObjects];
+    [pendingPorts removeAllObjects];
+    for (GCDAsyncSocket *defeated in defeatedSockets) {
+        if (defeated != activeSocket) {
+            [defeated disconnect];
+        }
+    }
+
+    DDLogInfo(@"[ChatTcpSocket] Connected to %@:%d", host, port);
+    [_delegate didConnect];
 }
 
 - (void)socketDidDisconnect:(GCDAsyncSocket *)sender withError:(NSError *)error {
-    if (sender != socket) {
-        DDLogWarn(@"Disconnect from chat server because of old socket");
+    if (sender == activeSocket) {
+        NSInteger code = 0;
+        if (error != nil) {
+            DDLogError(@"[ChatTcpSocket] Disconnect from chat server with error: %@", error);
+            code = error.code;
+        }
+        activeSocket = nil;
+        DDLogInfo(@"[ChatTcpSocket] Disconnected from %@:%d", [sender connectedHost], [sender connectedPort]);
+        [_delegate didDisconnectWithErrorCode:code];
         return;
     }
 
-    NSInteger code = 0;
-    if (error != nil) {
-        DDLogError(@"Disconnect from chat server with error: %@", error);
-        code = error.code;
-        
-        /* try next port */
-        currentPortIndex++;
-        if (currentPortIndex >= ports.count)
-            currentPortIndex = 0;
+    NSUInteger idx = [pendingSockets indexOfObject:sender];
+    if (idx != NSNotFound) {
+        DDLogWarn(@"[ChatTcpSocket] Connect attempt on port %@ failed: %@", pendingPorts[idx], error);
+        [pendingSockets removeObjectAtIndex:idx];
+        [pendingPorts removeObjectAtIndex:idx];
+
+        if (pendingSockets.count == 0 && activeSocket == nil) {
+            // All candidates exhausted without a successful connection.
+            DDLogInfo(@"[ChatTcpSocket] All connection attempts failed");
+            [_delegate didDisconnectWithErrorCode:(error != nil ? error.code : 0)];
+        }
+        return;
     }
 
-    socket = nil;
-
-    DDLogInfo(@"Disconnected from %@:%d", [sender connectedHost], [sender connectedPort]);
-    [delegate didDisconnectWithErrorCode:code];
+    // Defeated socket being cleaned up after the race — nothing to do.
 }
 
 - (void)socket:(GCDAsyncSocket *)sender didReadData:(NSData *)data withTag:(long)tag {
-    if (sender != socket) {
-        DDLogWarn(@"didReadData from old socket");
+    if (sender != activeSocket) {
+        DDLogWarn(@"[ChatTcpSocket] didReadData from non-active socket");
         return;
     }
-    
-    [delegate didReadData:data tag:(int)tag];
+    [_delegate didReadData:data tag:(int16_t)tag];
 }
 
 - (NSTimeInterval)socket:(GCDAsyncSocket *)sender shouldTimeoutReadWithTag:(long)tag elapsed:(NSTimeInterval)elapsed bytesDone:(NSUInteger)length {
-    if (sender != socket) {
-        DDLogWarn(@"shouldTimeoutReadWithTag from old socket");
+    if (sender != activeSocket) {
         return 0;
     }
-    
-    DDLogInfo(@"Read timeout, tag = %ld", tag);
-    [socket disconnect];
+    DDLogInfo(@"[ChatTcpSocket] Read timeout, tag = %ld", tag);
+    [activeSocket disconnect];
     return 0;
 }
 
 - (NSTimeInterval)socket:(GCDAsyncSocket *)sender shouldTimeoutWriteWithTag:(long)tag elapsed:(NSTimeInterval)elapsed bytesDone:(NSUInteger)length {
-    if (sender != socket) {
-        DDLogWarn(@"shouldTimeoutWriteWithTag from old socket");
+    if (sender != activeSocket) {
         return 0;
     }
-    
-    DDLogInfo(@"Write timeout, tag = %ld", tag);
-    [socket disconnect];
+    DDLogInfo(@"[ChatTcpSocket] Write timeout, tag = %ld", tag);
+    [activeSocket disconnect];
     return 0;
 }
-
 
 @end

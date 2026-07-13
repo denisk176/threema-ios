@@ -188,7 +188,7 @@ final class PublicKeyView: UIView {
     public func show() {
         alpha = 0.0
         reloadConstraints()
-        AppDelegate.shared().window.addSubview(self)
+        SharedAppProvider.window?.addSubview(self)
         UIView.animate(withDuration: 0.2) {
             self.alpha = 1.0
         }

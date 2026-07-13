@@ -18,4 +18,5 @@ import Foundation
     var blobExportFilename: String { get }
     var deletedAt: Date? { get }
     var isPersistingBlob: Bool { get }
+    var isDataAvailable: Bool { get }
 }

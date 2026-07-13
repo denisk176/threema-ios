@@ -26,6 +26,8 @@ public final class FileDataEntity: ThreemaManagedObject, Identifiable {
 
         set {
             setData(newValue)
+
+            message?.dataAvailable = NSNumber(booleanLiteral: newValue != nil)
         }
     }
 

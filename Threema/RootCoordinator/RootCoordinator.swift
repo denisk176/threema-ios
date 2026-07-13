@@ -33,18 +33,25 @@ final class RootCoordinator: Coordinator {
     }
     
     private let window: UIWindow
+    private let windowScene: UIWindowScene
     private let bootstrap: BootstrapContainer
     private let launchManager: AppLaunchSequenceManager
-    
+
+    private var isSceneForeground: Bool {
+        windowScene.activationState != .background
+    }
+
     init(
         window: UIWindow,
+        windowScene: UIWindowScene,
         bootstrap: BootstrapContainer
     ) {
         self.window = window
+        self.windowScene = windowScene
         self.bootstrap = bootstrap
         self.launchManager = AppLaunchSequenceManager(bootstrap: bootstrap)
     }
-    
+
     func start() {
         childCoordinators.append(loadingCoordinator)
         loadingCoordinator.start()
@@ -54,6 +61,87 @@ final class RootCoordinator: Coordinator {
         }
     }
     
+    // MARK: - Scene Lifecycle
+
+    func sceneWillEnterForeground() {
+        requestReauthenticationIfNeeded()
+        hidePrivacyOverlay()
+        reconcileTypingObservation()
+    }
+
+    func sceneDidEnterBackground() {
+        showPrivacyOverlay()
+        reconcileTypingObservation()
+    }
+
+    // MARK: - Re-authentication
+
+    func requestReauthenticationIfNeeded() {
+        guard
+            let appContainer = appCoordinator?.appContainer,
+            !childCoordinators.contains(where: { $0 is PasscodeCoordinator })
+        else {
+            return
+        }
+
+        let passcodeLock = appContainer.passcodeLock
+        guard
+            passcodeLock.isPasscodeRequired(),
+            !passcodeLock.isWithinGracePeriod()
+        else {
+            return
+        }
+
+        let passcodeCoordinator = PasscodeCoordinator(
+            windowScene: windowScene,
+            appContainer: appContainer,
+            delegate: self
+        )
+        childCoordinators.append(passcodeCoordinator)
+        passcodeCoordinator.start()
+    }
+
+    private func reconcileTypingObservation() {
+        guard let manager = appCoordinator?.appContainer?.typingIndicatorManager else {
+            return
+        }
+        if isSceneForeground {
+            manager.startObserving()
+        }
+        else {
+            manager.stopObserving()
+        }
+    }
+
+    // MARK: - Privacy Overlay
+
+    func showPrivacyOverlay() {
+        guard !childCoordinators.contains(where: { $0 is PrivacyCoordinator }) else {
+            return
+        }
+        let coordinator = PrivacyCoordinator(
+            windowScene: windowScene,
+            isPasscodeRequired: { [weak self] in
+                self?.appCoordinator?.appContainer?.passcodeLock.isPasscodeRequired() == true
+            },
+            isRemoteSecretEnabled: {
+                RemoteSecretProvider.isRemoteSecretEnabled
+            }
+        )
+        childCoordinators.append(coordinator)
+        coordinator.start()
+    }
+
+    func hidePrivacyOverlay() {
+        guard let coordinator = childCoordinators.first(where: {
+            $0 is PrivacyCoordinator
+        }) as? PrivacyCoordinator else {
+            return
+        }
+        coordinator.hideOverlay()
+        childDidFinish(coordinator)
+    }
+
     // MARK: - Launch Sequence
     
     @MainActor
@@ -71,8 +159,8 @@ final class RootCoordinator: Coordinator {
         case .needsOnboarding:
             await goToOnboarding()
             
-        case let .needsPasscode(businessInjector):
-            await goToPasscode(businessInjector: businessInjector)
+        case let .needsPasscode(appContainer):
+            await goToPasscode(appContainer: appContainer)
             
         case .needsRemoteSecretFetch:
             await handleRemoteSecretFetch()
@@ -112,9 +200,15 @@ final class RootCoordinator: Coordinator {
         childDidFinish(loadingCoordinator)
     }
     
-    private func goToPasscode(businessInjector: BusinessInjectorProtocol) async {
-        // TODO: Implement PasscodeCoordinator (Phase 1)
-        loadingCoordinator.showLoading(message: "Passcode required...")
+    private func goToPasscode(appContainer: AppDependencyContainer) async {
+        let passcodeCoordinator = PasscodeCoordinator(
+            windowScene: windowScene,
+            appContainer: appContainer,
+            delegate: self
+        )
+        childCoordinators.append(passcodeCoordinator)
+        passcodeCoordinator.start()
+        childDidFinish(loadingCoordinator)
     }
     
     /// Presents RemoteSecret fetch UI (spinner + error recovery) on the loading
@@ -160,13 +254,14 @@ final class RootCoordinator: Coordinator {
             appContainer: appContainer
         )
         childCoordinators.append(appCoordinator)
-        
+
         window.rootViewController = appCoordinator.rootViewController
         window.makeKeyAndVisible()
-        
+
         appCoordinator.start()
-        
         childDidFinish(loadingCoordinator)
+
+        reconcileTypingObservation()
     }
     
     private func showProtectedDataUnavailable() {
@@ -193,6 +288,41 @@ final class RootCoordinator: Coordinator {
                 }
                 : nil
         )
+    }
+}
+
+// MARK: - PasscodeCoordinatorDelegate
+
+extension RootCoordinator: PasscodeCoordinatorDelegate {
+
+    func passcodeCoordinatorDidAuthenticate(
+        _ coordinator: PasscodeCoordinator,
+        appContainer: AppDependencyContainer,
+        evaluatedPolicyDomainState: Data?
+    ) {
+        if let state = evaluatedPolicyDomainState {
+            appContainer.businessInjector.userSettings.evaluatedPolicyDomainStateApp = state
+        }
+        Task { @MainActor [weak self] in
+            guard let self else {
+                return
+            }
+            if appCoordinator != nil {
+                // Re-auth: passcode window is gone, restore main window as key.
+                window.makeKeyAndVisible()
+            }
+            else {
+                // Launch-time auth: AppCoordinator doesn't exist yet.
+                await goToApp(appContainer: appContainer)
+            }
+            childDidFinish(coordinator)
+        }
+    }
+
+    func passcodeCoordinatorDidRequestErase(_ coordinator: PasscodeCoordinator) {
+        Task { @MainActor in
+            await DeleteRevokeIdentityManager.deleteLocalDataWithoutBusinessReady()
+        }
     }
 }
 

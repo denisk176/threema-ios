@@ -233,7 +233,7 @@ class ShareSheetRootNavigationController: UINavigationController {
         
         if let recipientConversations {
             previewViewController.conversationDescription = ShareExtensionHelpers
-                .getDescription(for: Array(recipientConversations).compactMap { $0 })
+                .getDescription(for: Array(recipientConversations).compactMap(\.self))
         }
         
         dataProcessor.cancelAction = { [weak self] in self?.cancelTapped() }
@@ -373,7 +373,7 @@ class ShareSheetRootNavigationController: UINavigationController {
         var selectedConversations: [ConversationEntity]?
         
         if let conversations {
-            selectedConversations = conversations.compactMap { $0 }
+            selectedConversations = conversations.compactMap(\.self)
         }
         
         textPreview = TextPreviewViewController(
@@ -460,7 +460,7 @@ class ShareSheetRootNavigationController: UINavigationController {
     }
     
     private func tryTouchIDAuthentication() {
-        TouchIDAuthentication.tryCallback { success, error, data in
+        TouchIDAuthentication.tryTouchIDAuthentication { success, error, data in
             if let error = error as? NSError, error.domain == "ThreemaErrorDomain",
                let vc = self.presentedViewController {
                 

@@ -4,42 +4,6 @@ import FileUtility
 import Foundation
 import RemoteSecretProtocol
 
-public protocol DatabaseManagerProtocol: DatabaseManagerProtocolObjc {
-    var persistentStoreCoordinator: NSPersistentStoreCoordinator { get throws }
-
-    static func storeRequiresImport(fileUtility: FileUtilityProtocol) -> Bool
-
-    /// Database main context for main thread.
-    func databaseContext() -> DatabaseContextProtocol
-
-    /// Database child context for main or background thread.
-    /// - Parameter withChildContextForBackgroundProcess: Is true get database context for background thread
-    func databaseContext(withChildContextForBackgroundProcess: Bool) -> DatabaseContextProtocol
-
-    /// Check free available storage on the device, if there a database file.
-    /// - Parameter showAlert: Called if not enough disk space available
-    /// - Throws: DatabaseManagerError.notEnoughDiskSpaceAvailable
-    func checkFreeDiskSpaceForDatabaseMigration() throws
-
-    static func dbExists(appGroupID: String, fileUtility: FileUtilityProtocol) -> Bool
-
-    func storeRequiresMigration() -> DatabaseManager.StoreRequiresMigration
-
-    func migrateDB() throws
-
-    #if DEBUG
-        /// Imports an database from App/Documents folder, this is useful for testing database migration.
-        func importOldVersionDatabase() throws -> Bool
-    #endif
-
-    /// Imports a repaired database.
-    func importRepairedDatabase() throws
-}
-
-@objc public protocol DatabaseManagerProtocolObjc {
-    func eraseDB() throws
-}
-
 public final class DatabaseManager: NSObject, DatabaseManagerProtocol {
 
     // MARK: - Internal types
@@ -180,7 +144,7 @@ public final class DatabaseManager: NSObject, DatabaseManagerProtocol {
 
     static let databaseModelName = "ThreemaData"
     static let databaseEncryptedModelName = "ThreemaDataEncrypted"
-    static let databaseModelVersion = 55
+    static let databaseModelVersion = 56
 
     // MARK: - Private properties
 
@@ -610,18 +574,30 @@ public final class DatabaseManager: NSObject, DatabaseManagerProtocol {
     }
 
     public func eraseDB() throws {
-        guard DatabaseManager.dbExists(appGroupID: appGroupID, fileUtility: fileUtility) else {
+        let stores = try Array(persistentStoreCoordinator.persistentStores)
+
+        guard !stores.isEmpty else {
             return
         }
 
-        let persistentStores: [NSPersistentStore] = try persistentStoreCoordinator
-            .persistentStores.map { $0.copy() as! NSPersistentStore }
-
-        for persistentStore in persistentStores {
-            try persistentStoreCoordinator.remove(persistentStore)
-            if let storeURL = persistentStore.url {
-                try fileUtility.delete(at: storeURL)
+        for store in stores {
+            guard store.type == NSSQLiteStoreType, let url = store.url else {
+                continue
             }
+
+            // Calling `destroyPersistentStore` will:
+            // - Remove the store from the coordinator before destroying it, if it is registered
+            // - Destroy the persistent store and make it unusable
+            // - Delete the associated `-wal` and `-shm` files and handle SQLite specific cleanup
+            //   (WAL checkpointing)
+            //
+            // However, it might leave an empty (zero-byte, truncated) store file behind, so any
+            // remaining files are deleted explicitly afterwards.
+            try persistentStoreCoordinator.destroyPersistentStore(at: url, type: .sqlite, options: nil)
+
+            fileUtility.deleteIfExists(at: url)
+            fileUtility.deleteIfExists(at: URL(fileURLWithPath: url.path.appending("-wal"), isDirectory: false))
+            fileUtility.deleteIfExists(at: URL(fileURLWithPath: url.path.appending("-shm"), isDirectory: false))
         }
 
         DatabaseManager.localPersistentStoreCoordinator = nil

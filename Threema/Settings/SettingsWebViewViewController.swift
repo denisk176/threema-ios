@@ -63,6 +63,7 @@ class SettingsWebViewViewController: ThemedViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        navigationItem.largeTitleDisplayMode = .never
         view.backgroundColor = Colors.backgroundViewController
         webView.navigationDelegate = self
         view = webView

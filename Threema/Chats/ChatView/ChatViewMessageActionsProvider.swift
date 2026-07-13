@@ -115,7 +115,7 @@ enum ChatViewMessageActionsProvider {
         markStarHandler: @escaping (BaseMessageEntity) -> Void?,
         retryAndCancelHandler: DefaultHandler? = nil,
         downloadHandler: DefaultHandler? = nil,
-        quoteHandler: @escaping DefaultHandler,
+        replyHandler: @escaping DefaultHandler,
         editHandler: DefaultHandler? = nil,
         saveHandler: DefaultHandler? = nil,
         copyHandler: @escaping DefaultHandler,
@@ -150,11 +150,11 @@ enum ChatViewMessageActionsProvider {
             generalActions.append(download)
         }
         
-        // Quoting & editing
+        // Replying & editing
     
-        if message.supportsQuoting {
-            let quote = quoteAction(handler: quoteHandler)
-            generalActions.append(quote)
+        if message.supportsReplying {
+            let reply = replyAction(handler: replyHandler)
+            generalActions.append(reply)
         }
         
         if let editHandler, message.supportsEditing {
@@ -300,10 +300,10 @@ enum ChatViewMessageActionsProvider {
     
     private static let speechSynthesizerManager = SpeechSynthesizerManager()
     
-    private static func quoteAction(handler: @escaping DefaultHandler) -> MessageAction {
+    private static func replyAction(handler: @escaping DefaultHandler) -> MessageAction {
         MessageAction(
-            title: #localize("quote"),
-            image: UIImage(systemName: "quote.bubble"),
+            title: #localize("reply_action_title"),
+            image: UIImage(systemName: "arrowshape.turn.up.left"),
             handler: handler
         )
     }
@@ -331,18 +331,13 @@ enum ChatViewMessageActionsProvider {
         ) {
             let businessInjector = BusinessInjector.ui
 
-            /// Search results view controller
-            let searchResultsModel = RecipientSearchResultsViewModel(businessInjector: businessInjector)
-            let searchResultsViewController = RecipientSearchResultsViewController(model: searchResultsModel)
-
-            /// Message Forwarding view controller composed with the search results view controller
+            /// Message Forwarding view controller
             let model = MessageForwardingViewModel(businessInjector: businessInjector, message: message)
 
-            let topView = AppDelegate.shared().currentTopViewController()
+            let topView = SharedAppProvider.currentTopViewController
             do {
                 let vc = try MessageForwardingViewController(
                     model: model,
-                    searchResultsViewController: searchResultsViewController,
                     businessInjector: businessInjector
                 )
                 /// Show screen with a navigation bar
@@ -538,9 +533,14 @@ enum ChatViewMessageActionsProvider {
                     }
                 )
             }
+            
+            guard let topViewController = SharedAppProvider.currentTopViewController else {
+                DDLogError("`SharedAppProvider.currentTopViewController` not available.")
+                return
+            }
 
             UIAlertTemplate.showSheet(
-                owner: AppDelegate.shared().currentTopViewController(),
+                owner: topViewController,
                 popOverSource: popOverSource,
                 title: #localize("message_delete_confirm"),
                 actions: actions
@@ -574,8 +574,14 @@ enum ChatViewMessageActionsProvider {
         }
 
         let message = String.localizedStringWithFormat(#localize("delete_message_not_sent_to"), summary)
+        
+        guard let topViewController = SharedAppProvider.currentTopViewController else {
+            DDLogError("`SharedAppProvider.currentTopViewController` not available.")
+            return
+        }
+        
         UIAlertTemplate.showAlert(
-            owner: AppDelegate.shared().currentTopViewController(),
+            owner: topViewController,
             title: #localize("delete"),
             message: message
         )

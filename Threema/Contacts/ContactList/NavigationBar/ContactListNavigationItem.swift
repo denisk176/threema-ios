@@ -121,6 +121,13 @@ final class ContactListNavigationItem: UINavigationItem {
         fatalError("init(coder:) has not been implemented")
     }
     
+    // MARK: - Internal functions
+
+    /// Updates the selected filter (and thus the navigation title) to match the currently displayed list.
+    func updateSelectedFilter(_ item: ContactListFilterItem) {
+        selectedItem = item
+    }
+
     // MARK: - Private functions
 
     private func configureNavigationBarItems() {

@@ -567,7 +567,7 @@ public class ThreemaManagedObject: NSManagedObject {
         var encryptedValue: Data?
         if let newValue {
             let transformer = GroupDeliveryReceiptValueTransformer()
-            var encoded: Data = transformer.reverseTransformedValue(newValue) as! Data
+            let encoded: Data = transformer.reverseTransformedValue(newValue) as! Data
             encryptedValue = EntityCryptoManager.shared.encrypt(encoded)
         }
         

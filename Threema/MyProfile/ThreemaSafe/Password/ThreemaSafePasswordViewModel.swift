@@ -46,6 +46,13 @@ final class ThreemaSafePasswordViewModel {
         isNotForced
     }
 
+    var isInteractiveDismissDisabled: Bool {
+        !passwordTextInput.isEmpty
+            || !confirmationPasswordTextInput.isEmpty
+            || !serverUsernameInput.isEmpty
+            || !serverPasswordInput.isEmpty
+    }
+
     var rightButtonTitle: String {
         isActivated ? #localize("change_button_title") : #localize("activate_button_title")
     }

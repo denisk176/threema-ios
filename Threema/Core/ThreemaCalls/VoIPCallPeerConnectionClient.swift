@@ -823,9 +823,6 @@ extension VoIPCallPeerConnectionClient {
             let patchedDescription = RTCSessionDescription(type: remoteSdp.type, sdp: patchedSdpString)
             peerConnection.setRemoteDescription(patchedDescription, completionHandler: completion)
         }
-        catch let sdpError {
-            completion(nil)
-        }
         catch {
             completion(nil)
         }

@@ -37,6 +37,7 @@ struct BackupsView: View {
             }
         }
         .navigationTitle(model.screenTitle)
+        .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             model.onAppear()
         }

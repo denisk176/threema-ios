@@ -359,7 +359,7 @@ final class DetailsHeaderProfileView: UIStackView {
             return
         }
         
-        guard !UserSettings.shared().workInfoShown, !profilePictureView.typeIconImageView.isHidden else {
+        guard !profilePictureView.typeIconImageView.isHidden else {
             return
         }
         

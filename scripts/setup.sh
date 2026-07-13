@@ -4,6 +4,14 @@ set -euo pipefail
 # Navigate to project root regardless of where script is run from
 cd "$(dirname "$0")/.."
 
+LOG_TAG="setup"
+# shellcheck source=lib/colors.sh
+source "scripts/lib/colors.sh"
+
+# Point git at the in-repo hooks directory so contributors get the
+# post-checkout dependency sync (see .githooks/) without manual config.
+git config core.hooksPath .githooks
+
 # Ensure the active developer dir points to Xcode.app (not the standalone CLT).
 # A fresh Xcode install often leaves xcode-select pointed at /Library/Developer/CommandLineTools,
 # which is not sufficient for building this project.
@@ -13,32 +21,32 @@ XCODE_APP=$(echo "$XCODE_DEVELOPER_DIR" | sed 's|\(.*\.app\).*|\1|')
 if [ ! -d "$XCODE_APP" ]; then
     XCODE_APP="/Applications/Xcode.app"
     if [ ! -d "$XCODE_APP" ]; then
-        echo "Error: $XCODE_APP not found. Install Xcode from the App Store before running this script." >&2
+        error "$XCODE_APP not found. Install Xcode from the App Store before running this script."
         exit 1
     fi
-    echo "xcode-select points to $XCODE_DEVELOPER_DIR; switching to $XCODE_APP (sudo required)..."
+    info "xcode-select points to $XCODE_DEVELOPER_DIR; switching to $XCODE_APP (sudo required)..."
     sudo xcode-select --switch "$XCODE_APP"
 fi
 
 # Install Homebrew if not installed
 if ! command -v brew &>/dev/null; then
-    echo "Installing Homebrew..."
+    step "Installing Homebrew"
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 fi
 
 # A fresh Homebrew install is not yet on PATH, so locate it at its known prefix.
- if ! command -v brew &>/dev/null; then
-     if [ -x /opt/homebrew/bin/brew ]; then
-         eval "$(/opt/homebrew/bin/brew shellenv)"
-     else
-         echo "Error: Homebrew installed but 'brew' could not be located on PATH." >&2
-         exit 1
-     fi
- fi
+if ! command -v brew &>/dev/null; then
+    if [ -x /opt/homebrew/bin/brew ]; then
+        eval "$(/opt/homebrew/bin/brew shellenv)"
+    else
+        error "Homebrew installed but 'brew' could not be located on PATH."
+        exit 1
+    fi
+fi
 
 # Install mise if not installed
 if ! command -v mise &>/dev/null; then
-    echo "Installing mise..."
+    step "Installing mise"
     brew install mise
 
     # Ensure mise is on PATH for this session
@@ -51,9 +59,10 @@ fi
 eval "$(mise activate bash)"
 
 # Install tools defined in mise.toml
-echo "Installing mise tools..."
+step "Installing mise tools"
 mise install
 
+step "Running mise tasks"
 mise run dependencies
 
-echo "Setup complete."
+success "Setup complete."

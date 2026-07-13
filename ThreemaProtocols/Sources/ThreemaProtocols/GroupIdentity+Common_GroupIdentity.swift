@@ -8,7 +8,7 @@ extension GroupIdentity {
         // `commonGroupIdentity.groupID` will always be valid, also if it is 0
         
         guard commonGroupIdentity.creatorIdentity.count == ThreemaIdentity.length else {
-            throw Error.invalidCreatorIdentityLength
+            throw ThreemaIdentityError.invalid(identity: commonGroupIdentity.creatorIdentity)
         }
         
         self.init(

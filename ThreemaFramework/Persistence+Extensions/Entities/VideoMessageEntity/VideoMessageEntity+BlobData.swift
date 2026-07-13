@@ -148,4 +148,13 @@ extension VideoMessageEntity: BlobData {
     public var blobExportFilename: String {
         "\(DateFormatter.getDateForFilename(date))-video.\(MEDIA_EXTENSION_VIDEO)"
     }
+    
+    public var isDataAvailable: Bool {
+        get {
+            dataAvailable.boolValue
+        }
+        set {
+            dataAvailable = NSNumber(booleanLiteral: newValue)
+        }
+    }
 }

@@ -20,7 +20,7 @@ final class SendMediaAction: NSObject {
     private var pickedVideoSaved = false
     private var cancelled = false
     private var pickedVideoURL: URL?
-    private var videoEncoders = Set<AVAssetExportSession>()
+    private var videoEncoders = [VideoExportSession]()
     private var videoEncodeProgressHUD: MBProgressHUD?
     private var helper: PhotosAccessHelper?
     private var mediaPreviewDataProcessor: MediaPreviewDataProcessor?
@@ -159,8 +159,7 @@ final class SendMediaAction: NSObject {
                                     self.sendAssets(
                                         assets: selection,
                                         asFile: asFile,
-                                        withCaptions: captions,
-                                        completion: nil
+                                        withCaptions: captions
                                     )
                                 }
                             }
@@ -224,8 +223,7 @@ final class SendMediaAction: NSObject {
                                     self.sendAssets(
                                         assets: selection,
                                         asFile: asFile,
-                                        withCaptions: captions,
-                                        completion: nil
+                                        withCaptions: captions
                                     )
                                 }
                             }
@@ -446,7 +444,7 @@ final class SendMediaAction: NSObject {
         }
     }
     
-    private func sendItems(itemArray: [Any], asFile sendAsFile: Bool, withCaptions captions: [Any]) {
+    private func sendItems(itemArray: [Any], asFile sendAsFile: Bool, withCaptions captions: [String?]) {
         let correlationID = imageSender.createCorrelationID()
         let itemsCount = itemArray.count
 
@@ -461,10 +459,15 @@ final class SendMediaAction: NSObject {
                 
                 let sequentialSemaphore = DispatchSemaphore(value: 0)
 
-                if let item = itemArray[i] as? URLSenderItem {
-                    if captions.count == itemsCount, !(captions[i] as? String ?? "").isEmpty {
-                        item.caption = captions[i] as? String
+                switch itemArray[i] {
+                case let item as URLSenderItem:
+
+                    if captions.count == itemsCount,
+                       let caption = captions[i],
+                       !caption.isEmpty {
+                        item.caption = caption
                     }
+                    
                     Task {
                         let messageSender = BusinessInjector.ui.messageSender
                         do {
@@ -482,12 +485,11 @@ final class SendMediaAction: NSObject {
                         sequentialSemaphore.signal()
                     }
                     sequentialSemaphore.wait()
-                }
-                else if let item = itemArray[i] as? AVAsset {
+                case let item as AVAsset:
                     // Video
                     let caption: String =
                         if captions.count == itemsCount {
-                            (captions[i] as? String) ?? ""
+                            captions[i] ?? ""
                         }
                         else {
                             ""
@@ -506,12 +508,19 @@ final class SendMediaAction: NSObject {
                         userInfo: nil,
                         repeats: true
                     )
+                default:
+                    break
                 }
             }
         }
     }
     
-    func sendAssets(assets: [Any], asFile sendAsFile: Bool, withCaptions captions: [Any], completion: (() -> Void)?) {
+    func sendAssets(
+        assets: [Any],
+        asFile sendAsFile: Bool,
+        withCaptions captions: [String?] = [],
+        completion: (() -> Void)? = nil
+    ) {
         var itemArray: [Any]? = []
         let text = BundleUtil.localizedString(forKey: "processing_items_progress")
         showVideoEncodeProgressHUD(with: assets.count * 100, text: text)
@@ -591,9 +600,11 @@ final class SendMediaAction: NSObject {
                                 DDLogInfo("Temporary item \(largeThumbnailURL) deleted")
                             }
                         }
-
-                        try FileUtility.shared.delete(at: url)
-                        DDLogInfo("Temporary item \(url) deleted")
+                        
+                        if FileUtility.shared.fileExists(at: url) {
+                            try FileUtility.shared.delete(at: url)
+                            DDLogInfo("Temporary item \(url) deleted")
+                        }
                     }
                     catch {
                         DDLogError("Could not clear item in temporary directory. Error: \(error)")
@@ -624,7 +635,7 @@ final class SendMediaAction: NSObject {
         options.isNetworkAccessAllowed = true
         options.version = .current
         
-        imageManager.requestImageData(for: asset, options: options) { [imageSender] imageData, dataUTI, _, _ in
+        imageManager.requestImageDataAndOrientation(for: asset, options: options) { [imageSender] imageData, dataUTI, _, _ in
             if let imageData {
                 let resources = PHAssetResource.assetResources(for: asset)
                 let orgFilename =
@@ -675,7 +686,7 @@ final class SendMediaAction: NSObject {
                 return
             }
             
-            self.videoEncoders.insert(exportSession)
+            self.videoEncoders.append(exportSession)
             senderItem = creator.senderItem(from: videoAsset, on: exportSession)
 
             sema.signal()
@@ -801,7 +812,7 @@ extension SendMediaAction {
                 return
             }
             
-            self.videoEncoders.insert(exportSession)
+            self.videoEncoders.append(exportSession)
             
             guard let senderItem = senderCreator.senderItem(from: asset, on: exportSession) else {
                 DDLogError("SenderItem was nil.")
@@ -899,12 +910,12 @@ extension SendMediaAction {
 
 extension SendMediaAction: VideoConversionProgressDelegate {
 
-    func videoExportSession(exportSession: AVAssetExportSession) {
+    func videoExportSession(exportSession: any VideoExportSession) {
         let progress = exportSession.progress
         Task { @MainActor in
             if progress == 1.0 {
                 self.lastProgress = 0
-                self.videoEncoders.remove(exportSession)
+                self.videoEncoders.removeAll { $0 === exportSession }
             }
 
             if (progress - self.lastProgress) * 100 > 1 {

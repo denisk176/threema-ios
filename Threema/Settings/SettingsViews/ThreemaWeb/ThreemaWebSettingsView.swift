@@ -12,13 +12,14 @@ struct ThreemaWebSettingsView: View {
         }
         .tint(.accentColor)
         .navigationTitle(viewModel.screenTitle)
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
-                Button {
-                    viewModel.scan()
-                } label: {
-                    Image(systemName: viewModel.scanButtonIconName)
-                }
+                Button(
+                    viewModel.scanButtonTitle,
+                    systemImage: viewModel.scanButtonIconName,
+                    action: viewModel.scan
+                )
                 .disabled(!viewModel.canScan)
             }
         }

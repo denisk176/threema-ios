@@ -7,7 +7,7 @@ import ThreemaMacros
 
 final class SafeManager: NSObject, SafeManagerProtocol {
     
-    // MARK: - Static poperties
+    // MARK: - Static properties
     
     // Trigger safe backup states
     private static var backupObserver: NSObjectProtocol?
@@ -125,6 +125,7 @@ final class SafeManager: NSObject, SafeManagerProtocol {
                 if let error = error as? NSError {
                     if error.code == ThreemaProtocolError.safePasswordEmpty.rawValue,
                        !LaunchModalManager.shared.isBeingDisplayed {
+                        LaunchModalManager.shared.isBeingDisplayed = false
                         LaunchModalManager.shared.checkLaunchModals()
                     }
                     DDLogError("Failed to activate Threema Safe: \(error)")
@@ -811,7 +812,7 @@ final class SafeManager: NSObject, SafeManagerProtocol {
                                 encryptedData: encryptedData
                             ) { _, errorMessage in
                                 if let errorMessage {
-                                    DDLogError(errorMessage)
+                                    DDLogError("\(errorMessage)")
 
                                     self.safeConfigManager
                                         .setLastResult(
@@ -838,7 +839,7 @@ final class SafeManager: NSObject, SafeManagerProtocol {
                     }
                     catch {
                         if let safeError = error as? SafeError {
-                            DDLogError(safeError.description)
+                            DDLogError("\(safeError.description)")
                         }
                         else {
                             DDLogError("\(error)")
@@ -954,7 +955,9 @@ final class SafeManager: NSObject, SafeManagerProtocol {
             DDLogWarn("WARNING Threema Safe backup not successfully since 7 days or more")
 
             if isDateOlderThenDays(date: safeConfigManager.getLastAlertBackupFailed(), days: 1),
-               let topViewController = AppDelegate.shared()?.currentTopViewController(),
+               let topViewController = SharedAppProvider.onMain({
+                   SharedAppProvider.currentTopViewController
+               }),
                let seconds = safeConfigManager.getLastBackup()?.timeIntervalSinceNow,
                let days = Double(exactly: seconds / 86400)?.rounded(FloatingPointRoundingRule.up) {
                     

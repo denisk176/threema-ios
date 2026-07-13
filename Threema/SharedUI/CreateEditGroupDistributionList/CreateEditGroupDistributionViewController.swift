@@ -13,7 +13,7 @@ final class CreateEditGroupDistributionViewController: UICollectionViewControlle
     
     private enum Constants {
         static var contactsPerRow: Int {
-            AppDelegate.shared().isCompactSizeClass ? 5 : 7
+            SharedAppProvider.onMain { SharedAppProvider.isCompactSizeClass } ? 5 : 7
         }
 
         static let maxMembers = Group.maxGroupMembers

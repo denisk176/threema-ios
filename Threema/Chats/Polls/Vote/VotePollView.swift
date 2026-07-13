@@ -75,6 +75,7 @@ struct VotePollView: View {
         }
         .interactiveDismissDisabled(true)
         .navigationViewStyle(.stack)
+        .interactiveDismissDisabled(viewModel.isInteractiveDismissDisabled)
     }
     
     @ViewBuilder

@@ -289,7 +289,7 @@ struct StorageManagementChatExportView: View {
                         HStack {
                             Text(viewModel.exportSizeLabel)
                                 .font(.subheadline)
-                            Text("\(String(format: "%.2f", size)) MB")
+                            Text(verbatim: "\(String(format: "%.2f", size)) MB")
                                 .font(.subheadline)
                         }
                         .foregroundStyle(.secondary)
@@ -297,7 +297,7 @@ struct StorageManagementChatExportView: View {
                     HStack {
                         Text(viewModel.peakMemoryLabel)
                             .font(.subheadline)
-                        Text("\(String(format: "%.2f", peakMemory)) MB")
+                        Text(verbatim: "\(String(format: "%.2f", peakMemory)) MB")
                             .font(.subheadline)
                     }
                     .foregroundStyle(.secondary)

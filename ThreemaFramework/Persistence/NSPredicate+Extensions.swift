@@ -4,19 +4,19 @@ import CoreData
 
 extension NSPredicate {
     public static func or(_ predicates: NSPredicate?...) -> NSPredicate {
-        NSCompoundPredicate(type: .or, subpredicates: predicates.compactMap { $0 })
+        NSCompoundPredicate(type: .or, subpredicates: predicates.compactMap(\.self))
     }
 
     public static func or(_ predicates: [NSPredicate?]) -> NSPredicate {
-        NSCompoundPredicate(type: .or, subpredicates: predicates.compactMap { $0 })
+        NSCompoundPredicate(type: .or, subpredicates: predicates.compactMap(\.self))
     }
 
     public static func and(_ predicates: NSPredicate?...) -> NSPredicate {
-        NSCompoundPredicate(type: .and, subpredicates: predicates.compactMap { $0 })
+        NSCompoundPredicate(type: .and, subpredicates: predicates.compactMap(\.self))
     }
 
     public static func and(_ predicates: [NSPredicate?]) -> NSPredicate {
-        NSCompoundPredicate(type: .and, subpredicates: predicates.compactMap { $0 })
+        NSCompoundPredicate(type: .and, subpredicates: predicates.compactMap(\.self))
     }
 
     public static func not(_ predicate: NSPredicate) -> NSPredicate {

@@ -20,6 +20,12 @@ final class NotificationResponse {
     private let completionHandler: () -> Void
 
     private var conversation: ConversationEntity?
+    
+    private var isAppActive: Bool {
+        SharedAppProvider.onMain {
+            SharedAppProvider.isAppActive
+        }
+    }
 
     required init(
         businessInjector: BusinessInjectorProtocol,

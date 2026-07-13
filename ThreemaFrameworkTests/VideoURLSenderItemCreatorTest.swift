@@ -54,23 +54,6 @@ final class VideoURLSenderItemCreatorTest: XCTestCase {
         XCTAssert(UTIConverter.isRenderingVideoMimeType(mimeType))
     }
     
-    func testGetThumbnail() {
-        
-        let testBundle = Bundle(for: VideoURLSenderItemCreatorTest.self)
-        let testVideoURL = testBundle.url(forResource: videoName, withExtension: "mp4")
-        let asset = AVURLAsset(url: testVideoURL!)
-        
-        let expect = expectation(description: "Video Creation")
-        
-        senderItemCreator.getThumbnail(asset: asset).done { _ in
-            expect.fulfill()
-        }.catch { _ in
-            XCTFail()
-        }
-        
-        waitForExpectations(timeout: 10, handler: nil)
-    }
-    
     func testGarbageURL() {
         let urlMatrix: [String] = [
             "https://threema.ch/en",

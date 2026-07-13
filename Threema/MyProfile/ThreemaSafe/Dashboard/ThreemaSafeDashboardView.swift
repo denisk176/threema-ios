@@ -28,6 +28,8 @@ struct ThreemaSafeDashboardView: View {
                 NavigationView {
                     ThreemaSafePasswordView(model: model)
                 }
+                // Needs to be here on the NavigationView level
+                .interactiveDismissDisabled(model.isInteractiveDismissDisabled)
 
             case let .learnMore(model):
                 NavigationView {
@@ -49,9 +51,11 @@ struct ThreemaSafeDashboardView: View {
             }
             .toolbar {
                 ToolbarItem(placement: .automatic) {
-                    Button(action: model.learnMoreButtonTapped) {
-                        Image(systemName: model.infoIcon)
-                    }
+                    Button(
+                        model.learnMoreButtonTitle,
+                        systemImage: model.infoIcon,
+                        action: model.learnMoreButtonTapped
+                    )
                 }
             }
             .alert(item: $model.alert) { alert in

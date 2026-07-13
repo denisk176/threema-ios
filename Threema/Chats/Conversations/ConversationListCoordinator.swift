@@ -3,7 +3,7 @@ import Coordinator
 import Foundation
 import ThreemaMacros
 
-final class ConversationListCoordinator: Coordinator, CurrentDestinationHolderProtocol {
+final class ConversationListCoordinator: Coordinator, CurrentDestinationHolderProtocol, ChatViewControllerConversationDeletedDelegate {
     
     // MARK: Internal destination
     
@@ -20,7 +20,7 @@ final class ConversationListCoordinator: Coordinator, CurrentDestinationHolderPr
 
         static func == (lhs: InternalDestination, rhs: InternalDestination) -> Bool {
             switch (lhs, rhs) {
-            case let (.conversation(lhsConversation, lhsInfo), .conversation(rhsConversation, rhsInfo)):
+            case let (.conversation(lhsConversation, _), .conversation(rhsConversation, rhsInfo)):
                 
                 // If we have force compose in the new destination we push again even if we already show the chat, so we
                 // can update the text in chat bar.
@@ -152,7 +152,7 @@ final class ConversationListCoordinator: Coordinator, CurrentDestinationHolderPr
     func resetSelection() {
         resetCurrentDestination()
         conversationListViewController.removeSelectedConversation()
-        presentingViewController?.setViewControllers([], for: .conversations)
+        presentingViewController?.clearSecondaryColumn(for: .conversations)
     }
     
     private func dismissPasscodeIfNeeded() {
@@ -372,5 +372,24 @@ extension ConversationListCoordinator: ConversationListViewControllerDelegate {
     
     func willDisappear() {
         dismissPasscodeIfNeeded()
+    }
+
+    // MARK: - ChatViewControllerConversationDeletedDelegate
+
+    func chatViewControllerConversationWasDeleted(
+        _ chatViewController: ChatViewController
+    ) {
+        // Dismiss anything presented on top (e.g. single/group details, share sheets)
+        chatViewController.presentedViewController?.dismiss(animated: false)
+
+        if presentingViewController?.isCollapsed == false {
+            // iPadOS (expanded): clear coordinator state and reset the secondary column.
+            resetSelection()
+        }
+        else {
+            // iOS (collapsed): pop from the nav stack
+            chatViewController.navigationController?
+                .popViewController(animated: true)
+        }
     }
 }

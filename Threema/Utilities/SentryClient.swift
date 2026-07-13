@@ -60,11 +60,9 @@ import ThreemaMacros
                 options.experimental.enableWatchdogTerminationsV2 = true
             }
             
-            // We disable hang tracking for AppStore builds
-            if ThreemaEnvironment.env() == .appStore {
-                options.enableAppHangTracking = false
-                options.enableReportNonFullyBlockingAppHangs = false
-            }
+            // We disable hang tracking since the reports were inconsistent
+            options.enableAppHangTracking = false
+            options.enableReportNonFullyBlockingAppHangs = false
             
             // Disable breadcrumbs
             options.maxBreadcrumbs = 0
@@ -165,11 +163,12 @@ import ThreemaMacros
                 }
             ))
 
-            DispatchQueue.main.async {
-                if let vc = AppDelegate.shared()?.currentTopViewController() {
+            Task { @MainActor in
+                if let vc = SharedAppProvider.currentTopViewController {
                     vc.present(confirm, animated: true, completion: nil)
                 }
                 else {
+                    DDLogError("`SharedAppProvider.currentTopViewController` not available.")
                     self.leaveActiveDispatchGroup()
                 }
             }

@@ -319,10 +319,15 @@ public final class FileUtility: NSObject, FileUtilityProtocol {
     }
 
     public func removeItemsInAllDirectories(appGroupID: String) {
-        appDocumentsDirectory.map(removeItemsInDirectory)
-        appDataDirectory(appGroupID: appGroupID).map(removeItemsInDirectory)
-        appCachesDirectory.map(removeItemsInDirectory)
-        removeItemsInDirectory(directoryURL: appTemporaryDirectory)
+        [
+            appDataDirectory(appGroupID: appGroupID),
+            appDocumentsDirectory,
+            appCachesDirectory,
+            appTemporaryDirectory
+        ]
+        .compactMap(\.self)
+        .forEach { removeItemsInDirectory(directoryURL: $0) }
+
         DDLogNotice("Deleted items in all directories.")
     }
 
@@ -370,6 +375,14 @@ public final class FileUtility: NSObject, FileUtilityProtocol {
     
     @objc public func contentsOfDirectory(atPath path: String) throws -> [String] {
         try fileManager.contentsOfDirectory(atPath: path)
+    }
+
+    @objc public func contentsOfDirectory(
+        at url: URL,
+        includingPropertiesForKeys keys: [URLResourceKey]?,
+        options mask: FileManager.DirectoryEnumerationOptions = []
+    ) throws -> [URL] {
+        try fileManager.contentsOfDirectory(at: url, includingPropertiesForKeys: keys, options: mask)
     }
 
     // MARK: Read and write file

@@ -1,15 +1,11 @@
 import SwiftUI
 
 struct CreatePollView: View {
-    
     @Environment(\.dismiss) private var dismiss
-    
-    @StateObject private var viewModel: CreatePollViewModel
-    
     @FocusState private var focus: Field?
-    
-    @State var isEditing = false
     @State var editMode: EditMode = .inactive
+    @State var isEditing = false
+    @StateObject private var viewModel: CreatePollViewModel
 
     init(conversation: ConversationEntity) {
         _viewModel = StateObject(wrappedValue: CreatePollViewModel(conversationID: conversation.objectID))
@@ -145,6 +141,7 @@ struct CreatePollView: View {
             .navigationBarTitleDisplayMode(.inline)
         }
         .loadingOverlay(viewModel.isLoading)
+        .interactiveDismissDisabled(viewModel.isInteractiveDismissDisabled)
     }
     
     private func relocate(from source: IndexSet, to destination: Int) {

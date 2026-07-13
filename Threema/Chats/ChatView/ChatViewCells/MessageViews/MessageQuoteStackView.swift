@@ -187,7 +187,7 @@ final class MessageQuoteStackView: UIStackView {
         updateQuoteBarColor()
 
         nameAndQuoteStackView.spacing = 0
-        quoteLabel.text = #localize("quote_not_found")
+        quoteLabel.text = #localize("message_not_found")
         quoteLabel.font = PreviewableMessageConfiguration.quote.font.italic()
         
         updateLayout()

@@ -271,6 +271,31 @@ public final class EntityFetcher: NSObject {
         }
     }
     
+    func fileMessageObjectIDsWithDataAvailable() throws -> [NSManagedObjectID] {
+        let fileDataFieldName = FileDataEntity.Field.name(
+            for: .data,
+            encrypted: managedObjectContext.usesAdditionallyEncryptedModel
+        )
+        
+        let predicate = NSPredicate(
+            format: "data != nil AND data.\(fileDataFieldName) != nil"
+        )
+        
+        let fetchRequest = NSFetchRequest<NSFetchRequestResult>(entityName: "FileMessage")
+        fetchRequest.predicate = predicate
+        fetchRequest.resultType = .managedObjectIDResultType
+        
+        var matchingIDs: [NSManagedObjectID] = []
+
+        try managedObjectContext.performAndWait {
+            if let results = try fetchRequest.execute() as? [NSManagedObjectID], !results.isEmpty {
+                matchingIDs = results
+            }
+        }
+
+        return matchingIDs
+    }
+    
     // Fetch helpers
     
     func fetchEntity<Entity: NSManagedObject>(entityName: String, predicate: NSPredicate) -> Entity? {

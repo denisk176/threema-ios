@@ -61,6 +61,7 @@ struct AppearanceSettingsView: View {
         .onAppear {
             viewModel.refresh()
         }
+        .navigationTitle(viewModel.navigationBarTitle)
         .navigationBarTitleDisplayMode(.inline)
         .tint(.accentColor)
     }

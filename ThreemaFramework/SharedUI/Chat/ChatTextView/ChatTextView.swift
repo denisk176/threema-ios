@@ -265,7 +265,8 @@ public final class ChatTextView: UITextView {
         let layoutManager = NSLayoutManager()
         layoutManager.addTextContainer(container)
         
-        let textStorage = MarkupParsingTextStorage()
+        // URLs are tinted in the compose view, but kept non-interactive
+        let textStorage = MarkupParsingTextStorage(interactiveURLs: false)
         textStorage.addLayoutManager(layoutManager)
         
         super.init(frame: .zero, textContainer: container)
@@ -634,6 +635,9 @@ public final class ChatTextView: UITextView {
         }
         
         _ = customTextStorage?.removeCurrentText()
+        
+        mentionsTableViewDelegate?.shouldHideMentionsTableView(true)
+        mentionsHelper.lastChangeFoundMatches = false
         
         guard chatTextViewDelegate != nil else {
             let message = "chatTextViewDelegate should not be nil"

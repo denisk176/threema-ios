@@ -18,7 +18,9 @@ final class MarkupParsingTextStorage: NSTextStorage {
     private var backingStore = NSTextStorage()
     
     private lazy var markupParser = MarkupParser()
-    
+
+    private let interactiveURLs: Bool
+
     // These two help set the cursor to the correct position in `ChatTextView.textViewDidChange(textView)`
     // even when we change the text length e.g. when inserting mentions.
     private(set) var lastReplacementRange: NSRange?
@@ -32,7 +34,8 @@ final class MarkupParsingTextStorage: NSTextStorage {
     
     // MARK: Lifecycle
     
-    override init() {
+    init(interactiveURLs: Bool = true) {
+        self.interactiveURLs = interactiveURLs
         super.init()
     }
     
@@ -194,7 +197,8 @@ final class MarkupParsingTextStorage: NSTextStorage {
             attributedString: attributedString,
             font: UIFont.preferredFont(forTextStyle: UIFont.TextStyle.body),
             parseMention: true,
-            forTextStorage: true
+            forTextStorage: true,
+            makeURLsInteractive: interactiveURLs
         ))
         
         if !backingStore.string.isEmpty {

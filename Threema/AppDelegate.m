@@ -15,8 +15,6 @@
 #import "ProtocolDefines.h"
 #import "AbstractGroupMessage.h"
 #import "NSString+Hex.h"
-#import "NewMessageToaster.h"
-#import "GatewayAvatarMaker.h"
 #import "ErrorHandler.h"
 #import "TouchIdAuthentication.h"
 #import "SplashViewController.h"
@@ -69,6 +67,12 @@ static const DDLogLevel ddLogLevel = DDLogLevelNotice;
     BOOL isEnteringForeground;
     BOOL startCheckBiometrics;
     BOOL rootToNotificationSettings;
+    // Set when biometric auth succeeds while the app is not active (the Face ID
+    // overlay keeps the app inactive). The unlock + cover teardown is deferred to
+    // applicationDidBecomeActive so the privacy cover is never torn down while the
+    // app is inactive/backgrounding (which left content exposed in the app-switcher
+    // snapshot). Cleared in applicationDidEnterBackground (user left -> stay locked).
+    BOOL biometricUnlockPending;
     UIView *lockView;
     IncomingMessageManager *incomingMessageManager;
     NotificationManager *notificationManager;
@@ -94,11 +98,8 @@ static const DDLogLevel ddLogLevel = DDLogLevelNotice;
         [AppGroup setAppId:[[BundleUtil mainBundle] bundleIdentifier]];
         [FileUtilityObjCSetter setInitialFileUtility];
 
-#ifdef DEBUG
-        [LogManager initializeGlobalLoggerWithDebug:YES];
-#else
-        [LogManager initializeGlobalLoggerWithDebug:NO];
-#endif
+        [self initializeGlobalLogger];
+
         // Checking database file exists as early as possible
         [AppSetup registerIfADatabaseFileExists];
     });
@@ -586,7 +587,7 @@ static const DDLogLevel ddLogLevel = DDLogLevelNotice;
 
         [self.window insertSubview:lockView atIndex:99999];
         [self.window bringSubviewToFront:lockView];
-        [self.window snapshotViewAfterScreenUpdates:false];
+        [self.window snapshotViewAfterScreenUpdates:YES];
     } else {
         // This Prevents overriding the current view with a lockscreen, thus ending in an infinite loop
         if ([self.window.rootViewController isKindOfClass:[UINavigationController class]]) {
@@ -600,7 +601,7 @@ static const DDLogLevel ddLogLevel = DDLogLevelNotice;
             }
         }
         [self.window bringSubviewToFront:lockView];
-        [self.window snapshotViewAfterScreenUpdates:false];
+        [self.window snapshotViewAfterScreenUpdates:YES];
     }
 }
 
@@ -744,7 +745,18 @@ static const DDLogLevel ddLogLevel = DDLogLevelNotice;
      If your application supports background execution, this method is called instead of applicationWillTerminate: when the user quits.
      */
     DDLogNotice(@"AppState: applicationDidEnterBackground");
-    
+
+    // App actually went to the app switcher / background: cancel any deferred
+    // biometric unlock so we stay locked and re-authenticate on return.
+    biometricUnlockPending = NO;
+
+    // Add the privacy cover synchronously, here, before any async work. iOS
+    // captures the app-switcher snapshot right after this method returns. The
+    // other showLockScreen calls below run inside runWhenBusinessReadyWithTask /
+    // dispatch_after, i.e. potentially seconds later — too late for the snapshot
+    // when no applicationWillResignActive preceded us (Inactive -> Background).
+    [self showLockScreen];
+
     [self runWhenBusinessReadyWithTask:^{
         dispatch_async(dispatch_get_main_queue(), ^{
             DDLogNotice(@"AppState: applicationDidEnterBackground executing task");
@@ -905,9 +917,6 @@ static const DDLogLevel ddLogLevel = DDLogLevelNotice;
             
             [[WCSessionManager shared] connectAllRunningSessions];
             
-            DirtyObjectManager *dirtyObjectManager = [BusinessInjector ui].dirtyObjectManagerObjC;
-            [dirtyObjectManager refreshDirtyObjectsWithReset:YES];
-            
             [[ServerConnector sharedServerConnector] connect:ConnectionInitiatorApp onCompletion:nil];
             [FeatureMask updateLocalObjc];
             [AppDelegate registerForLocalNotifications];
@@ -957,7 +966,13 @@ static const DDLogLevel ddLogLevel = DDLogLevelNotice;
             [_window makeSecure];
             
             if ([[KKPasscodeLock sharedLock] isPasscodeRequired] && isAppLocked) {
-                if (![self isPassCodeViewControllerPresented]) {
+                if (biometricUnlockPending) {
+                    // Biometric succeeded earlier while the app was inactive (Face ID
+                    // overlay). Now that we are genuinely active, complete the unlock
+                    // + cover teardown that dismissPasscodeViewAnimated deferred.
+                    biometricUnlockPending = NO;
+                    [self dismissPasscodeViewAnimated:YES];
+                } else if (![self isPassCodeViewControllerPresented]) {
                     [self presentPasscodeView];
                 } else {
                     if (lockView != nil) {
@@ -1011,7 +1026,7 @@ static const DDLogLevel ddLogLevel = DDLogLevelNotice;
                 [self setIsWorkContactsLoading:false];
             }];
 
-            [[GatewayAvatarMaker gatewayAvatarMaker] refresh];
+            [self refreshGatewayAvatars];
             
             if ([[VoIPCallStateManager shared] currentCallState] != CallStateIdle && ![NavigationBarPromptHandler isCallActiveInBackground]) {
                 [[VoIPCallStateManager shared] presentCallViewController];
@@ -1103,7 +1118,11 @@ static const DDLogLevel ddLogLevel = DDLogLevelNotice;
 
 - (void)presentPasscodeView {
     [_window makeSecure];
-    if (lockView != nil) {
+    // Only lift the cover to reveal the passcode view when the app is active.
+    // Doing it while inactive/background (e.g. presentPasscodeView called from
+    // applicationWillEnterForeground mid-transition) would expose content in the
+    // app-switcher snapshot. The cover is lifted by applicationDidBecomeActive.
+    if (lockView != nil && [UIApplication sharedApplication].applicationState == UIApplicationStateActive) {
         [lockView removeFromSuperview];
     }
     BOOL isCallViewControllerPresented = [self.window.rootViewController.presentedViewController isKindOfClass:[CallViewController class]];
@@ -1136,9 +1155,22 @@ static const DDLogLevel ddLogLevel = DDLogLevelNotice;
 }
 
 - (void)dismissPasscodeViewAnimated:(BOOL)animated {
-    if (!isAppLocked) {
+    if (!isAppLocked && [UIApplication sharedApplication].applicationState != UIApplicationStateActive) {
         return;
     }
+
+    // Biometric auth resolves while the Face ID overlay is up, i.e. while the app
+    // is still inactive. Completing the unlock now would removeFromSuperview + nil
+    // the privacy cover; if the app is on its way to the app switcher the cover is
+    // then only re-added by the async didEnterBackground task, too late for the OS
+    // snapshot -> content leaks. Defer: keep the cover, remember the pending unlock,
+    // and finish in applicationDidBecomeActive once the app is genuinely active. If
+    // the user actually left, applicationDidEnterBackground clears the flag.
+    if ([UIApplication sharedApplication].applicationState != UIApplicationStateActive) {
+        biometricUnlockPending = YES;
+        return;
+    }
+    biometricUnlockPending = NO;
 
     isAppLocked = NO;
     startCheckBiometrics = false;

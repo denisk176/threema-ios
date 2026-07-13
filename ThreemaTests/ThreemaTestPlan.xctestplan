@@ -47,7 +47,6 @@
     {
       "skippedTests" : [
         "AddressBookLoadTests",
-        "AutomaticDeleteTests",
         "ChatProfileViewTests\/testBasicInitialization()",
         "ChatProfileViewTests\/testDoNotObserveRemovedMemberNameChange()",
         "ChatProfileViewTests\/testObserveGroupNameChange()",

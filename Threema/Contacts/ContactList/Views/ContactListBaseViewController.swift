@@ -98,7 +98,7 @@ class ContactListBaseViewController: ThemedTableViewController {
     
     // TODO: (IOS-4425) Some logic below should be in ContactStore and needs major clean-up
     func syncContacts() {
-        GatewayAvatarMaker().refreshForced()
+        GatewayProfilePictureManager().refreshForced()
         
         let contactStore = businessInjector.contactStore
         

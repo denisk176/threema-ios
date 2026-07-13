@@ -72,10 +72,9 @@ final class AppLaunchManagerAdapter: AppLaunchManagerProtocol {
         // Setup VoIP push registry
         let pushRegistry = PKPushRegistry(queue: .main)
         pushRegistry.desiredPushTypes = [.voIP]
-        
-        let logFile = LogManager.appLaunchLogFile
-        LogManager.deleteLogFile(logFile)
-        LogManager.addFileLogger(logFile)
+
+        LogManager.clearLoggerOutput(for: .appLaunchFileLog)
+        LogManager.addLogger(for: .appLaunchFileLog)
     }
     
     // MARK: - Post-Onboarding Setup
@@ -83,21 +82,20 @@ final class AppLaunchManagerAdapter: AppLaunchManagerProtocol {
     func runPostOnboardingSetup() async throws {
         deleteBackupData()
         
-        let logFile = LogManager.appSetupStepsLogFile
-        LogManager.deleteLogFile(logFile)
-        LogManager.addFileLogger(logFile)
-        
+        LogManager.clearLoggerOutput(for: .appSetupStepsFileLog)
+        LogManager.addLogger(for: .appSetupStepsFileLog)
+
         if TargetManager.isBusinessApp {
             await runWorkDataUpdate()
         }
         
         try await runAppSetupSteps()
         
-        LogManager.removeFileLogger(logFile)
-        
+        LogManager.removeLogger(for: .appSetupStepsFileLog)
+
         AppSetup.state = .complete
         
-        LogManager.deleteLogFile(logFile)
+        LogManager.clearLoggerOutput(for: .appSetupStepsFileLog)
     }
     
     // MARK: - Private Helpers

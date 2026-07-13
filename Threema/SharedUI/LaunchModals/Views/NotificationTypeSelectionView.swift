@@ -100,6 +100,7 @@ struct NotificationTypeSelectionView: View {
         .interactiveDismissDisabled()
         .onDisappear {
             // TODO: (IOS-3251) Remove
+            LaunchModalManager.shared.isBeingDisplayed = false
             LaunchModalManager.shared.checkLaunchModals()
         }
     }

@@ -9,7 +9,9 @@ final class EditProfilePictureRecipientsViewController: UICollectionViewControll
     
     private enum Constants {
         static var contactsPerRow: Int {
-            AppDelegate.shared().isCompactSizeClass ? 5 : 7
+            SharedAppProvider.onMain {
+                SharedAppProvider.isCompactSizeClass
+            } ? 5 : 7
         }
 
         static let sectionInset = NSDirectionalEdgeInsets(top: 0, leading: 20, bottom: 8, trailing: 20)
@@ -125,6 +127,7 @@ final class EditProfilePictureRecipientsViewController: UICollectionViewControll
     private var sendKind: SendProfilePicture
     private var contacts: [Contact]
     private var onDismiss: (() -> Void)?
+    private var onSave: ((SendProfilePicture, [String]) -> Void)?
     
     // MARK: Subview
     
@@ -175,8 +178,14 @@ final class EditProfilePictureRecipientsViewController: UICollectionViewControll
     
     // MARK: - Lifecycle
     
-    init(sendKind: SendProfilePicture, contacts: [String], onDismiss: (() -> Void)?) {
+    init(
+        sendKind: SendProfilePicture,
+        contacts: [String],
+        onDismiss: (() -> Void)?,
+        onSave: ((SendProfilePicture, [String]) -> Void)?
+    ) {
         self.onDismiss = onDismiss
+        self.onSave = onSave
         self.sendKind = sendKind
         self.contacts = contacts
             .map { BusinessInjector.ui.entityManager.entityFetcher.contactEntity(for: $0) }
@@ -238,7 +247,6 @@ final class EditProfilePictureRecipientsViewController: UICollectionViewControll
         view.backgroundColor = .systemGroupedBackground
         collectionView.backgroundColor = .systemGroupedBackground
         collectionView.alwaysBounceVertical = false
-        isModalInPresentation = true
     }
     
     private func configureNavigationBar() {
@@ -364,27 +372,8 @@ final class EditProfilePictureRecipientsViewController: UICollectionViewControll
     }
     
     @objc private func saveButtonTapped() {
-        Task { @MainActor in
-            var profile = profileStore.profile
-            profile.sendProfilePicture = sendKind
-            profile.profilePictureContactList = contacts.map(\.identity.rawValue)
-            
-            if settingsStore.isMultiDeviceRegistered {
-                let progressString = #localize("syncing_profile")
-                let syncHelper = UISyncHelper(viewController: self, progressString: progressString)
-                syncHelper.execute(profile: profile)
-                    .done {
-                        self.dismiss()
-                    }
-                    .catch { _ in
-                        self.dismiss()
-                    }
-            }
-            else {
-                profileStore.save(profile)
-                dismiss()
-            }
-        }
+        onSave?(sendKind, contacts.map(\.identity.rawValue))
+        dismiss()
     }
     
     // MARK: - Notifications

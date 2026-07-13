@@ -2,6 +2,10 @@
 
 set -euo pipefail
 
+LOG_TAG="build"
+# shellcheck source=lib/colors.sh
+source "$(cd "$(dirname "$0")/.." && pwd)/scripts/lib/colors.sh"
+
 if [[ $# = 0 ]]; then
   echo "Usage: ./build.sh [--dependencies | --dependencies-force | --generate-protobuf | [--build & --work]] [<relative project path>]"
   echo ""
@@ -28,9 +32,9 @@ else
 fi
 
 if [[ -d "$project_dir/Threema.xcodeproj/project.xcworkspace" ]]; then
-  echo "Project $project_dir/Threema.xcodeproj/project.xcworkspace"
+  info "Project $project_dir/Threema.xcodeproj/project.xcworkspace"
 else
-  echo "Project $project_dir/Threema.xcodeproj/project.xcworkspace not found"
+  error "Project $project_dir/Threema.xcodeproj/project.xcworkspace not found"
   exit 1
 fi
 
@@ -70,7 +74,7 @@ if [[ "$dependencies_arg" = 1 ]] || [[ "$dependencies_force_arg" = 1 ]]; then
     download_dir="$project_dir/$1"
     download_url="https://oss.threema.ch/ios/$2/$3/$1.zip"
 
-    echo "$download_url -> $download_dir"
+    info "$download_url -> $download_dir"
 
     mkdir "$download_dir"
     curl "$download_url" -o "$download_dir/$1.zip"
@@ -85,13 +89,13 @@ if [[ "$dependencies_arg" = 1 ]] || [[ "$dependencies_force_arg" = 1 ]]; then
   check() {
     if [[ -d "$project_dir/$1" ]]; then
       if [[ "$dependencies_force_arg" = 1 ]]; then
-        echo "Forcing dependency refresh, removing cache for $1"
+        warn "Forcing dependency refresh, removing cache for $1"
         rm -R "$project_dir/$1"
       fi
     fi
 
     if [[ -d "$project_dir/$1" ]]; then
-      echo "Cache found for $1"
+      success "Cache found for $1"
     else
       download $1 $2 $3
     fi
@@ -111,7 +115,7 @@ if [[ "$generate_protobuf_arg" = 1 ]]; then
 
   if [[ -d "$project_dir/$protobuf_submodule_path" ]]; then
     if [[ -d "$project_dir/$protobuf_source_path" ]]; then
-      echo "Protobuf source path $project_dir/$protobuf_source_path"
+      info "Protobuf source path $project_dir/$protobuf_source_path"
     else
       mkdir "$project_dir/$protobuf_source_path"
     fi
@@ -130,6 +134,6 @@ if [[ "$build_arg" = 1 ]]; then
     scheme="Threema"
   fi
 
-  echo "Build $scheme"
+  step "Build $scheme"
   xcodebuild build -workspace "$project_dir/Threema.xcodeproj/project.xcworkspace" -scheme "$scheme" -configuration Debug -destination "generic/platform=iOS"
 fi

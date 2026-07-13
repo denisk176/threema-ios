@@ -74,7 +74,7 @@ final class DistributionListViewController: ContactListBaseViewController {
             guard
                 let self,
                 let distributionList = distributionList(for: indexPath),
-                let entity = em.entityFetcher
+                let _ = em.entityFetcher
                 .distributionListEntity(for: distributionList.distributionListID)
             else {
                 return
@@ -86,7 +86,7 @@ final class DistributionListViewController: ContactListBaseViewController {
                 message: nil,
                 titleDestructive: #localize("delete")
             ) { [weak em] _ in
-                guard let em else {
+                guard em != nil else {
                     return
                 }
                 // TODO: (IOS-4515) Add correct logic

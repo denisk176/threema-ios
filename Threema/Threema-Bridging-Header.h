@@ -26,8 +26,6 @@
 #import "PhotoCaptionView.h"
 #import "FileCaptionView.h"
 #import "CaptionView.h"
-#import "NewMessageToaster.h"
-#import "GatewayAvatarMaker.h"
 #import "SplashViewController.h"
 #import "CompletedIDViewController.h"
 #import "EnterLicenseViewController.h"

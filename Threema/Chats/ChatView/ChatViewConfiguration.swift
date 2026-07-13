@@ -179,26 +179,26 @@ enum ChatViewConfiguration {
         static let dateAndStateViewShowAndHideAnimationDurationInSeconds: CGFloat = 0.25
         
         enum SwipeInteraction {
-            /// This blocks the swipe to quote interaction within n pixels of the left border
+            /// This blocks the swipe to reply interaction within n pixels of the left border
             static let swipeDeadZone: CGFloat = 50
-            /// Duration for the scaling animation when the swipe to quote action was activated
-            static let startQuoteIconAnimationDuration = 0.075
-            /// Scale factor for the scaling animation when the swipe to quote action as activated.
+            /// Duration for the scaling animation when the swipe to reply action was activated
+            static let startReplyIconAnimationDuration = 0.075
+            /// Scale factor for the scaling animation when the swipe to reply action as activated.
             /// Should be chosen such that the multiplicative inverse is a rational number representable with the same
             /// type.
-            static let startQuoteAnimationScaleFactor = 1.25
-            /// Factor by which the cell moves slower than the finger on the screen after the swipe to quote action was
+            static let startReplyAnimationScaleFactor = 1.25
+            /// Factor by which the cell moves slower than the finger on the screen after the swipe to reply action was
             /// activated
-            static let bubbleSlowdownFactorQuote: Double = 1 / 8
+            static let bubbleSlowdownFactorReply: Double = 1 / 8
             /// Factor by which the cell moves slower than the finger on the screen after the swipe to details action
             /// was activated
             static let bubbleSlowdownFactorDetails: Double = 1 / 4
             /// Number of pixels to swipe before the action activates
             static let swipeActionOffsetThreshold: Double = 55
-            /// Number of pixels by which the quote icon is inset from the left edge of the cell bubble
+            /// Number of pixels by which the reply icon is inset from the left edge of the cell bubble
             static let iconInset: Double = swipeActionOffsetThreshold / 1.75
-            /// The SFSymbol name of the icon to be used when swiping.
-            static let quoteSymbolName = "quote.bubble.fill"
+            /// The SFSymbol name of the icon to be used when swiping
+            static let replySymbolName = "arrowshape.turn.up.left.fill"
             /// Duration for the reset animation when cell swiping is cancelled
             static let resetDuration = 0.5
             /// Spring dampening for the reset animation when cell swiping is cancelled
@@ -451,7 +451,7 @@ enum ChatViewConfiguration {
         static let defaultStateAndProgressSpace: CGFloat = 12
         
         /// The maximum amount of bytes a blob may have in order to be rendered in full resolution
-        static let maximumBytesForFullPreview = 5 * 1_000_000
+        static let maximumBytesForFullPreview = 1_500_000
     }
     
     /// File views

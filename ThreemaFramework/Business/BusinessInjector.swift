@@ -32,7 +32,6 @@ public final class BusinessInjector: NSObject, FrameworkInjectorProtocol {
         self.runsInBackground = entityManager.hasBackgroundChildContext
         self.entityManager = entityManager
 
-        self.databaseManagerObjC = persistenceManager.databaseManager
         self.dirtyObjectManagerObjC = persistenceManager.dirtyObjectManager
 
         if entityManager.hasBackgroundChildContext {
@@ -122,9 +121,6 @@ public final class BusinessInjector: NSObject, FrameworkInjectorProtocol {
         entityManager: entityManager,
         taskManager: taskManager
     )
-
-    @available(*, deprecated, message: "Only use from Objective-C")
-    @objc public let databaseManagerObjC: DatabaseManagerProtocolObjc
 
     @available(*, deprecated, message: "Only use from Objective-C")
     @objc public let dirtyObjectManagerObjC: DirtyObjectManager

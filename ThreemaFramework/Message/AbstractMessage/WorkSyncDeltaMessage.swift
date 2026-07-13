@@ -60,7 +60,7 @@ import ThreemaProtocols
     }
     
     @objc func fromRawProtoBufMessage(rawProtobufMessage: NSData) throws {
-        decoded = try CspE2e_WorkSyncDelta(serializedData: rawProtobufMessage as Data)
+        decoded = try CspE2e_WorkSyncDelta(serializedBytes: rawProtobufMessage as Data)
     }
     
     private enum CodingKeys: String, CodingKey {

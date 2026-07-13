@@ -104,12 +104,10 @@ Before starting, if you don't have [homebrew](https://brew.sh), check out their 
    brew install mise
    ```
 
-3. Install the third-party tools needed to build our Rust dependencies
-   1. Install the other tools needed
-
-      ```sh
-      mise run setup
-      ```
+3. Install our dependencies
+  ```sh
+  mise install
+  ```
 
 4. Download, install and build all dependencies (you want to rerun this if you update the repository)
 
@@ -188,7 +186,7 @@ We accept GitHub pull requests. Please refer to <https://threema.com/open-source
 Threema for iOS is licensed under the GNU Affero General Public License v3.
 
 
-    Copyright (c) Threema GmbH
+    Copyright (c) Threema AG
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License, version 3,
     as published by the Free Software Foundation.

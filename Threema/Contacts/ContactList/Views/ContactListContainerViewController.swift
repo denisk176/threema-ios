@@ -187,5 +187,23 @@ final class ContactListContainerViewController: UIViewController {
         newViewController.didMove(toParent: self)
         currentViewController = newViewController
         newViewController.view.frame = view.bounds
+
+        // Keep the navigation title in sync with the displayed list
+        navigationItem.updateSelectedFilter(filterItem(for: newViewController))
+    }
+
+    // MARK: - Private functions
+    
+    private func filterItem(for viewController: ContactListBaseViewController) -> ContactListFilterItem {
+        switch viewController {
+        case is GroupListViewController:
+            .groups
+       
+        case is DistributionListViewController:
+            .distributionLists
+        
+        default:
+            .contacts
+        }
     }
 }

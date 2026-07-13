@@ -332,7 +332,7 @@
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Vaša kamera sa používa keď fotíte alebo natáčate video a posielate ich do konverzácií, alebo keď skenujete QR kódy."
+            "value" : "Vaša kamera sa používa pri fotografovaní alebo nahrávaní videa, pri videohovoroch alebo pri skenovaní QR kódov."
           }
         },
         "tr" : {
@@ -452,7 +452,7 @@
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Kontakty slúžia k vyhľadávaniu ostatných používateľov Threema pri zapnutej synchronizácii. Za týmto účelom budú na server Threema odoslané hashe telefónnych čísiel a emailových adries. Tieto informácie nie sú na serveroch ukladané."
+            "value" : "Adresár slúži na vyhľadávanie ostatných používateľov, ak je zapnutá synchronizácia kontaktov. Na účely synchronizácie sa na náš server nahrajú hash hodnoty telefónnych čísel a emailových adries, samotné informácie sa však na serveroch neukladajú."
           }
         },
         "tr" : {
@@ -932,7 +932,7 @@
         "sk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mikrofón sa používa pri hovoroch a na nahrávanie zvukových správ."
+            "value" : "Na využívanie funkcií, ako sú hlasové hovory, hlasové správy a videohovory, potrebuje aplikácia prístup k vášmu mikrofónu. Ak chcete tieto funkcie používať, povolte prosím prístup k mikrofónu."
           }
         },
         "tr" : {

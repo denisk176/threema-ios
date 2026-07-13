@@ -45,25 +45,16 @@ final class SelectContactListViewController: ThemedViewController {
         businessInjector: BusinessInjector.ui,
         style: .insetGrouped
     )
+    /// Searching filters the contacts shown in `tableViewController` in place instead of presenting a separate
+    /// search results controller
     private lazy var searchController: UISearchController = {
-        var controller = UISearchController(searchResultsController: contactListSearchResultsController)
+        var controller = UISearchController(searchResultsController: nil)
         controller.delegate = self
-        controller.searchResultsUpdater = contactListSearchResultsController
+        controller.searchResultsUpdater = self
         controller.obscuresBackgroundDuringPresentation = false
+        controller.hidesNavigationBarDuringPresentation = false
         controller.searchBar.placeholder = #localize("contact_list_search_bar_placeholder")
         controller.searchBar.setValue(#localize("Done"), forKey: "cancelButtonText")
-        return controller
-    }()
-
-    private lazy var contactListSearchResultsController = {
-        let controller = ContactListSearchResultViewController(
-            businessInjector: BusinessInjector.ui,
-            cellProvider: cellProvider,
-            provider: provider,
-            allowsMultiselect: true
-        )
-        controller.delegate = self
-        
         return controller
     }()
 
@@ -359,8 +350,21 @@ extension SelectContactListViewController: ItemSelectionHandler {
 
 extension SelectContactListViewController: UISearchControllerDelegate {
     func didDismissSearchController(_ searchController: UISearchController) {
+        tableViewController.cancelFiltering()
         tableViewController.updateSelection()
         carouselView.configure()
+    }
+}
+
+// MARK: - UISearchResultsUpdating
+
+extension SelectContactListViewController: UISearchResultsUpdating {
+    func updateSearchResults(for searchController: UISearchController) {
+        guard searchController.isActive else {
+            return
+        }
+
+        tableViewController.filterContacts(matching: searchController.searchBar.text ?? "")
     }
 }
 

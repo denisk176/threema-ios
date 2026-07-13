@@ -36,8 +36,6 @@ NS_ASSUME_NONNULL_BEGIN
 
 + (double)videoMaxDurationInMinutes;
 
-+ (void)convertVideoWithExportSession:(nullable AVAssetExportSession *)exportSession onCompletion:(void(^)(NSURL * _Nullable url))onCompletion onError:(void(^)(NSError * _Nullable error))onError;
-
 + (nullable NSURL *)getAssetOutputURL;
 
 #pragma mark - Get image as PNG or JPEG

@@ -16,7 +16,8 @@ public final class AsyncStreamContinuationToSharedPublisher<Output: Sendable>: S
     
     private let queue = DispatchQueue(label: "ch.threema.AsyncStreamContinuationToSharedPublisher")
     
-    private var lastItem: Output?
+    /// Protected by `queue`: written in `subscribeAndPublish()` and read in `getCurrentItem()`, both on `queue`
+    private nonisolated(unsafe) var lastItem: Output?
 
     // MARK: - Lifecycle
     

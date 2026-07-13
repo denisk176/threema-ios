@@ -28,6 +28,22 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     var window: UIWindow?
     private(set) var rootCoordinator: RootCoordinator?
     
+    var isActive: Bool = false
+    var isAppLocked: Bool = false
+    var orientationLock: UIInterfaceOrientationMask = .all
+
+    var isPresentingEnterLicense: Bool {
+        window?.rootViewController?.presentedViewController is EnterLicenseViewController
+    }
+
+    var isPresentingKeyGeneration: Bool {
+        let vc = window?.rootViewController?.presentedViewController
+        return vc is SplashViewController
+            || vc is RestoreOptionDataViewController
+            || vc is RestoreOptionBackupViewController
+            || vc is RestoreIdentityViewController
+    }
+    
     override init() {
         AppLaunchManager.preLaunchSetup()
         super.init()
@@ -55,6 +71,7 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         
         let rootCoordinator = RootCoordinator(
             window: window,
+            windowScene: windowScene,
             bootstrap: .live()
         )
         self.rootCoordinator = rootCoordinator
@@ -70,26 +87,23 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     }
 
     func sceneDidBecomeActive(_ scene: UIScene) {
-        // Called when the scene has moved from an inactive state to an active state.
-        // Use this method to restart any tasks that were paused (or not yet started) when the scene was inactive.
+        isActive = true
+        rootCoordinator?.hidePrivacyOverlay()
     }
 
     func sceneWillResignActive(_ scene: UIScene) {
-        // Called when the scene will move from an active state to an inactive state.
-        // This may occur due to temporary interruptions (ex. an incoming phone call).
+        defer {
+            isActive = false
+        }
+        rootCoordinator?.showPrivacyOverlay()
     }
 
     func sceneWillEnterForeground(_ scene: UIScene) {
-        // Called as the scene transitions from the background to the foreground.
-        // Use this method to undo the changes made on entering the background.
-        TypingIndicatorManager.sharedInstance.startObserving()
+        rootCoordinator?.sceneWillEnterForeground()
     }
 
     func sceneDidEnterBackground(_ scene: UIScene) {
-        // Called as the scene transitions from the foreground to the background.
-        // Use this method to save data, release shared resources, and store enough scene-specific state information
-        // to restore the scene back to its current state.
-        TypingIndicatorManager.sharedInstance.stopObserving()
+        rootCoordinator?.sceneDidEnterBackground()
     }
     
     // MARK: - Helpers
@@ -102,5 +116,23 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             let sentry = SentryClient()
             sentry.start()
         #endif
+    }
+    
+    func presentPasscodeView() {
+        rootCoordinator?.requestReauthenticationIfNeeded()
+    }
+    
+    func presentIDBackupRestore() {
+        let vc = window?.rootViewController?.presentedViewController
+        if let splashVC = vc as? SplashViewController {
+            splashVC.showRestoreIdentityViewController()
+        }
+        else if let restoreBackupVC = vc as? RestoreOptionBackupViewController,
+                let splashVC = restoreBackupVC.parent as? SplashViewController {
+            splashVC.showRestoreIdentityViewController()
+        }
+        else if let restoreVC = vc as? RestoreIdentityViewController {
+            restoreVC.updateTextViewWithBackupCode()
+        }
     }
 }

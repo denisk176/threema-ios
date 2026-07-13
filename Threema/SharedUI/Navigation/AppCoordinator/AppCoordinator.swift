@@ -1,6 +1,7 @@
 import CocoaLumberjackSwift
 import Coordinator
 import Foundation
+import Keychain
 import SwiftUI
 import ThreemaFramework
 import ThreemaMacros
@@ -160,14 +161,16 @@ final class AppCoordinator: NSObject, Coordinator {
                 switch destination {
                 case let .conversation(conversation, information),
                      let .archivedConversation(conversation, information):
-                    ChatViewController(
+                    let chatVC = ChatViewController(
                         for: conversation,
                         isRegularSizeClass: { self.splitViewController.isCollapsed == false },
                         initialUnreadCount: self.businessInjector.unreadMessages.totalCount(),
                         showConversationInformation: information
                     )
+                    chatVC.conversationDeletedDelegate = self.conversationListCoordinator
+                    return chatVC
                 case .archivedConversationList:
-                    ArchivedConversationListViewController(
+                    return ArchivedConversationListViewController(
                         delegate: self.conversationListCoordinator,
                         isRegularSizeClass: self.splitViewController.isCollapsed == false,
                         didDisappear: { [weak self] in
@@ -212,7 +215,7 @@ final class AppCoordinator: NSObject, Coordinator {
     /// Due to maintaining the two flows while in development,
     /// we need it to be optional, so in the old flow it's nil,
     /// but set on the new flow.
-    private var appContainer: AppDependencyContainer?
+    private(set) var appContainer: AppDependencyContainer?
     
     private lazy var businessInjector: BusinessInjectorProtocol = BusinessInjector.ui
     private lazy var launchModalManager = LaunchModalManager.shared
@@ -242,12 +245,15 @@ final class AppCoordinator: NSObject, Coordinator {
         start()
     }
     
-    convenience init(
+    /// Initialize with dependencies, without calling `start()`.
+    /// Used by the new coordinator flow where `start()` is called explicitly.
+    init(
         window: UIWindow,
         appContainer: AppDependencyContainer
     ) {
-        self.init(window: window)
+        self.window = window
         self.appContainer = appContainer
+        super.init()
         self.businessInjector = appContainer.businessInjector
     }
 
@@ -255,6 +261,10 @@ final class AppCoordinator: NSObject, Coordinator {
         configureSplitViewController()
         
         window.rootViewController = splitViewController
+        // Anchor the theme override on the root view controller as well as the window, so iPadOS tab-switch
+        // transitions (rendered outside the window's trait environment) resolve the app theme instead of the
+        // system appearance. See `Colors.update(rootViewController:)`.
+        Colors.update(rootViewController: splitViewController)
         window.makeKeyAndVisible()
         
         if appContainer != nil {
@@ -271,13 +281,105 @@ final class AppCoordinator: NSObject, Coordinator {
     // MARK: - Post-Start Setup
     
     private func performPostStartSetup() {
+        runAppLaunchTasks()
+        initializeServices()
+        applyMDMSettings()
         configureThreemaCallSettings()
         updateIdentityInfo()
         connectWCSessions()
+        
+        do {
+            try reloadIdentityFromKeychain()
+        }
+        catch {
+            assertionFailure("We should never end up here, identity should be set up at this point")
+
+            // TODO: We need to revisit if this is the correct place for it.
+            if KeychainManager.isKeychainLocked {
+                NotificationManager.showNoAccessToDatabaseNotification(completionHandler: {
+                    exit(EXIT_SUCCESS)
+                })
+            }
+            else {
+                ErrorHandler.abort(with: error)
+            }
+        }
+        
         setupConnection()
         acceptPrivacyPolicyIfNeeded()
         resetGallerySettingsIfNeeded()
         performSafeLaunchChecks()
+    }
+
+    private func applyMDMSettings() {
+        let mdmSetup = MDMSetup()
+        mdmSetup?.applyCompanyMDMWithCachedThreemaMDM(sendForce: false)
+
+        // Delete Threema-ID-Backup when backup is blocked from MDM
+        if mdmSetup?.disableBackups() ?? false
+            || mdmSetup?.disableIDExport() ?? false
+            || mdmSetup?.disableSystemBackups() ?? false {
+            do {
+                try IdentityBackupStore.deleteIdentityBackup()
+            }
+            catch {
+                NotificationPresenterWrapper.shared.present(type: .deleteIdentityBackupFailed)
+            }
+        }
+
+        // Prevent or release iOS iCloud backup
+        let backupFilesManager = BackupFilesManager()
+        backupFilesManager.setIsExcludedFromBackup(
+            exclude: mdmSetup?.disableBackups() ?? false || mdmSetup?.disableSystemBackups() ?? false
+        )
+
+        // Make sure private key is this device only
+        if mdmSetup?.disableIOSSystemBackupsIDKeyInclusion() ?? false
+            || mdmSetup?.disableBackups() ?? false
+            || mdmSetup?.disableSystemBackups() ?? false {
+            changeIdentityAccessibility(thisDeviceOnly: true)
+        }
+        else if mdmSetup?.existsMdmKey(MDM_KEY_DISABLE_IOS_SYSTEM_BACKUPS_ID_KEY_INCLUSION) ?? false,
+                !(mdmSetup?.disableIOSSystemBackupsIDKeyInclusion() ?? false) {
+            changeIdentityAccessibility(thisDeviceOnly: false)
+        }
+    }
+    
+    private func changeIdentityAccessibility(thisDeviceOnly: Bool) {
+        guard let keychainManager = appContainer?.keychainManager else {
+            return
+        }
+        do {
+            try keychainManager.changeIdentityAccessibility(thisDeviceOnly: thisDeviceOnly)
+        }
+        catch {
+            DDLogError("Failed to change identity accessibility to this device only (\(thisDeviceOnly)): \(error)")
+        }
+    }
+
+    private func initializeServices() {
+        guard let container = appContainer else {
+            return
+        }
+
+        businessInjector.serverConnector.registerMessageProcessorDelegate(delegate: container.incomingMessageManager)
+        container.incomingMessageManager.showIsNotPending()
+
+        passcodeLock.setDefaultSettings()
+        passcodeLock.upgradeAccessibility()
+        passcodeLock.attemptsAllowed = 10
+
+        container.typingIndicatorManager.startObserving()
+
+        container.groupCallUIHelper.setGlobalGroupCallsManagerSingletonUIDelegate()
+
+        IdentityBackupStore.syncKeychainWithFile()
+        TipKitManager.configureTips()
+    }
+
+    private func runAppLaunchTasks() {
+        let appLaunchTasks = AppLaunchTasks()
+        appLaunchTasks.run(launchEvent: .didFinishLaunching)
     }
     
     private func configureThreemaCallSettings() {
@@ -322,6 +424,22 @@ final class AppCoordinator: NSObject, Coordinator {
             DDLogNotice("[Threema Web] AppCoordinator --> connect all running sessions")
         }
         wcSessionManager.connectAllRunningSessions()
+    }
+    
+    /// Reloads the complete identity from keychain into the shared MyIdentityStore
+    /// singleton. Ensures clientKey/publicKey/serverGroup are all populated before
+    /// ServerConnector.connect runs. Centralizes the old flow's setupIdentity call
+    /// (AppDelegate+Swift.swift:125-127) so both onboarding and existing-user paths
+    /// hit it exactly once.
+    private func reloadIdentityFromKeychain() throws {
+        guard
+            let appContainer,
+            let identity = try? appContainer.keychainManager.loadIdentity()
+        else {
+            throw AppLaunchManager.AppLaunchError.myIdentityIsMissing
+        }
+        
+        MyIdentityStore.shared().setupIdentity(identity)
     }
     
     private func setupConnection() {
@@ -523,14 +641,13 @@ final class AppCoordinator: NSObject, Coordinator {
         settingsCoordinator.show(.notifications)
     }
     
-    @objc func canDisplayNotificationToast(for message: BaseMessageEntity) -> Bool {
+    func canDisplayNotificationToast(for message: BaseMessageEntity) -> Bool {
         guard
             let navigationController = splitViewController.navigationController(
                 for: tabBarController.selectedThreemaTab
             ),
             let chatViewController = navigationController.topViewController as? ChatViewController,
-            let contact = message.conversation.contact,
-            chatViewController.isChat(for: contact)
+            chatViewController.isDisplayingChat(for: message.conversation)
         else {
             return true
         }

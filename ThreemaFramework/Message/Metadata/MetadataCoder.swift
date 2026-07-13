@@ -42,7 +42,7 @@ enum MetadataCoderError: Error {
     @objc public func decode(nonce: Data, box: Data, publicKey: Data) throws -> MessageMetadata {
         let protobuf = try NaClCrypto.shared()
             .symmetricDecryptData(box, withKey: deriveMetadataKey(publicKey: publicKey), nonce: nonce)
-        let pbMetadata = try CspE2e_MessageMetadata(serializedData: protobuf!)
+        let pbMetadata = try CspE2e_MessageMetadata(serializedBytes: protobuf!)
         
         var nickname: String?
         var messageID: Data?

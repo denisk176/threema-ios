@@ -456,12 +456,12 @@ class MessageStore: MessageStoreProtocol {
                             reflectedAt
                         }
                     
-                    guard let group = try await frameworkInjector.groupManager.createOrUpdateDB(
+                    guard try await frameworkInjector.groupManager.createOrUpdateDB(
                         for: groupIdentity,
                         members: Set<String>(amsg.groupMembers.map { $0 as! String }),
                         systemMessageDate: systemMessageDate,
                         sourceCaller: .sync
-                    ) else {
+                    ) != nil else {
                         seal.reject(MediatorReflectedProcessorError.groupCreateFailed(groupIdentity: groupIdentity))
                         return
                     }

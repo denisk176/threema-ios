@@ -5,9 +5,12 @@ import ThreemaMacros
 @objc(ImageMessageEntity)
 public final class ImageMessageEntity: BaseMessageEntity {
 
+    static let entityName = "ImageMessage"
+
     enum Field: String {
         case image
         case imageBlobID
+        case dataAvailable
 
         static func name(for field: Field, encrypted: Bool) -> String {
             switch field {
@@ -15,6 +18,8 @@ public final class ImageMessageEntity: BaseMessageEntity {
                 field.rawValue
             case .imageBlobID:
                 encrypted ? encryptedImageBlobIDName : imageBlobIDName
+            case .dataAvailable:
+                encrypted ? encryptedDataAvailableName : dataAvailableName
             }
         }
     }
@@ -65,12 +70,37 @@ public final class ImageMessageEntity: BaseMessageEntity {
             setImageSize(newValue)
         }
     }
+    
+    @EncryptedField
+    @objc public internal(set) dynamic var dataAvailable: NSNumber {
+        get {
+            getDataAvailable()
+        }
+
+        set {
+            setDataAvailable(newValue)
+        }
+    }
 
     @NSManaged public var progress: NSNumber?
 
     // MARK: Relationships
 
-    @NSManaged public var image: ImageDataEntity?
+    @objc public dynamic var image: ImageDataEntity? {
+        get {
+            willAccessValue(forKey: #keyPath(ImageMessageEntity.image))
+            let value = primitiveValue(forKey: #keyPath(ImageMessageEntity.image)) as? ImageDataEntity
+            didAccessValue(forKey: #keyPath(ImageMessageEntity.image))
+            return value
+        }
+        set {
+            willChangeValue(forKey: #keyPath(ImageMessageEntity.image))
+            setPrimitiveValue(newValue, forKey: #keyPath(ImageMessageEntity.image))
+            didChangeValue(forKey: #keyPath(ImageMessageEntity.image))
+            dataAvailable = NSNumber(booleanLiteral: newValue?.data != nil)
+        }
+    }
+    
     @NSManaged public var thumbnail: ImageDataEntity?
 
     // MARK: Private properties
@@ -80,6 +110,7 @@ public final class ImageMessageEntity: BaseMessageEntity {
     private var decryptedImageBlobID: Data?
     private var decryptedImageNonce: Data?
     private var decryptedImageSize: Int32?
+    private var decryptedDataAvailable: Bool?
 
     // MARK: - Lifecycle
 
@@ -116,7 +147,7 @@ public final class ImageMessageEntity: BaseMessageEntity {
         setImageBlobID(imageBlobID)
         setImageNonce(imageNonce)
         setImageSize(imageSize)
-
+        
         if let progress {
             self.progress = progress as NSNumber
         }
@@ -282,6 +313,44 @@ public final class ImageMessageEntity: BaseMessageEntity {
             didChangeValue(forKey: Self.imageSizeName)
         }
     }
+    
+    // MARK: DataAvailable
+    
+    private func getDataAvailable() -> NSNumber {
+        var value: NSNumber = NSNumber(value: false)
+        guard let managedObjectContext else {
+            return value
+        }
+
+        if managedObjectContext.usesAdditionallyEncryptedModel {
+            decryptOptional(&decryptedDataAvailable, forKey: Self.encryptedDataAvailableName)
+            if let decryptedDataAvailable {
+                value = NSNumber(booleanLiteral: decryptedDataAvailable)
+            }
+        }
+        else {
+            willAccessValue(forKey: Self.dataAvailableName)
+            value = primitiveValue(forKey: Self.dataAvailableName) as? NSNumber ?? value
+            didAccessValue(forKey: Self.dataAvailableName)
+        }
+        return value
+    }
+    
+    private func setDataAvailable(_ newValue: NSNumber?) {
+        guard let managedObjectContext else {
+            return
+        }
+        
+        if managedObjectContext.usesAdditionallyEncryptedModel {
+            encryptOptional(newValue?.boolValue, forKey: Self.encryptedDataAvailableName)
+            decryptedDataAvailable = newValue?.boolValue
+        }
+        else {
+            willChangeValue(forKey: Self.dataAvailableName)
+            setPrimitiveValue(newValue, forKey: Self.dataAvailableName)
+            didChangeValue(forKey: Self.dataAvailableName)
+        }
+    }
 
     // MARK: - Reset cached values
 
@@ -298,6 +367,9 @@ public final class ImageMessageEntity: BaseMessageEntity {
         else if key == Self.encryptedImageSizeName {
             decryptedImageSize = nil
         }
+        else if key == Self.encryptedDataAvailableName {
+            decryptedDataAvailable = nil
+        }
         super.didChangeValue(forKey: key)
     }
 
@@ -306,6 +378,7 @@ public final class ImageMessageEntity: BaseMessageEntity {
         decryptedImageBlobID = nil
         decryptedImageNonce = nil
         decryptedImageSize = nil
+        decryptedDataAvailable = nil
         super.didTurnIntoFault()
     }
 }

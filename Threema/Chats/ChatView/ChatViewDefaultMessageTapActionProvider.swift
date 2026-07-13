@@ -154,10 +154,10 @@ final class ChatViewDefaultMessageTapActionProvider: NSObject {
                let fetchedBallot = entityManager.entityFetcher.ballotEntity(for: ballot.id) {
                 let view =
                     if ballot.isClosed {
-                        AnyView(ResultPollView(poll: ballot))
+                        AnyView(ResultPollView(poll: fetchedBallot))
                     }
                     else {
-                        AnyView(VotePollView(poll: ballot))
+                        AnyView(VotePollView(poll: fetchedBallot))
                     }
                 
                 chatViewController?.present(

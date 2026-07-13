@@ -101,7 +101,6 @@ typedef NS_ENUM(NSInteger, ThreemaAudioMessagePlaySpeed) {
 @synthesize safeConfig;
 @synthesize safeIntroShown;
 
-@synthesize workInfoShown;
 @synthesize desktopInfoBannerShown;
 
 @synthesize sentryAppDevice;
@@ -161,6 +160,7 @@ typedef NS_ENUM(NSInteger, ThreemaAudioMessagePlaySpeed) {
 /// - `DarkTheme`
 /// - `UseSystemTheme`
 /// - `FEATURE_WORK_AVAILABILITY_STATUS_ENABLED`
+/// - `WorkInfoShown`
 
 static UserSettings *instance;
 
@@ -239,7 +239,6 @@ static UserSettings *instance;
                                         [NSNumber numberWithBool:NO], @"AllowSeveralLinkedDevices",
                                         [NSData data], @"SafeConfig",
                                         [NSNumber numberWithBool:NO], @"SafeIntroShown",
-                                        [NSNumber numberWithBool:[TargetManagerObjC isBusinessApp] ? YES : NO], @"WorkInfoShown",
                                         [NSNumber numberWithBool:NO], @"DesktopInfoBannerShown",
                                         [NSNumber numberWithBool:NO], @"EnableMasterDnd",
                                         [NSArray array], @"MasterDNDWorkingDays",
@@ -376,7 +375,6 @@ static UserSettings *instance;
     evaluatedPolicyDomainStateApp = [defaults dataForKey:@"EvaluatedPolicyDomainStateApp"];
     evaluatedPolicyDomainStateShareExtension = [defaults dataForKey:@"EvaluatedPolicyDomainStateShareExtension"];
 
-    workInfoShown = [defaults boolForKey:@"WorkInfoShown"];
     desktopInfoBannerShown = [defaults boolForKey:@"DesktopInfoBannerShown"];
 
     NSString *tmpSentryAppDevice = [defaults stringForKey:@"SentryAppDevice"];
@@ -848,12 +846,6 @@ static UserSettings *instance;
 - (void)setDesktopInfoBannerShown:(BOOL)newDesktopInfoBannerShown {
     desktopInfoBannerShown = newDesktopInfoBannerShown;
     [defaults setBool:desktopInfoBannerShown forKey:@"DesktopInfoBannerShown"];
-    [defaults synchronize];
-}
-
-- (void)setWorkInfoShown:(BOOL)newWorkInfoShown {
-    workInfoShown = newWorkInfoShown;
-    [defaults setBool:workInfoShown forKey:@"WorkInfoShown"];
     [defaults synchronize];
 }
 

@@ -2,10 +2,6 @@ import CocoaLumberjackSwift
 import Foundation
 
 public struct GroupIdentity: Equatable, Hashable, CustomStringConvertible, Sendable, Codable {
-    public enum Error: Swift.Error {
-        case invalidCreatorIdentityLength
-    }
-    
     private enum CodingKeys: String, CodingKey {
         case id, creator
     }

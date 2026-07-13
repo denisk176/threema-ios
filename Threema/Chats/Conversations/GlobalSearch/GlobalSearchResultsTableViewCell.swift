@@ -11,10 +11,6 @@ final class GlobalSearchResultsTableViewCell: ThemedCodeStackTableViewCell {
             updateCell(for: message)
         }
     }
-    
-    // MARK: - Private properties
-       
-    private lazy var markupParser = MarkupParser()
 
     // MARK: - Views
     

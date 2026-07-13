@@ -184,6 +184,13 @@
             }];
         }];
     } onError:^(NSError *error) {
+        if (error.code == ThreemaProtocolErrorBlockUnknownContact) {
+            // Do not process message, remove initial user notification and send server ack
+            [messageProcessorDelegate incomingMessageFailed:boxedMessage];
+            onCompletion(nil, nil);
+            return;
+        }
+        
         [DebugLog logBoxedMessage:boxedMessage isIncoming:YES errorDescription:@"PublicKey from Threema-ID not found"];
         // Failed to process message, try it later
         onError(error, nil);

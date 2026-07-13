@@ -521,13 +521,19 @@ extension ChatBarCoordinator: ChatBarViewDelegate {
             .numberOfItems == 1
         
         if containsMemoji {
-            guard let image = UIPasteboard.general.image?.pngData(),
-                  let uti = imageSender.getUTI(for: image) as? String else {
+            let animatedData = UIPasteboard.general.types
+                .compactMap { UIPasteboard.general.data(forPasteboardType: $0) }
+                .filter { ImageURLSenderItemCreator.frameCount(of: $0) > 1 }
+                .max { $0.count < $1.count }
+
+            guard let stickerData = animatedData ?? UIPasteboard.general.image?.pngData() else {
                 showPasteError()
                 return false
             }
 
-            if let senderItem = imageSender.senderItem(from: image, uti: uti) {
+            let uti = (imageSender.getUTI(for: stickerData) as? String) ?? UTType.png.identifier
+
+            if let senderItem = imageSender.senderItem(from: stickerData, uti: uti) {
                 Task {
                     do {
                         try await businessInjector.messageSender.sendBlobMessage(
@@ -614,9 +620,14 @@ extension ChatBarCoordinator: ChatBarViewDelegate {
     func showPasteError() {
         let title = #localize("pasteErrorMessageTitle")
         let message = #localize("pasteErrorMessageMessage")
-        DispatchQueue.main.async {
+        Task { @MainActor in
+            guard let currentTopViewController = SharedAppProvider.currentTopViewController else {
+                DDLogError("`SharedAppProvider.currentTopViewController` not available.")
+                return
+            }
+            
             UIAlertTemplate.showAlert(
-                owner: AppDelegate.shared().currentTopViewController(),
+                owner: currentTopViewController,
                 title: title,
                 message: message,
                 actionOk: nil
@@ -808,7 +819,14 @@ extension ChatBarCoordinator: ChatBarViewDelegate {
         Task { @MainActor in
             chatViewTableViewVoiceMessageCellDelegate?.pausePlaying()
             isRecording = true
-            chatBar.presentVoiceMessageRecorderView(with: self, with: draftAudioURL)
+            chatBar.presentVoiceMessageRecorderView(with: self, with: draftAudioURL) { [weak self] in
+                guard let self, UserSettings.shared().inAppSounds, let sentMessageSoundID else {
+                    return
+                }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    AudioServicesPlaySystemSound(sentMessageSoundID)
+                }
+            }
             UIAccessibility.post(notification: UIAccessibility.Notification.screenChanged, argument: nil)
         }
     }
@@ -922,7 +940,7 @@ extension ChatBarCoordinator: PPAssetsActionHelperDelegate {
         sendMediaAction = SendMediaAction(chatViewController: chatViewController)
 
         chatViewController.dismiss(animated: true, completion: nil)
-        sendMediaAction?.sendAssets(assets: assets, asFile: false, withCaptions: [], completion: nil)
+        sendMediaAction?.sendAssets(assets: assets, asFile: false)
     }
     
     func assetsActionHelperDidSelectOwnSnapButton(_ picker: PPAssetsActionHelper, didFinishPicking assets: [Any]) {

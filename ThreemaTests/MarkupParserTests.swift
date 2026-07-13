@@ -464,12 +464,12 @@ final class MarkupParserTests: XCTestCase {
                 "HTTps://threema.com"
             ),
             (
-                "https://threema.com/maps?saddr=Current%20Location&dirflg=d&daddr=Musterstraße%201,St%20Musterstadt",
-                "https://threema.com/maps?saddr=Current%20Location&dirflg=d&daddr=Musterstra%C3%9Fe%201,St%20Musterstadt"
-            ),
-            (
                 "info@threema.ch",
                 "mailto:info@threema.ch"
+            ),
+            (
+                "https://example.com/?key=value%2b1",
+                "https://example.com/?key=value%2b1"
             ),
         ]
 

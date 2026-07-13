@@ -60,16 +60,20 @@ public final class SQLDHSessionStore: DHSessionStoreProtocol {
         maximumSupportedDowngradeVersion: 5
     )
     
-    var db: Connection
     let dbQueue: DispatchQueue
     let keyWrapper: KeyWrapperProtocol
-    
+
+    private var dbConnection: Connection?
+
+    // MARK: - Lifecycle
+
     init(
         path: String,
         keyWrapper: KeyWrapperProtocol,
         versionInfo: SQLDHSessionStoreVersionInfo = defaultVersionInfo
     ) throws {
-        self.db = try Connection(path)
+        let db = try Connection(path)
+        self.dbConnection = db
         self.dbQueue = DispatchQueue(label: "SQLDHSessionStore")
         self.keyWrapper = keyWrapper
         self.versionInfo = versionInfo
@@ -94,20 +98,39 @@ public final class SQLDHSessionStore: DHSessionStoreProtocol {
         )
     }
     
-    public static func deleteSessionDB() {
+    public func resetSessionDB() {
         #if !DEBUG
             guard SettingsBundleHelper.safeMode else {
                 return
             }
         #endif
-        
         guard let pathAsURL = URL(string: SQLDHSessionStore.databasePath) else {
             return
         }
-        FileUtility.shared.deleteIfExists(at: pathAsURL)
+
+        do {
+            try dbQueue.sync {
+                dbConnection = nil
+                FileUtility.shared.deleteIfExists(at: pathAsURL)
+                dbConnection = try Connection(SQLDHSessionStore.databasePath)
+            }
+        }
+        catch {
+            DDLogError(
+                "[ForwardSecurity] Could not recreate the session store connection after DB deletion. Further operations will not be available."
+            )
+        }
     }
-    
+
+    /// Closes the underlying SQLite connection so the database file can be safely unlinked.
+    public func close() {
+        dbQueue.sync {
+            dbConnection = nil
+        }
+    }
+
     func upgradeIfNecessary() throws {
+        let db = try getDB()
         DDLogNotice(
             "[ForwardSecurity] Start session store migration with version \(String(describing: db.userVersion)) and \(versionInfo.dbVersion)"
         )
@@ -117,14 +140,14 @@ public final class SQLDHSessionStore: DHSessionStoreProtocol {
                 try db.transaction {
                     if currentVersion < versionInfo.dbVersion {
                         try onUpgrade(
-                            db: self.db,
+                            db: db,
                             oldVersion: currentVersion,
                             newVersion: versionInfo.dbVersion
                         )
                     }
                     else if currentVersion > versionInfo.dbVersion {
                         try onDowngrade(
-                            db: self.db,
+                            db: db,
                             oldVersion: currentVersion,
                             newVersion: versionInfo.dbVersion
                         )
@@ -211,10 +234,9 @@ public final class SQLDHSessionStore: DHSessionStoreProtocol {
     }
     
     public func executeNull() throws {
-        DDLogNotice(
-            "[ForwardSecurity] Migration start with version \(String(describing: db.userVersion))"
-        )
+        DDLogNotice("[ForwardSecurity] Migration start")
         try dbQueue.sync {
+            let db = try getDB()
             DDLogNotice(
                 "[ForwardSecurity] Migration entered dbQueue with version \(String(describing: db.userVersion))"
             )
@@ -223,14 +245,12 @@ public final class SQLDHSessionStore: DHSessionStoreProtocol {
                 "[ForwardSecurity] Migration exit dbQueue with version \(String(describing: db.userVersion))"
             )
         }
-        
-        DDLogNotice(
-            "[ForwardSecurity] Migration finished with version \(String(describing: db.userVersion))"
-        )
+        DDLogNotice("[ForwardSecurity] Migration finished")
     }
     
     public func exactDHSession(myIdentity: String, peerIdentity: String, sessionID: DHSessionID?) throws -> DHSession? {
         try dbQueue.sync {
+            let db = try getDB()
             guard let row = try db
                 .pluck(filterForSession(myIdentity: myIdentity, peerIdentity: peerIdentity, sessionID: sessionID))
             else {
@@ -242,6 +262,7 @@ public final class SQLDHSessionStore: DHSessionStoreProtocol {
                          
     public func bestDHSession(myIdentity: String, peerIdentity: String) throws -> DHSession? {
         try dbQueue.sync {
+            let db = try getDB()
             let orderExpression = SQLite.Expression<String>(
                 literal: "iif(myCurrentChainKey_4dh is not null, 1, 0) desc, sessionId asc"
             )
@@ -258,6 +279,7 @@ public final class SQLDHSessionStore: DHSessionStoreProtocol {
     
     public func storeDHSession(session: DHSession) throws {
         try dbQueue.sync {
+            let db = try getDB()
             _ = try db.run(sessionTable.insert(
                 or: OnConflict.replace,
                 myIdentityColumn <- session.myIdentity,
@@ -284,6 +306,7 @@ public final class SQLDHSessionStore: DHSessionStoreProtocol {
     
     public func updateDHSessionRatchets(session: DHSession, peer: Bool) throws {
         try dbQueue.sync {
+            let db = try getDB()
             if peer {
                 _ = try db.run(
                     filterForSession(
@@ -357,6 +380,8 @@ public final class SQLDHSessionStore: DHSessionStoreProtocol {
         }
         
         try dbQueue.sync {
+            let db = try getDB()
+
             _ = try db.run(
                 filterForSession(
                     myIdentity: session.myIdentity,
@@ -389,6 +414,7 @@ public final class SQLDHSessionStore: DHSessionStoreProtocol {
     
     public func deleteDHSession(myIdentity: String, peerIdentity: String, sessionID: DHSessionID) throws -> Bool {
         try dbQueue.sync {
+            let db = try getDB()
             let numDeleted = try db
                 .run(
                     filterForSession(myIdentity: myIdentity, peerIdentity: peerIdentity, sessionID: sessionID)
@@ -403,6 +429,7 @@ public final class SQLDHSessionStore: DHSessionStoreProtocol {
     
     public func deleteAllDHSessions(myIdentity: String, peerIdentity: String) throws -> Int {
         try dbQueue.sync {
+            let db = try getDB()
             let numDeleted = try db
                 .run(filterForSession(myIdentity: myIdentity, peerIdentity: peerIdentity, sessionID: nil).delete())
             DDLogNotice(
@@ -420,6 +447,7 @@ public final class SQLDHSessionStore: DHSessionStoreProtocol {
         fourDhOnly: Bool
     ) throws -> Int {
         try dbQueue.sync {
+            let db = try getDB()
             var filter = filterForSessionExclude(
                 myIdentity: myIdentity,
                 peerIdentity: peerIdentity,
@@ -440,6 +468,7 @@ public final class SQLDHSessionStore: DHSessionStoreProtocol {
     
     public func hasInvalidDHSessions(myIdentity: String, peerIdentity: String) throws -> Bool {
         try dbQueue.sync {
+            let db = try getDB()
             let numberInvalidDHSessions = try db.scalar(
                 filterInvalidSessions(myIdentity: myIdentity, peerIdentity: peerIdentity).count
             )
@@ -448,9 +477,23 @@ public final class SQLDHSessionStore: DHSessionStoreProtocol {
         }
     }
     
-    // MARK: Private functions
-    
+    // MARK: - Private functions
+
+    private func getDB() throws -> Connection {
+        guard let db = dbConnection else {
+            let error = NSError(
+                domain: "ch.threema.SQLDHSessionStore",
+                code: 0,
+                userInfo: [NSLocalizedDescriptionKey: "Database connection not available"]
+            )
+            throw SQLDHSessionStoreMigrationError.unknownError(error)
+        }
+        return db
+    }
+
     private func createSessionTable() throws {
+        let db = try getDB()
+
         /// When creating a new table, we set it to the current user version otherwise we'll try to upgrade to a version
         /// we already use on the next run.
         ///
@@ -564,6 +607,7 @@ public final class SQLDHSessionStore: DHSessionStoreProtocol {
     }
     
     private func dhSessionFromRow(row: Row) throws -> DHSession? {
+        let db = try getDB()
         do {
             return try DHSession(
                 id: DHSessionID(value: row.get(sessionIDColumn)),

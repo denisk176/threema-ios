@@ -49,10 +49,9 @@ extension AppDelegate {
         window.makeKeyAndVisible()
 
         do {
-            let logFile = LogManager.appLaunchLogFile
-            LogManager.deleteLogFile(logFile)
-            LogManager.addFileLogger(logFile)
-            
+            LogManager.clearLoggerOutput(for: .appLaunchFileLog)
+            LogManager.addLogger(for: .appLaunchFileLog)
+
             if try KeychainManager.loadThreemaIdentity() == nil {
                 // We end up here after an iOS data backup restore, because the ID won't be around. In that case we
                 // reset the configuration for the previous ID, which also resets the `AppSetup` `state`
@@ -136,8 +135,8 @@ extension AppDelegate {
                 LicenseStore.shared().onPremConfigURL = license.onPremServer
             }
             
-            LogManager.removeFileLogger(logFile)
-            LogManager.deleteLogFile(logFile)
+            LogManager.removeLogger(for: .appLaunchFileLog)
+            LogManager.clearLoggerOutput(for: .appLaunchFileLog)
 
             let businessInjector = try AppLaunchManager.shared.business(
                 remoteSecretManager: remoteSecretManager,
@@ -181,6 +180,15 @@ extension AppDelegate {
                     DDLogError("Failed to change identity accessibility to this device only: \(error)")
                 }
             }
+            else if mdmSetup?.existsMdmKey(MDM_KEY_DISABLE_IOS_SYSTEM_BACKUPS_ID_KEY_INCLUSION) ?? false,
+                    !(mdmSetup?.disableIOSSystemBackupsIDKeyInclusion() ?? false) {
+                do {
+                    try keychainManager.changeIdentityAccessibility(thisDeviceOnly: false)
+                }
+                catch {
+                    DDLogError("Failed to change identity accessibility to all devices: \(error)")
+                }
+            }
             
             registerMemoryWarningNotifications()
 
@@ -214,8 +222,8 @@ extension AppDelegate {
             return false
         }
         
-        if KKPasscodeLock.shared().isPasscodeRequired(), AppDelegate.shared().isAppLocked {
-            AppDelegate.shared().presentPasscodeView()
+        if KKPasscodeLock.shared().isPasscodeRequired(), SharedAppProvider.isAppLocked {
+            SharedAppProvider.presentPasscodeView()
         }
         else {
             // Try to obtain an unencrypted license from the keychain
@@ -621,5 +629,18 @@ extension AppDelegate {
         KKPasscodeLock.shared().disablePasscode()
        
         exit(0)
+    }
+
+    @objc func refreshGatewayAvatars() {
+        GatewayProfilePictureManager().refresh()
+    }
+
+    @objc class func initializeGlobalLogger() {
+        #if DEBUG
+            let debug = true
+        #else
+            let debug = false
+        #endif
+        LogManager.initializeGlobalLogger(debug: debug)
     }
 }

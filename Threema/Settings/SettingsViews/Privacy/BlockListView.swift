@@ -47,10 +47,8 @@ struct BlockListView: View {
                         Color.accentColor
                     }
                 
-                Button {
+                Button(#localize("add_button"), systemImage: "plus") {
                     showingAlert.toggle()
-                } label: {
-                    Image(systemName: "plus")
                 }
                 .tint(color)
                 .alert(

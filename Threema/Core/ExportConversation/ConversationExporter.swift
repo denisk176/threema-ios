@@ -462,7 +462,7 @@ extension ConversationExporter {
             var seconds = entity.duration.intValue
             let minutes: Int = seconds / 60
             seconds = seconds - minutes * 60
-            return "\(#localize("file_message_voice")) (\(minutes):\(seconds),\(entity.blobExportFilename ?? "nil"))"
+            return "\(#localize("file_message_voice")) (\(minutes):\(seconds),\(entity.blobExportFilename))"
         }
         else if let entity = baseMessageEntity as? BallotMessageEntity {
             guard let ballot = entity.ballot else {
@@ -491,7 +491,7 @@ extension ConversationExporter {
             return info
         }
         else if let entity = baseMessageEntity as? ImageMessageEntity {
-            var info = "\(#localize("image")) (\(entity.blobExportFilename ?? ""))"
+            var info = "\(#localize("image")) (\(entity.blobExportFilename))"
 
             if let caption = entity.image?.caption() {
                 info = info + ", \(#localize("caption")): \(caption)"
@@ -521,7 +521,7 @@ extension ConversationExporter {
             var seconds = entity.duration.intValue
             let minutes: Int = seconds / 60
             seconds = seconds - minutes * 60
-            return "\(#localize("video")) (\(minutes):\(seconds),\(entity.blobExportFilename ?? "nil"))"
+            return "\(#localize("video")) (\(minutes):\(seconds),\(entity.blobExportFilename))"
         }
         else {
             return nil
@@ -601,7 +601,7 @@ extension ConversationExporter {
         let item = UIActivityHelperFactory.makeItemSource(type: .zipFile(url: zipURL, subject: emailSubject))
         let activityViewController = UIActivityViewController(activityItems: [item], applicationActivities: nil)
 
-        if let topViewController = AppDelegate.shared().currentTopViewController(),
+        if let topViewController = SharedAppProvider.onMain({ SharedAppProvider.keyWindow?.rootViewController }),
            topViewController.traitCollection.horizontalSizeClass == .regular {
             let rect = viewController!.view.convert(viewController!.view.frame, to: viewController!.view)
             activityViewController.popoverPresentationController?.sourceRect = rect

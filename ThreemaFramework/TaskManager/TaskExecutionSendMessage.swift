@@ -209,7 +209,7 @@ final class TaskExecutionSendMessage: TaskExecution, TaskExecutionProtocol {
             // Send messages parallel
             when(fulfilled: sendMessages)
                 .then { sentMessages -> Promise<[AbstractMessage]> in
-                    let filteredSentMessages = sentMessages.compactMap { $0 }
+                    let filteredSentMessages = sentMessages.compactMap(\.self)
                     
                     // Mark (group) message as sent
                     if let msg = filteredSentMessages.first {

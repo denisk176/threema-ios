@@ -59,9 +59,7 @@ struct ResultPollView: View {
         }
         .contentMargins(.top, 5)
         .listStyle(.insetGrouped)
-        .navigationTitle(
-            viewModel.navigationTitle
-        )
+        .navigationTitle(viewModel.navigationTitle)
         .navigationBarTitleDisplayMode(.inline)
         .applyIf(hasNavigationView) { view in
             view.toolbar {

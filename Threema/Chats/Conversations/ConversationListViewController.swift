@@ -1104,22 +1104,28 @@ extension ConversationListViewController {
     
     @objc private func unreadMessageCountChanged(_ notification: Notification) {
         let unread: Int = notification.userInfo?[kKeyUnread] as? Int ?? 0
-        
-        let selectedConversationUnreadCount = selectedConversation?.managedObjectContext?.performAndWait {
-            selectedConversation?.unreadMessageCount.intValue
+
+        DispatchQueue.main.async { [weak self] in
+            guard let self else {
+                return
+            }
+
+            let selectedConversationUnreadCount = selectedConversation?.managedObjectContext?.performAndWait {
+                self.selectedConversation?.unreadMessageCount.intValue
+            }
+
+            // To prevent short appearances of an unread count in the back button in the selected chat (with annoying
+            // animations or breaking constraints in iOS 26+) we only update the unread count when there are not unread
+            // messages in the selected chat or the selected chat is not the only one with unread messages
+            guard selectedConversationUnreadCount == 0 || selectedConversationUnreadCount != unread else {
+                DDLogNotice(
+                    "Selected conversation has no unread message or unread count only comes from the selected conversation"
+                )
+                return
+            }
+
+            setBackButton(unread: unread)
         }
-                
-        // To prevent short appearances of an unread count in the back button in the selected chat (with annoying
-        // animations or breaking constraints in iOS 26+) we only update the unread count when there are not unread
-        // messages in the selected chat or the selected chat is not the only one with unread messages
-        guard selectedConversationUnreadCount == 0 || selectedConversationUnreadCount != unread else {
-            DDLogNotice(
-                "Selected conversation has no unread message or unread count only comes from the selected conversation"
-            )
-            return
-        }
-        
-        setBackButton(unread: unread)
     }
     
     @objc func applicationWillEnterForeground() {

@@ -274,19 +274,18 @@ extension RestoreSafeViewController {
             return
         }
         
-        #if SCENE_DELEGATE_ROOT_COORDINATOR_DEVELOPMENT
+        if SharedAppProvider.isSceneDelegateDevelopment {
             delegate?.restoreSafeViewController?(
                 self,
                 didRequestRestoreWith: enteredIdentity,
                 password: enteredPassword
             )
             return
-        #endif
+        }
         
-        let logFile = LogManager.safeRestoreLogFile
-        LogManager.deleteLogFile(logFile)
-        LogManager.addFileLogger(logFile)
-        
+        LogManager.clearLoggerOutput(for: .safeRestoreFileLog)
+        LogManager.addLogger(for: .safeRestoreFileLog)
+
         restoreSafeManager.startRestore(
             with: OnboardingRestoreSafeInformation(
                 identity: enteredIdentity,
@@ -321,7 +320,7 @@ extension RestoreSafeViewController {
             }
         DDLogError("[ThreemaSafe Restore] Error restoring safe: [\(message)]")
         let alert = IntroQuestionViewHelper(parent: self) { [weak self] _, _ in
-            if let safeError = error as? SafeError.RestoreError {
+            if error is SafeError.RestoreError {
                 self?.delegate?.restoreSafeCancelled(showLocalDataInfo: false)
             }
         }
@@ -361,7 +360,7 @@ extension RestoreSafeViewController: OnboardingRestoreSafeManagerDelegate {
         
         delegate?.restoreSafeDone()
         
-        LogManager.removeFileLogger(LogManager.safeRestoreLogFile)
+        LogManager.removeLogger(for: .safeRestoreFileLog)
     }
     
     func didFail(with error: any Error) {

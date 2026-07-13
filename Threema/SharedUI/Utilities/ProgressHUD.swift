@@ -9,7 +9,12 @@ struct ProgressHUD {
     private init() { }
     
     static func make(label: String?) -> ProgressHUD {
-        make(label: label, on: AppDelegate.shared().currentTopViewController())
+        make(
+            label: label,
+            on: SharedAppProvider.onMain {
+                SharedAppProvider.currentTopViewController
+            }
+        )
     }
     
     static func make(label: String?, on viewController: UIViewController?) -> ProgressHUD {

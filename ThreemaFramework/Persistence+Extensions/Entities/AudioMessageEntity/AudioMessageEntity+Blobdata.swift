@@ -122,4 +122,13 @@ extension AudioMessageEntity: BlobData {
     public var blobExportFilename: String {
         "\(DateFormatter.getDateForFilename(date))-audio.\(MEDIA_EXTENSION_AUDIO)"
     }
+    
+    public var isDataAvailable: Bool {
+        get {
+            dataAvailable.boolValue
+        }
+        set {
+            dataAvailable = NSNumber(booleanLiteral: newValue)
+        }
+    }
 }

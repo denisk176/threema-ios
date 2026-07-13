@@ -81,11 +81,9 @@ public enum Draft {
             
         case let .json(subtype):
             switch subtype {
-            case let .quote(draft, _):
-                "\(#localize("draft_type_quote")): \(draft)"
-                
-            case let .edit(draft, _):
-                "\(#localize("draft_type_edit")): \(draft)"
+            case let .quote(draft, _),
+                 let .edit(draft, _):
+                draft
             }
         }
     }

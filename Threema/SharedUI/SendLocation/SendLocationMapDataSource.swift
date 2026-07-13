@@ -279,9 +279,11 @@ extension SendLocationMapDataSource {
               var components = URLComponents(string: urlString) else {
             return
         }
-        components.path = "/around/" + String(location.coordinate.latitude) + "/" +
-            String(location.coordinate.longitude) +
-            "/\(radius)/"
+        components.path = SendLocationURLBuilder.replacingPlaceholders(in: components.path, with: [
+            "{latitude}": String(location.coordinate.latitude),
+            "{longitude}": String(location.coordinate.longitude),
+            "{radius}": String(radius),
+        ])
         
         guard let url = components.url else {
             DDLogError("POI URL could not be created")

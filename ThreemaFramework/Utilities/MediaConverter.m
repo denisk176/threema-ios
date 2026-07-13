@@ -170,19 +170,6 @@ static const DDLogLevel ddLogLevel = DDLogLevelWarning;
     return [videoConversionHelper videoHasAllowedSizeAt:url];
 }
 
-+ (void)convertVideoWithExportSession:(AVAssetExportSession *)exportSession onCompletion:(void(^)(NSURL *url))onCompletion onError:(void(^)(NSError *error))onError {
-    /* convert video to MPEG4 for compatibility with Android */
-    [exportSession exportAsynchronouslyWithCompletionHandler:^(void) {
-        DDLogVerbose(@"Export Complete %ld %@ %@", (long)exportSession.status, exportSession.error, exportSession.outputURL);
-        if (exportSession.status == AVAssetExportSessionStatusCompleted) {
-            onCompletion(exportSession.outputURL);
-        } else {
-            [[FileUtility new] deleteAt:exportSession.outputURL error:nil];
-            onError(exportSession.error);
-        }
-    }];
-}
-
 + (NSURL *)getAssetOutputURL {
     NSString *filename = [NSString stringWithFormat:@"%f-%u.%@", [[NSDate date] timeIntervalSinceReferenceDate], arc4random(), MEDIA_EXTENSION_VIDEO];
     NSURL *tmpfileURL = [[[FileUtility new] appTemporaryUnencryptedDirectory] URLByAppendingPathComponent:filename];

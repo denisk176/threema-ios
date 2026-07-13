@@ -56,7 +56,7 @@ public final class ThreemaUtility: NSObject {
     }()
     
     private static let locale: String = {
-        var language = Locale.current.languageCode ?? "?"
+        var language = Locale.current.language.languageCode?.identifier ?? "?"
         // call clientVersionMDMString to save it
         let mdmDescription = additionalMDMString
         let countryCode = (Locale.current as NSLocale).object(forKey: .countryCode)

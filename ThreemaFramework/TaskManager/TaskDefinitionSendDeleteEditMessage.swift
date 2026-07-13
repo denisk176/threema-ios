@@ -58,10 +58,10 @@ final class TaskDefinitionSendDeleteEditMessage: TaskDefinitionSendMessage {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self
             .deleteMessage = try? CspE2e_DeleteMessage(
-                serializedData: container
+                serializedBytes: container
                     .decode(Data.self, forKey: .deleteMessage)
             )
-        self.editMessage = try? CspE2e_EditMessage(serializedData: container.decode(Data.self, forKey: .editMessage))
+        self.editMessage = try? CspE2e_EditMessage(serializedBytes: container.decode(Data.self, forKey: .editMessage))
 
         let superDecoder = try container.superDecoder()
         try super.init(from: superDecoder)

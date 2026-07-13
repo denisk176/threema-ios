@@ -295,7 +295,7 @@ final class WebMessageObject: NSObject {
         else {
             quote = [
                 "identity": "",
-                "text": #localize("quote_not_found"),
+                "text": #localize("message_not_found"),
                 "messageId": quotedMessageID.hexEncodedString(),
             ]
             body = textMessage.text

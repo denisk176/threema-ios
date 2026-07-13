@@ -3,7 +3,7 @@ import Foundation
 import UIKit
 
 protocol ChatViewTableViewCellHorizontalSwipeHandlerDelegate: NSObject {
-    var canQuote: Bool { get }
+    var canReply: Bool { get }
     
     func swipe(with recognizer: UIPanGestureRecognizer)
     func showQuoteView()
@@ -11,7 +11,7 @@ protocol ChatViewTableViewCellHorizontalSwipeHandlerDelegate: NSObject {
     func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool
 }
 
-/// Handles horizontal swipe interactions for mentions and cell details
+/// Handles horizontal swipe interactions for replying and cell details
 final class ChatViewTableViewCellHorizontalSwipeHandler: NSObject {
     typealias Config = ChatViewConfiguration.ChatBubble.SwipeInteraction
     
@@ -28,15 +28,15 @@ final class ChatViewTableViewCellHorizontalSwipeHandler: NSObject {
     private weak var cell: UITableViewCell?
     private weak var delegate: ChatViewTableViewCellHorizontalSwipeHandlerDelegate?
     
-    private lazy var quoteSymbolView: UIImageView = {
-        let quoteImage = UIImage(systemName: Config.quoteSymbolName)?
+    private lazy var replySymbolView: UIImageView = {
+        let replyImage = UIImage(systemName: Config.replySymbolName)?
             .withRenderingMode(.alwaysOriginal)
         
-        let quoteImageView = UIImageView(image: quoteImage)
-        quoteImageView.alpha = 0.0
-        quoteImageView.tintColor = .secondaryLabel
+        let replyImageView = UIImageView(image: replyImage)
+        replyImageView.alpha = 0.0
+        replyImageView.tintColor = .secondaryLabel
         
-        return quoteImageView
+        return replyImageView
     }()
     
     // MARK: - Lifecycle
@@ -54,19 +54,19 @@ final class ChatViewTableViewCellHorizontalSwipeHandler: NSObject {
     // MARK: - Configuration Functions
     
     private func configure(with cell: UITableViewCell) {
-        // Add images for quote interaction
+        // Add images for reply interaction
         // They might not be needed but at this point the message might not have been set yet. And the message might not
         // be quotable after all.
-        quoteSymbolView.translatesAutoresizingMaskIntoConstraints = false
+        replySymbolView.translatesAutoresizingMaskIntoConstraints = false
         
-        cell.contentView.addSubview(quoteSymbolView)
+        cell.contentView.addSubview(replySymbolView)
         
         NSLayoutConstraint.activate([
-            quoteSymbolView.leadingAnchor.constraint(
+            replySymbolView.leadingAnchor.constraint(
                 equalTo: cell.contentView.leadingAnchor,
                 constant: -Config.iconInset
             ),
-            quoteSymbolView.centerYAnchor.constraint(equalTo: cell.contentView.centerYAnchor),
+            replySymbolView.centerYAnchor.constraint(equalTo: cell.contentView.centerYAnchor),
         ])
     }
         
@@ -135,16 +135,16 @@ final class ChatViewTableViewCellHorizontalSwipeHandler: NSObject {
         
         cell.center = CGPoint(x: originalCellCenter.x, y: cell.center.y)
 
-        // Move right to quote
+        // Move right to reply
         if displacement.x >= 0 {
-            quoteSymbolView.alpha = displacement.x / Config.swipeActionOffsetThreshold
+            replySymbolView.alpha = displacement.x / Config.swipeActionOffsetThreshold
             
             if displacement.x > Config.swipeActionOffsetThreshold {
                 if !activated {
                     performActivationAnimation()
                 }
                 cell.transform = cell.transform.translatedBy(
-                    x: (displacement.x - prevDisplacement) * Config.bubbleSlowdownFactorQuote,
+                    x: (displacement.x - prevDisplacement) * Config.bubbleSlowdownFactorReply,
                     y: 0
                 )
             }
@@ -169,7 +169,7 @@ final class ChatViewTableViewCellHorizontalSwipeHandler: NSObject {
     private func swipeEnded() {
         resetViewPositionAndTransformations()
         
-        if activated, let delegate, delegate.canQuote {
+        if activated, let delegate, delegate.canReply {
             delegate.showQuoteView()
         }
 
@@ -179,7 +179,7 @@ final class ChatViewTableViewCellHorizontalSwipeHandler: NSObject {
            let originalCellCenter {
             cell.center = CGPoint(x: originalCellCenter.x, y: originalCellCenter.y)
         }
-        quoteSymbolView.alpha = 0.0
+        replySymbolView.alpha = 0.0
         
         prevDisplacement = 0.0
         activated = false
@@ -190,7 +190,7 @@ final class ChatViewTableViewCellHorizontalSwipeHandler: NSObject {
             return
         }
         
-        guard delegate.canQuote else {
+        guard delegate.canReply else {
             return
         }
         
@@ -202,24 +202,24 @@ final class ChatViewTableViewCellHorizontalSwipeHandler: NSObject {
         
         /// Visual Feedback
         /// Enlarge
-        UIView.animate(withDuration: Config.startQuoteIconAnimationDuration) {
-            self.quoteSymbolView.transform = self.quoteSymbolView.transform
+        UIView.animate(withDuration: Config.startReplyIconAnimationDuration) {
+            self.replySymbolView.transform = self.replySymbolView.transform
                 .concatenating(CGAffineTransform(
-                    scaleX: Config.startQuoteAnimationScaleFactor,
-                    y: Config.startQuoteAnimationScaleFactor
+                    scaleX: Config.startReplyAnimationScaleFactor,
+                    y: Config.startReplyAnimationScaleFactor
                 ))
         } completion: { _ in
             /// Reset to original size
-            UIView.animate(withDuration: Config.startQuoteIconAnimationDuration) {
-                self.quoteSymbolView.transform = self.quoteSymbolView.transform
+            UIView.animate(withDuration: Config.startReplyIconAnimationDuration) {
+                self.replySymbolView.transform = self.replySymbolView.transform
                     .concatenating(CGAffineTransform(
-                        scaleX: 1 / Config.startQuoteAnimationScaleFactor,
-                        y: 1 / Config.startQuoteAnimationScaleFactor
+                        scaleX: 1 / Config.startReplyAnimationScaleFactor,
+                        y: 1 / Config.startReplyAnimationScaleFactor
                     ))
             }
         }
         
-        quoteSymbolView.alpha = 1.0
+        replySymbolView.alpha = 1.0
     }
     
     private func resetViewPositionAndTransformations() {
@@ -267,8 +267,8 @@ extension ChatViewTableViewCellHorizontalSwipeHandler: UIGestureRecognizerDelega
             return false
         }
         
-        // Only allow swipe to quote (swipe right) if message can be quoted
-        guard delegate.canQuote || velocity.x < 0 else {
+        // Only allow swipe to reply (swipe right) if message can be quoted
+        guard delegate.canReply || velocity.x < 0 else {
             return false
         }
         

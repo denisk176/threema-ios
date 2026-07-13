@@ -30,7 +30,7 @@ public final class NotificationPublisher<Value> {
             .handleEvents(receiveOutput: { [weak self] _ in
                 self?.hasBeenSent = true
             })
-            .compactMap { $0 }
+            .compactMap(\.self)
             .eraseToAnyPublisher()
     }
     

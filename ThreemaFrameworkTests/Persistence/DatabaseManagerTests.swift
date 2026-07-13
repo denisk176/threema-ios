@@ -6,7 +6,7 @@ import Testing
 @testable import ThreemaFramework
 
 @Suite("Database Manager", .serialized)
-/// Note that the DB must be craete in a real physical path, because Core Data is not mocked.
+/// Note that the DB must be create in a real physical path, because Core Data is not mocked.
 final class DatabaseManagerTests {
     let appGroupID = "group.ch.threema"
     var appDataDirectoryURL: URL!
@@ -303,17 +303,34 @@ final class DatabaseManagerTests {
         fileUtilityMock.appDocumentsDirectory = URL(string: "/documents/")
         fileUtilityMock.content.append(storeURL)
 
-        // Act
         let databaseManager = DatabaseManager(
             appGroupID: appGroupID,
             fileUtility: fileUtilityMock,
             remoteSecretManager: RemoteSecretManagerMock()
         )
+
+        // Sanity: opening the coordinator registers the SQLite store created by the createTestDB() method
+        let coordinator = try databaseManager.persistentStoreCoordinator
+        #expect(coordinator.persistentStores.contains(where: { $0.url == storeURL }) == true)
+
+        // Act
         try databaseManager.eraseDB()
 
         // Test
-        #expect(fileUtilityMock.isExistsCalledWithFileURL.contains(storeURL) == true)
-        #expect(fileUtilityMock.deleteCalledWithSourceURL.contains(storeURL) == true)
+        #expect(coordinator.persistentStores.isEmpty == true)
+        #expect(DatabaseManager.localPersistentStoreCoordinator == nil)
+
+        #expect(fileUtilityMock.deleteIfExistsCalledWithSourceURL.contains(storeURL))
+        #expect(
+            fileUtilityMock.deleteIfExistsCalledWithSourceURL.contains(
+                URL(fileURLWithPath: storeURL.path.appending("-wal"))
+            )
+        )
+        #expect(
+            fileUtilityMock.deleteIfExistsCalledWithSourceURL.contains(
+                URL(fileURLWithPath: storeURL.path.appending("-shm"))
+            )
+        )
     }
 
     /// Creates a physical ThreemaData database for testing.

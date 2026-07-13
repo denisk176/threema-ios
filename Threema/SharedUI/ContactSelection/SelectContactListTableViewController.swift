@@ -13,6 +13,7 @@ final class SelectContactListTableViewController: ThemedTableViewController {
     private let cellProvider: ContactListSelectionCellProvider
     private let provider: ContactListProvider
     private let businessInjector: BusinessInjectorProtocol
+
     private lazy var dataSource = SelectContactListDataSource(
         coordinator: coordinator,
         provider: provider,
@@ -36,9 +37,13 @@ final class SelectContactListTableViewController: ThemedTableViewController {
             actions: []
         )
     }
-    
+
+    private var hasNoSelectedItems: Bool {
+        delegate?.selectedItems().isEmpty == true
+    }
+
     // MARK: - Lifecycle
-    
+
     init(
         coordinator: ContactListCoordinator?,
         cellProvider: ContactListSelectionCellProvider,
@@ -69,6 +74,7 @@ final class SelectContactListTableViewController: ThemedTableViewController {
         dataSource.onSnapshotApplied = { [weak self] in
             self?.updateSelection()
         }
+        navigationController?.presentationController?.delegate = self
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -95,6 +101,15 @@ final class SelectContactListTableViewController: ThemedTableViewController {
         delegate?.didDeselect(id: id)
     }
     
+    /// Filters the shown contacts to the ones matching the passed text. Pass an empty string to show all again.
+    func filterContacts(matching searchText: String) {
+        dataSource.filterText = searchText
+    }
+    
+    func cancelFiltering() {
+        dataSource.filterText = ""
+    }
+
     func updateSelection() {
         let snapshot = dataSource.snapshot()
         for identifier in snapshot.itemIdentifiers {
@@ -111,5 +126,13 @@ final class SelectContactListTableViewController: ThemedTableViewController {
                 tableView.deselectRow(at: indexPath, animated: true)
             }
         }
+    }
+}
+
+// MARK: - UIAdaptivePresentationControllerDelegate
+
+extension SelectContactListTableViewController: UIAdaptivePresentationControllerDelegate {
+    func presentationControllerShouldDismiss(_ presentationController: UIPresentationController) -> Bool {
+        hasNoSelectedItems
     }
 }

@@ -40,7 +40,7 @@ final class TaskExecutionReceiveMessage: TaskExecution, TaskExecutionProtocol {
         // Update FS version if needed and send empty message if any upgrade happened
         .then { (abstractMessageAndFSMessageInfo: AbstractMessageAndFSMessageInfo?)
             -> Promise<AbstractMessageAndFSMessageInfo?> in
-            guard let processedMsg = abstractMessageAndFSMessageInfo?.message,
+            guard abstractMessageAndFSMessageInfo?.message != nil,
                   let fsMessageInfo = abstractMessageAndFSMessageInfo?.fsMessageInfo as? FSMessageInfo else {
                 DDLogDebug(
                     "[ForwardSecurity] FS version upgrade not processed, because message or FS message info is empty"

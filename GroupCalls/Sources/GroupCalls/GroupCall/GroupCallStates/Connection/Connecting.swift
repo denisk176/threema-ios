@@ -119,7 +119,7 @@ struct Connecting: GroupCallState {
             throw GroupCallError.firstMessageNotReceived
         }
         
-        guard let envelope = try? GroupCall_SfuToParticipant.Envelope(serializedData: messageData).hello else {
+        guard let envelope = try? GroupCall_SfuToParticipant.Envelope(serializedBytes: messageData).hello else {
             throw GroupCallError.serializationFailure
         }
         

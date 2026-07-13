@@ -189,6 +189,11 @@ final class ChatViewSnapshotProvider {
             guard let strongSelf = self else {
                 return
             }
+
+            guard !strongSelf.conversation.willBeDeleted else {
+                DDLogWarn("Conversation is being deleted, skipping snapshot")
+                return
+            }
             
             let convertedSnapshot = strongSelf.convertSnapshot(snapshot: messages.snapshot)
             strongSelf.publish(

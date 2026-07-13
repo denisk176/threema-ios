@@ -100,7 +100,7 @@ extension AppDelegate {
                 Task { @MainActor in
                     // Do not show if an alert or launch modals are being shown
                     guard let self,
-                          AppDelegate.isAlertViewShown() == nil,
+                          SharedAppProvider.alertViewShown == nil,
                           !LaunchModalManager.shared.isBeingDisplayed
                     else {
                         return

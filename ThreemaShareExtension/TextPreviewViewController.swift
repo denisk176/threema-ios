@@ -28,7 +28,9 @@ class TextPreviewViewController: UIViewController, UITextViewDelegate {
                 
         configureLayout()
         
-        textPreviewView.becomeFirstResponder()
+        if !KKPasscodeLock.shared().isPasscodeRequired() {
+            textPreviewView.becomeFirstResponder()
+        }
         
         NotificationCenter.default.addObserver(
             self,

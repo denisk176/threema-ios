@@ -39,7 +39,9 @@ import ThreemaMacros
             handleLinkMobileNo(code: code)
             
         case let .restore(query):
-            handleRestore(query)
+            Task { @MainActor [weak self] in
+                self?.handleRestore(query)
+            }
             
         case let .compose(query):
             handleCompose(query: query)
@@ -247,18 +249,12 @@ extension URLHandler {
     
     /// Present the ID backup restore with the provided backup key.
     /// - Parameter query: The query containing the backup key.
+    @MainActor
     private func handleRestore(_ query: String) {
         DDLogVerbose("[URLHandler] Handle restore")
         
         // only react to restore URLs if we're currently presenting the generate key view controller
-        guard let appDelegate = AppDelegate.shared() else {
-            DDLogError(
-                "[URLHandler] Failed to handle URL: Can't start restore, AppDelegate is missing. Aborting restore identity handling."
-            )
-            return
-        }
-        
-        guard appDelegate.isPresentingKeyGeneration() else {
+        guard SharedAppProvider.isPresentingKeyGeneration else {
             DDLogError(
                 "[URLHandler] Failed to handle URL: Can't start restore when app is not presenting the setup screen. Aborting restore identity handling."
             )
@@ -266,7 +262,7 @@ extension URLHandler {
         }
         
         RestoreDataURLProvider.urlString = query.replacingOccurrences(of: "backup=", with: "")
-        appDelegate.presentIDBackupRestore()
+        SharedAppProvider.presentIDBackupRestore()
     }
     
     /// Function to validate the provided mobile number
@@ -338,7 +334,13 @@ extension URLHandler {
             })
         }
         
-        URLHandler.topViewController.present(alertController, animated: true)
+        Task { @MainActor [weak alertController] in
+            guard let alertController else {
+                return
+            }
+            
+            URLHandler.topViewController.present(alertController, animated: true)
+        }
     }
     
     /// Handle the URL for the current application target
@@ -390,7 +392,10 @@ extension URLHandler {
         DDLogVerbose("[URLHandler] Handle file: \(url)")
         let shareController = ShareController()
         shareController.url = url
-        shareController.startShare()
+        
+        Task { @MainActor [weak shareController] in
+            shareController?.startShare()
+        }
     }
     
     /// Handle and verify the provided license.
@@ -456,8 +461,8 @@ extension URLHandler {
             }
             else {
                 Task { @MainActor in
-                    guard AppDelegate.shared().isPresentingEnterLicense(),
-                          let currentVC = AppDelegate.shared().window?.rootViewController,
+                    guard SharedAppProvider.isPresentingEnterLicense,
+                          let currentVC = SharedAppProvider.window?.rootViewController,
                           currentVC is SplashViewController else {
                         performLicenseCheck(with: licenseStore)
                         return
@@ -485,14 +490,14 @@ extension URLHandler {
             do {
                 try await WorkDataThreemaMDMFetcher(licenseStore: licenseStore).checkUpdateThreemaMDM()
                 
-                guard await AppDelegate.shared().isPresentingEnterLicense() else {
+                guard SharedAppProvider.isPresentingEnterLicense else {
                     DDLogError(
                         "[URLHandler] Failed to handle URL: License screen is not presented. Aborting perform license check."
                     )
                     return
                 }
                 
-                AppDelegate.shared().window.rootViewController?.dismiss(animated: true) {
+                SharedAppProvider.window?.rootViewController?.dismiss(animated: true) {
                     AppDelegate.setupConnection()
                 }
             }
@@ -573,14 +578,14 @@ extension URLHandler {
             return true
         }
         else if item.type == "ch.threema.myid" {
-            guard let tabBar = AppDelegate.shared().tabBarController() else {
+            guard let tabBar = SharedAppProvider.tabBarController else {
                 return false
             }
             tabBar.selectedIndex = Int(kMyIdentityTabBarIndex)
             return true
         }
         else if item.type == "ch.threema.scanid" {
-            guard let tabBar = AppDelegate.shared().tabBarController() else {
+            guard let tabBar = SharedAppProvider.tabBarController else {
                 return false
             }
             if !DeviceCapabilitiesManager().supportsRecordingVideo {
@@ -625,7 +630,7 @@ extension URLHandler {
 
 extension URLHandler {
     private func handleScannerResult(_ result: QRCodeScannerViewModel.QRCodeResult) {
-        MainActor.assumeIsolated {
+        SharedAppProvider.onMain {
             switch result {
             case let .identityContact(identity: id, publicKey: key, expirationDate: date):
                 let model = ContactIdentityProcessingViewModel(
@@ -692,7 +697,8 @@ extension URLHandler {
         }
     }
     
+    @MainActor
     private static var topViewController: UIViewController {
-        AppDelegate.shared().currentTopViewController() ?? UIViewController()
+        SharedAppProvider.currentTopViewController ?? UIViewController()
     }
 }

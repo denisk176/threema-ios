@@ -26,9 +26,9 @@ struct ContactsCleanupView: View {
             switch self {
             case .logDisabled, .noDuplicatesFound, .multiDeviceEnabled:
                 #localize("settings_advanced_contacts_cleanup_error_title")
-            case let .duplicatesInUse(message: _):
+            case .duplicatesInUse:
                 #localize("settings_advanced_contacts_cleanup_in_use_error_title")
-            case let .contactsCleanupDone(message: _):
+            case .contactsCleanupDone:
                 #localize("settings_advanced_contacts_cleanup_success_title")
             case .contactStatsLogged:
                 ""
@@ -394,7 +394,7 @@ struct ContactsCleanupView: View {
                 return
             }
             
-            let duplicateContactIdentities = Array(duplicates ?? []).sorted()
+            let duplicateContactIdentities = Array(duplicates).sorted()
             
             var removableContacts = [ContactEntity]()
             var unremovableContacts = [ContactEntity]()

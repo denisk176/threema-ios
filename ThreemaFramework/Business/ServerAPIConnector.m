@@ -793,14 +793,4 @@
     }];
 }
 
-- (NSCachedURLResponse *)connection:(NSURLConnection *)connection willCacheResponse:(NSCachedURLResponse *)cachedResponse {
-    switch (connection.currentRequest.cachePolicy) {
-        case NSURLRequestReloadIgnoringLocalCacheData:
-        case NSURLRequestReloadIgnoringLocalAndRemoteCacheData:
-            return nil;
-        default:
-            return cachedResponse;
-    }
-}
-
 @end

@@ -4,20 +4,22 @@ import MBProgressHUD
 import ThreemaMacros
 
 final class ProgressViewHandler {
-    let view: UIView
-    let totalWorkItems: Int64
-    let label: String
+
+    // MARK: - Private properties
     
-    var exportSession: AVAssetExportSession?
+    private let view: UIView
+    private let totalWorkItems: Int64
+
+    // MARK: - Lifecycle
     
-    init(view: UIView, totalWorkItems: Int, label: String) {
+    init(view: UIView, totalWorkItems: Int) {
         self.view = view
         self.totalWorkItems = Int64(totalWorkItems) * 100
-        self.label = label
-        initProgress()
+        
+        configure()
     }
     
-    func initProgress() {
+    private func configure() {
         DispatchQueue.main.async {
             let hud = MBProgressHUD(view: self.view)
             hud.graceTime = 0.5
@@ -41,10 +43,6 @@ final class ProgressViewHandler {
     }
     
     func incrementItemProgress(_ increment: Int) {
-        incrementItemProgress(Int64(increment))
-    }
-    
-    func incrementItemProgress(_ increment: Int64) {
         DispatchQueue.main.async {
             guard let hud = MBProgressHUD.forView(self.view) else {
                 DDLogError("Could not increment progress on nil MBProgressHUD")
@@ -79,7 +77,7 @@ final class ProgressViewHandler {
                         prevProgress = prog
                     }
                     self.incrementItemProgress(increment)
-                    if exportSession.progress == 1.0 || videoItem.isConverted {
+                    if exportSession.progress == 1.0 || videoItem.transcodedItem != nil {
                         self.incrementItemProgress(max(90 - Int(prevProgress * 100), 0))
                         timer.invalidate()
                     }

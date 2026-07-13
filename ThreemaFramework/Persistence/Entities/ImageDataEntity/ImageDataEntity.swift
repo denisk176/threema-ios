@@ -25,6 +25,8 @@ public final class ImageDataEntity: ThreemaManagedObject {
         }
         set {
             setData(newValue)
+            
+            message?.dataAvailable = NSNumber(booleanLiteral: true)
         }
     }
 

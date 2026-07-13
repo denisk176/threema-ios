@@ -1271,11 +1271,16 @@ extension ChatBarView: ChatTextViewDelegate {
 extension ChatBarView {
     func presentVoiceMessageRecorderView(
         with delegate: VoiceMessageRecorderViewDelegate?,
-        with draftAudioURL: URL? = nil
+        with draftAudioURL: URL? = nil,
+        playSentMessageSound: (() -> Void)? = nil
     ) {
         let model: VoiceMessageRecorderViewModel
         do {
-            model = try VoiceMessageRecorderViewModel(conversation: conversation, draftAudioURL: draftAudioURL)
+            model = try VoiceMessageRecorderViewModel(
+                conversation: conversation,
+                draftAudioURL: draftAudioURL,
+                playSentMessageSound: playSentMessageSound
+            )
         }
         catch {
             return

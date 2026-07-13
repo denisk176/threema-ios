@@ -148,4 +148,13 @@ extension ImageMessageEntity: BlobData {
     public var blobExportFilename: String {
         "\(DateFormatter.getDateForFilename(date))-image.\(MEDIA_EXTENSION_IMAGE)"
     }
+    
+    public var isDataAvailable: Bool {
+        get {
+            dataAvailable.boolValue
+        }
+        set {
+            dataAvailable = NSNumber(booleanLiteral: newValue)
+        }
+    }
 }

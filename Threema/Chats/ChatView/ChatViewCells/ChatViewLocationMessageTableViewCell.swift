@@ -193,12 +193,19 @@ extension ChatViewLocationMessageTableViewCell: ChatViewMessageActions {
             self.chatViewTableViewCellDelegate?.toggleMessageMarkerStar(message: message)
         }
         
-        // Quote
-        let quoteHandler = {
+        // Reply
+        let replyHandler = {
             guard let chatViewTableViewCellDelegate = self.chatViewTableViewCellDelegate else {
+                DDLogError("[CV CxtMenu] Could not show quote view because the delegate was nil.")
                 return
             }
-            chatViewTableViewCellDelegate.showQuoteView(message: message)
+            
+            guard let message = message as? QuoteMessage else {
+                DDLogError("[CV CxtMenu] Could not show quote view because the message is not a quote message.")
+                return
+            }
+            
+            chatViewTableViewCellDelegate.showQuoteView(for: message)
         }
         
         // Copy
@@ -236,7 +243,7 @@ extension ChatViewLocationMessageTableViewCell: ChatViewMessageActions {
             activityViewAnchor: contentView,
             popOverSource: chatBubbleContentView,
             markStarHandler: markStarHandler,
-            quoteHandler: quoteHandler,
+            replyHandler: replyHandler,
             copyHandler: copyHandler,
             shareHandler: shareHandler,
             speakText: locationSummary,

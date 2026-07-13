@@ -182,7 +182,6 @@ static const NSTimeInterval minimumSyncInterval = 30;   /* avoid multiple concur
     }];
 }
 
-
 - (void)addContactWithIdentity:(nullable NSString *)identity publicKey:(nullable NSData *)publicKey cnContactId:(nullable NSString *)cnContactId verificationLevel:(int32_t)verificationLevel state:(nullable NSNumber *)state type:(nullable NSNumber *)type featureMask:(nullable NSNumber *)featureMask acquaintanceLevel:(ContactAcquaintanceLevel)acquaintanceLevel alerts:(BOOL)alerts onCompletion:(nonnull void(^)(NSObject * nullable))onCompletion {
 
     MediatorSyncableContacts *mediatorSyncableContacts = [MediatorSyncableContacts new];
@@ -297,6 +296,8 @@ static const NSTimeInterval minimumSyncInterval = 30;   /* avoid multiple concur
                 contact.contactVerificationLevel = verificationLevel;
             }
         }
+
+        [self fetchGatewayProfilePictureFor:identity];
 
         if (contact.contactVerificationLevel != currentVerificationLevel) {
             [mediatorSyncableContacts updateVerificationLevelWithIdentity:identity value: [NSNumber numberWithInteger: contact.contactVerificationLevel]];

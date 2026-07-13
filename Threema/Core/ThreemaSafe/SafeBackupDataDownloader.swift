@@ -177,33 +177,37 @@ final class SafeBackupDataDownloader {
     }
     
     private func cleanAndSaveData(_ decryptedData: [UInt8]) {
-        DDLogNotice("[ThreemaSafe Restore] Cleaning and saving decrypted data")
-
-        guard let json = try? JSONSerialization.jsonObject(
-            with: Data(decryptedData),
-            options: .mutableContainers
-        ),
-            var json = json as? [String: Any],
-            var user = json["user"] as? [String: Any] else {
-            return
-        }
-        // Remove sensitive data
-        if user.removeValue(forKey: "privatekey") != nil {
-            json["user"] = user
-            
-            guard let dataWithoutPrimaryKey = try? JSONSerialization.data(withJSONObject: json),
-                  let dataWithoutPrimaryKeyString = String(bytes: dataWithoutPrimaryKey, encoding: .utf8)
-            else {
+        #if DEBUG
+            DDLogNotice("[ThreemaSafe Restore] Cleaning and saving decrypted data")
+        
+            guard let json = try? JSONSerialization.jsonObject(
+                with: Data(decryptedData),
+                options: .mutableContainers
+            ),
+                var json = json as? [String: Any],
+                var user = json["user"] as? [String: Any] else {
                 return
             }
+            // Remove sensitive data
+            if user.removeValue(forKey: "privatekey") != nil {
+                json["user"] = user
             
-            // Save decrypted backup data into application documents folder, for analyzing failures
-            FileUtility.shared.write(
-                contents: Data(dataWithoutPrimaryKeyString.utf8),
-                to: FileUtility.shared.appDocumentsDirectory?
-                    .appendingPathComponent("safe-backup.json")
-            )
-        }
+                guard let dataWithoutPrimaryKey = try? JSONSerialization.data(withJSONObject: json),
+                      let dataWithoutPrimaryKeyString = String(bytes: dataWithoutPrimaryKey, encoding: .utf8)
+                else {
+                    return
+                }
+            
+                // Save decrypted backup data into application documents folder, for analyzing failures
+                FileUtility.shared.write(
+                    contents: Data(dataWithoutPrimaryKeyString.utf8),
+                    to: FileUtility.shared.appDocumentsDirectory?
+                        .appendingPathComponent("safe-backup.json")
+                )
+            }
+        #else
+            removeCleanedData()
+        #endif
     }
     
     private func removeCleanedData() {

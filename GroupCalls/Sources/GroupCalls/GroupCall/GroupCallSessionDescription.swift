@@ -242,7 +242,7 @@ extension GroupCallSessionDescription {
             "o=- \(state.localParticipantID) \(state.version) IN IP4 127.0.0.1",
             "s=-",
             "t=0 0",
-            "a=group:BUNDLE \(bundle.map { $0 }.joined(separator: " "))",
+            "a=group:BUNDLE \(bundle.map(\.self).joined(separator: " "))",
             "a=ice-ufrag:\(descriptionInit.parameters.iceParameters.usernameFragment)",
             "a=ice-pwd:\(descriptionInit.parameters.iceParameters.password)",
             "a=ice-options:trickle",

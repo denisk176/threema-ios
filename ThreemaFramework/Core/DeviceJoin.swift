@@ -322,7 +322,7 @@ public final class DeviceJoin {
         
         DDLogNotice("Wait for 'registered' message...")
         let ndToEdRegisteredData = try await connection.receive()
-        let ndToEdRegisteredMessage = try D2dJoin_NdToEd(serializedData: ndToEdRegisteredData)
+        let ndToEdRegisteredMessage = try D2dJoin_NdToEd(serializedBytes: ndToEdRegisteredData)
         
         guard ndToEdRegisteredMessage.registered.isInitialized else {
             throw Error.registrationFailed

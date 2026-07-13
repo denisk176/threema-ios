@@ -73,12 +73,13 @@ final class AudioMessageEntityTests: XCTestCase {
         XCTAssertEqual(duration, fetchedAudioMessageEntity.duration)
         XCTAssertEqual(encryptionKey, fetchedAudioMessageEntity.encryptionKey)
         XCTAssertEqual(progress, fetchedAudioMessageEntity.progress)
+        XCTAssertEqual(true, fetchedAudioMessageEntity.dataAvailable.boolValue)
         XCTAssertEqual(conversation.objectID, fetchedAudioMessageEntity.conversation.objectID)
         XCTAssertEqual(audioDataEntity.objectID, fetchedAudioMessageEntity.audio?.objectID)
 
         if encrypted {
             XCTAssertEqual(testDatabase.remoteSecretCryptoMock.decryptCalls, 0)
-            XCTAssertEqual(testDatabase.remoteSecretCryptoMock.encryptCalls, 9) // Plus 5 of `BaseMessageEntity`
+            XCTAssertEqual(testDatabase.remoteSecretCryptoMock.encryptCalls, 10) // Plus 5 of `BaseMessageEntity`
 
             // Test faulting
             testDatabase.context.main.refresh(fetchedAudioMessageEntity, mergeChanges: false)
@@ -89,7 +90,7 @@ final class AudioMessageEntityTests: XCTestCase {
             XCTAssertEqual(encryptionKey, fetchedAudioMessageEntity.encryptionKey)
 
             XCTAssertEqual(testDatabase.remoteSecretCryptoMock.decryptCalls, 4)
-            XCTAssertEqual(testDatabase.remoteSecretCryptoMock.encryptCalls, 9) // Plus 5 of `BaseMessageEntity`
+            XCTAssertEqual(testDatabase.remoteSecretCryptoMock.encryptCalls, 10) // Plus 5 of `BaseMessageEntity`
         }
         else {
             XCTAssertEqual(testDatabase.remoteSecretCryptoMock.decryptCalls, 0)
@@ -104,7 +105,7 @@ final class AudioMessageEntityTests: XCTestCase {
 
         let messageID = BytesUtility.generateMessageID()
         let isOwn = true
-        
+
         // Act
         let conversation = entityManager.performAndWaitSave {
             entityManager.entityCreator.conversationEntity()
@@ -127,5 +128,73 @@ final class AudioMessageEntityTests: XCTestCase {
         XCTAssertEqual(messageID, fetchedAudioMessageEntity.id)
         XCTAssertEqual(isOwn, fetchedAudioMessageEntity.isOwnMessage)
         XCTAssertEqual(conversation.objectID, fetchedAudioMessageEntity.conversation.objectID)
+        XCTAssertFalse(fetchedAudioMessageEntity.dataAvailable.boolValue)
+    }
+    
+    func testUpdateDataAvailableSetter() throws {
+        // Arrange
+        let testDatabase = TestDatabase()
+        let entityManager = testDatabase.entityManager
+
+        let messageID = BytesUtility.generateMessageID()
+        let isOwn = true
+
+        // Act
+        let conversation = entityManager.performAndWaitSave {
+            entityManager.entityCreator.conversationEntity()
+        }
+
+        let audioMessageEntity = entityManager.performAndWaitSave {
+            AudioMessageEntity(
+                context: testDatabase.context.main,
+                id: messageID,
+                isOwn: isOwn,
+                conversation: conversation
+            )
+        }
+
+        entityManager.performAndWaitSave {
+            let audioDataEntity = entityManager.entityCreator.audioDataEntity(data: Data())
+            audioMessageEntity.audio = audioDataEntity
+        }
+
+        let updatedFetchedAudioMessageEntity = try XCTUnwrap(
+            entityManager.entityFetcher
+                .existingObject(with: audioMessageEntity.objectID) as? AudioMessageEntity
+        )
+
+        // Assert
+        let updatedDataAvailable = try XCTUnwrap(updatedFetchedAudioMessageEntity.dataAvailable)
+        XCTAssertTrue(updatedDataAvailable.boolValue)
+    }
+    
+    func testUpdateDataAvailableInit() throws {
+        // Arrange
+        let testDatabase = TestDatabase()
+        let entityManager = testDatabase.entityManager
+
+        let messageID = BytesUtility.generateMessageID()
+        let isOwn = true
+
+        // Act
+        let conversation = entityManager.performAndWaitSave {
+            entityManager.entityCreator.conversationEntity()
+        }
+
+        let audioMessageEntity = entityManager.performAndWaitSave {
+            let audioDataEntity = entityManager.entityCreator.audioDataEntity(data: Data())
+
+            return AudioMessageEntity(
+                context: testDatabase.context.main,
+                id: messageID,
+                isOwn: isOwn,
+                conversation: conversation,
+                audio: audioDataEntity
+            )
+        }
+
+        // Assert
+        let dataAvailable = try XCTUnwrap(audioMessageEntity.dataAvailable)
+        XCTAssertTrue(dataAvailable.boolValue)
     }
 }

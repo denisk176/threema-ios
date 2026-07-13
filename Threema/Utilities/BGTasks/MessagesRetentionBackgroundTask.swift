@@ -61,7 +61,7 @@ struct MessagesRetentionBackgroundTask: ThreemaBackgroundTask {
             businessInjector = BusinessInjector(forBackgroundProcess: true)
         }
         
-        await businessInjector.messageRetentionManager.deleteOldMessages()
+        businessInjector.messageRetentionManager.deleteOldMessages()
         
         // We must call disconnect explicitly, since we do not run through one of the app delegate methods when the
         // task completes.

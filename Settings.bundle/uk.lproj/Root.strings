@@ -8,5 +8,5 @@
 "safe_mode_switch" = "Розширений режим підтримки";
 
 /* (No Comment) */
-"sentry_switch" = "Вимкнути Sentry";
+"sentry_deactivation_switch_title" = "Вимкнути анонімне надсилання інформації про помилку";
 

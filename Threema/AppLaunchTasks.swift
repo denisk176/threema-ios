@@ -10,7 +10,7 @@ class AppLaunchTasks: NSObject {
         case willEnterForeground
     }
 
-    private let backgroundBusinessInjector: BusinessInjectorProtocol
+    private let businessInjector: BusinessInjectorProtocol
     private static var isRunning = false
     private static let isRunningQueue = DispatchQueue(label: "ch.threema.AppLaunchTasks.isRunningQueue")
     
@@ -37,11 +37,11 @@ class AppLaunchTasks: NSObject {
     }
 
     @objc override convenience init() {
-        self.init(backgroundBusinessInjector: BusinessInjector(forBackgroundProcess: true))
+        self.init(businessInjector: BusinessInjector.ui)
     }
 
-    required init(backgroundBusinessInjector: BusinessInjectorProtocol) {
-        self.backgroundBusinessInjector = backgroundBusinessInjector
+    required init(businessInjector: BusinessInjectorProtocol) {
+        self.businessInjector = businessInjector
     }
 
     /// Runs some tasks/procedures when the App will be launched or will enter foreground. Especially DB repairing and
@@ -55,19 +55,26 @@ class AppLaunchTasks: NSObject {
                 return
             }
             AppLaunchTasks.isRunning = true
-
+            
+            // Refresh dirty objects as early as possible
+            let persistenceManager = PersistenceManager(
+                appGroupID: AppGroup.groupID(),
+                userDefaults: AppGroup.userDefaults(),
+                remoteSecretManager: RemoteSecretProvider.remoteSecretManager
+            )
+            persistenceManager.dirtyObjectManager.refreshDirtyObjects(reset: true)
+            
             switch launchEvent {
             case .didFinishLaunching:
                 // Repairs database integrity only on app start and synchronously,
                 // must be finished before running other tasks and returning to the caller
-                backgroundBusinessInjector.entityManager.repairDatabaseIntegrity()
+                businessInjector.entityManager.repairDatabaseIntegrity()
 
                 // Delete all files and directories from temporary app directory
                 FileUtility.shared.removeItemsInDirectory(directoryURL: FileUtility.shared.appTemporaryDirectory)
                 
-                if ThreemaEnvironment.allowEasyDeviceSwitch {
-                    backgroundBusinessInjector.multiDeviceManager.resetEnableMultiDeviceIfNeeded()
-                }
+                // Reset MD setting if needed
+                businessInjector.multiDeviceManager.resetEnableMultiDeviceIfNeeded()
                 
                 if AppLaunchTasks.lastLaunchedVersionChanged {
                     Task {
@@ -85,21 +92,22 @@ class AppLaunchTasks: NSObject {
                 // Validate RS if needed (& existing)
                 RemoteSecretProvider.remoteSecretManager.checkValidity()
             }
-
+            
+            checkLastMessageOfAllConversations()
+            businessInjector.messageRetentionManager.deleteOldMessages()
+            
             // All other tasks runs in a background thread
             Task {
-                await self.checkLastMessageOfAllConversations()
-                await backgroundBusinessInjector.messageRetentionManager.deleteOldMessages()
-                NotificationManager(businessInjector: backgroundBusinessInjector).updateUnreadMessagesCount()
-
-                // This allows to disable multi-device if MD linking failed with a crash or if all other devices left
-                // the MD group
-                if launchEvent == .didFinishLaunching {
-                    backgroundBusinessInjector.multiDeviceManager.disableMultiDeviceIfNeeded()
-                }
-                
-                AppLaunchTasks.isRunningQueue.async {
-                    AppLaunchTasks.isRunning = false
+                await businessInjector.runInBackground { businessInjector in
+                    // This allows to disable multi-device if MD linking failed with a crash or if all other devices
+                    // left the MD group
+                    if launchEvent == .didFinishLaunching {
+                        businessInjector.multiDeviceManager.disableMultiDeviceIfNeeded()
+                    }
+                    
+                    AppLaunchTasks.isRunningQueue.async {
+                        AppLaunchTasks.isRunning = false
+                    }
                 }
             }
         }
@@ -116,11 +124,11 @@ class AppLaunchTasks: NSObject {
 
     /// Checks if the currently assigned last message of given Conversations is actually the correct one and fixes it
     /// if not (and recalculate count of unread messages for this conversation).
-    private func checkLastMessageOfAllConversations() async {
+    private func checkLastMessageOfAllConversations() {
         var doUpdateUnreadMessagesCount = false
 
-        await backgroundBusinessInjector.entityManager.performSave {
-            guard let conversations = self.backgroundBusinessInjector.entityManager.entityFetcher
+        businessInjector.entityManager.performAndWaitSave {
+            guard let conversations = self.businessInjector.entityManager.entityFetcher
                 .conversationEntities() else {
                 return
             }
@@ -128,7 +136,7 @@ class AppLaunchTasks: NSObject {
             for conversation in conversations {
                 guard let effectiveLastMessage = MessageFetcher(
                     for: conversation,
-                    with: self.backgroundBusinessInjector.entityManager
+                    with: self.businessInjector.entityManager
                 ).lastDisplayMessage() else {
                     conversation.lastMessage = nil
                     continue
@@ -140,7 +148,7 @@ class AppLaunchTasks: NSObject {
                     )
                     conversation.lastMessage = effectiveLastMessage
 
-                    self.backgroundBusinessInjector.unreadMessages.count(for: conversation)
+                    self.businessInjector.unreadMessages.count(for: conversation)
 
                     doUpdateUnreadMessagesCount = true
                 }
@@ -148,7 +156,7 @@ class AppLaunchTasks: NSObject {
         }
 
         if doUpdateUnreadMessagesCount {
-            NotificationManager(businessInjector: backgroundBusinessInjector).updateUnreadMessagesCount()
+            NotificationManager(businessInjector: businessInjector).updateUnreadMessagesCount()
         }
     }
 }

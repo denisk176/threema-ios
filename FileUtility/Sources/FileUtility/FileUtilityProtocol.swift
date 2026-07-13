@@ -153,6 +153,12 @@ public protocol FileUtilityProtocol: AnyObject {
     
     func contentsOfDirectory(atPath path: String) throws -> [String]
 
+    func contentsOfDirectory(
+        at url: URL,
+        includingPropertiesForKeys keys: [URLResourceKey]?,
+        options mask: FileManager.DirectoryEnumerationOptions
+    ) throws -> [URL]
+
     // MARK: Read and write file
 
     /// Reads and returns the data from the file at the specified URL.

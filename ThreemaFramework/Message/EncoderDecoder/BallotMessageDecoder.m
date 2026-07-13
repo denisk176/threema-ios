@@ -193,21 +193,43 @@ static const DDLogLevel ddLogLevel = DDLogLevelNotice;
 }
 
 - (BOOL)parseJsonVoteData:(NSData *)jsonData forContact:(NSString *)contactId inBallot:(BallotEntity *)ballot {
+    /// JSON Parsing. The expected structure is an array of arrays: [[choiceId, value], [choiceId, value], ...].
     NSError *error;
     NSArray *choiceArray = (NSArray *)[NSJSONSerialization JSONObjectWithData:jsonData options:0 error:&error];
     if (choiceArray == nil) {
         DDLogError(@"[Ballot] [%@] Error parsing ballot vote data %@, %@", [NSString stringWithHexData:ballot.id], error, [error userInfo]);
         return NO;
     }
-    
+
+    /// Validate single-choice polls: reject votes with multiple selections.
+    if (!ballot.isMultipleChoice) {
+        NSInteger trueVoteCount = 0;
+        for (NSArray *choice in choiceArray) {
+            if ([choice count] != 2 || ![choice isKindOfClass:[NSArray class]]) {
+                continue;
+            }
+            NSNumber *value = [choice objectAtIndex:1];
+            if ([value boolValue]) {
+                trueVoteCount++;
+            }
+        }
+        if (trueVoteCount > 1) {
+            DDLogError(@"[Ballot] [%@] Rejecting vote from %@: multiple choices selected in single-choice poll", [NSString stringWithHexData:ballot.id], contactId);
+            return NO;
+        }
+    }
+
+    /// Check if this contact already voted of this ballot (this is a first vote or a vote change).
+    /// Used later to decide what system message to show.
     BOOL updatedVote = [ballot hasVoteForIdentity:contactId myIdentity:[[MyIdentityStore sharedMyIdentityStore] identity]];
 
+    /// Apply the Votes
     for (NSArray *choice in choiceArray) {
         if ([choice count] != 2 || ![choice isKindOfClass: [NSArray class]] ) {
             //ignore invalid entries
             continue;
         }
-        
+
         NSNumber *choiceId = [choice objectAtIndex:0];
         NSNumber *value = [choice objectAtIndex:1];
         [_ballotManager updateBallot:ballot choiceID:choiceId with:value for:contactId];

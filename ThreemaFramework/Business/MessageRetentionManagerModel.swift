@@ -57,30 +57,40 @@ public final class MessageRetentionManagerModel: MessageRetentionManagerModelPro
     
     /// Deletes all messages according to the current setting. MDMs or userSettings `keepMessagesDays` are used to
     /// calculate the date after which messages should be deleted.
-    public func deleteOldMessages() async {
+    public func deleteOldMessages() {
         guard keepMessagesDays > 0, let deletionDate = deletionDate(keepMessagesDays) else {
             return
         }
         DDLogNotice("[Message Retention] Deleting messages older than \(deletionDate)")
-        await entityManager.entityDestroyer.deleteMessagesForMessageRetention(
-            olderThan: deletionDate,
-            for: conversations().map(\.objectID)
-        )
         
-        // Recompute unread
-        computeUnread()
+        entityManager.performAndWait {
+            self.entityManager.entityDestroyer.deleteMessagesForMessageRetention(
+                olderThan: deletionDate,
+                for: self.conversations().map(\.objectID)
+            )
+            
+            // Recompute unread
+            if let conversations = self.entityManager.entityFetcher
+                .notArchivedConversationEntities() {
+                self.unreadMessages.totalCount(
+                    doCalcUnreadMessagesCountOf: Set(conversations),
+                    withPerformBlockAndWait: false
+                )
+            }
+        }
     }
     
-    /// Just fetch the count of messages to be deleted to be consumed by the UI.
-    /// - Parameter days: the amount of days from now affected messages. `days` must be higher than `0` as `-1` accounts
+    /// Fetches the count of messages to be deleted.
+    /// - Parameter retentionDays: The amount of days from now affected messages. Must be higher than `0` as `-1`
+    /// accounts
     /// for `never`
     /// - Returns: number of messages to be deleted
-    public func numberOfMessagesToDelete(for retentionDays: Int?) async -> Int {
+    public func numberOfMessagesToDelete(for retentionDays: Int?) -> Int {
         guard let retentionDays, retentionDays > 0, let deletionDate = deletionDate(retentionDays) else {
             return 0
         }
         
-        return await entityManager.entityDestroyer.messagesToBeDeleted(
+        return entityManager.entityDestroyer.messagesToBeDeleted(
             olderThan: deletionDate,
             for: conversations().map(\.objectID)
         )
@@ -89,10 +99,10 @@ public final class MessageRetentionManagerModel: MessageRetentionManagerModelPro
     /// Update the current timeframe for  keeping Messages to the amount of `days` provided
     ///
     /// After setting the new value, we will trigger the deletion of old messages according to the new setting
-    /// This function does nothing if this MDM setting is turned on
+    /// This function does nothing if the MDM setting is turned on
     ///
     /// - Parameter days: how many days in the past we will delete
-    public func set(_ days: Int, completion: (() -> Void)? = nil) {
+    public func set(_ days: Int) {
         guard selection != days, keepMessagesDays != days, !isMDM else {
             return
         }
@@ -101,25 +111,15 @@ public final class MessageRetentionManagerModel: MessageRetentionManagerModelPro
         userSettings.keepMessagesDays = days
             
         // Trigger Deletion
-        Task {
-            await self.deleteOldMessages()
-            completion?()
-        }
+        self.deleteOldMessages()
     }
     
-    /// Computes the Conversations to be affected by the deletion
+    /// Fetches the Conversations to be affected by the deletion
     private func conversations() -> [ConversationEntity] {
-        let convs = entityManager.entityFetcher.conversationEntities() ?? []
-        return convs.filter {
-            // note groups are excluded
+        let allConversationEntities = entityManager.entityFetcher.conversationEntities() ?? []
+        return allConversationEntities.filter {
+            // Note groups are excluded
             !(groupManager.getGroup(conversation: $0)?.isNoteGroup ?? false)
-        }
-    }
-    
-    private func computeUnread() {
-        if let conversations = entityManager.entityFetcher
-            .notArchivedConversationEntities() {
-            unreadMessages.totalCount(doCalcUnreadMessagesCountOf: Set(conversations))
         }
     }
 }

@@ -82,14 +82,21 @@ public final class DeleteRevokeIdentityManager: NSObject {
         safeManager.setBackupReminder()
 
         // DB & Files
-        UserDefaults.resetStandardUserDefaults()
-        AppGroup.resetUserDefaults()
-        FileUtility.shared.removeItemsInAllDirectories(appGroupID: AppGroup.groupID())
+
+        // Tear down SQLite-backed stores before wiping the directory
         try? PersistenceManager(
             appGroupID: AppGroup.groupID(),
             userDefaults: AppGroup.userDefaults(),
             remoteSecretManager: RemoteSecretProvider.remoteSecretManager
         ).databaseManager.eraseDB()
+
+        BusinessInjector.ui.dhSessionStore.close()
+
+        FileUtility.shared.removeItemsInAllDirectories(appGroupID: AppGroup.groupID())
+
+        UserDefaults.resetStandardUserDefaults()
+
+        AppGroup.resetUserDefaults()
 
         Task { @MainActor in
             UIApplication.shared.unregisterForRemoteNotifications()
