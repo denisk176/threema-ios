@@ -458,13 +458,15 @@ extension CallViewController {
             return
         }
 
-        let dict = ["connection": connection]
+        // Hold the connection weakly: once the call is torn down the connection is released and
+        // the timer stops requesting stats (avoids a teardown race in WebRTC stats delivery)
+        weak var weakConnection = connection
         statsTimer?.invalidate()
         statsTimer = nil
         DispatchQueue.main.async {
             var previousState: VoIPStatsState?
             self.statsTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true, block: { _ in
-                if let connection = dict["connection"] {
+                if let connection = weakConnection {
                     connection.statistics { report in
                         let options = VoIPStatsOptions()
                         options.selectedCandidatePair = true

@@ -238,6 +238,7 @@ final class VoIPCallPeerConnectionClient: NSObject, VoIPCallPeerConnectionClient
     }
 
     func close() {
+        invalidateStatsTimers()
         peerConnection?.close()
         peerConnection = nil
         isRemoteVideoActivated = false
@@ -297,7 +298,7 @@ extension VoIPCallPeerConnectionClient {
         }
     }
     
-    /// Disable the speaker for the rtc session
+    /// Disable the speaker for the RTC session
     func speakerOff() {
         audioQueue.async { [weak self] in
             guard let self else {
@@ -318,7 +319,7 @@ extension VoIPCallPeerConnectionClient {
         }
     }
     
-    /// Enable the speaker for the rtc session
+    /// Enable the speaker for the RTC session
     func speakerOn() {
         audioQueue.async { [weak self] in
             guard let self else {
@@ -357,7 +358,7 @@ extension VoIPCallPeerConnectionClient {
 }
 
 extension VoIPCallPeerConnectionClient {
-    // MARK: class functions
+    // MARK: Class functions
     
     /// Configure the peer connection
     /// - parameter alwaysRelayCall: true or false, if user enabled always relay call setting
@@ -404,7 +405,7 @@ extension VoIPCallPeerConnectionClient {
         }
     }
     
-    /// Get the rtc media constraints for the peer connection
+    /// Get the RTC media constraints for the peer connection
     /// - returns: RTCMediaConstraints for the peer connection
     class func defaultPeerConnectionConstraints() -> RTCMediaConstraints {
         let optionalConstraints = ["DtlsSrtpKeyAgreement": kRTCMediaConstraintsValueTrue]
@@ -412,7 +413,7 @@ extension VoIPCallPeerConnectionClient {
         return constraints
     }
     
-    /// Get the rtc media constraints for the offer or answer
+    /// Get the RTC media constraints for the offer or answer
     /// - returns: RTCMediaConstraints for the offer or answer
     class func mediaConstraints(isVideoCallAvailable: Bool) -> RTCMediaConstraints {
         let mandatoryConstraints = [
@@ -427,7 +428,7 @@ extension VoIPCallPeerConnectionClient {
 }
 
 extension VoIPCallPeerConnectionClient {
-    // MARK: public functions
+    // MARK: Public functions
     
     func startCaptureLocalVideo(renderer: RTCVideoRenderer, useBackCamera: Bool, switchCamera: Bool = false) {
         guard let capturer = videoCapturer as? RTCCameraVideoCapturer else {
@@ -522,9 +523,9 @@ extension VoIPCallPeerConnectionClient {
 }
 
 extension VoIPCallPeerConnectionClient {
-    // MARK: private functions
+    // MARK: Private functions
     
-    /// Get the rtc media constraints for the audio
+    /// Get the RTC media constraints for the audio
     /// - returns: RTCMediaConstraints for the audio
     private func defaultAudioConstraints() -> RTCMediaConstraints {
         RTCMediaConstraints(mandatoryConstraints: nil, optionalConstraints: nil)
@@ -570,7 +571,7 @@ extension VoIPCallPeerConnectionClient {
     /// Create a video track and add it as local stream to the peer connection
     private func createVideoTrack() -> RTCVideoTrack {
         let videoSource = VoIPCallPeerConnectionClient.factory.videoSource()
-        #if TARGET_OS_SIMULATOR
+        #if targetEnvironment(simulator)
             videoCapturer = RTCFileVideoCapturer(delegate: videoSource)
         #else
             videoCapturer = RTCCameraVideoCapturer(delegate: videoSource)
@@ -844,16 +845,6 @@ extension VoIPCallPeerConnectionClient {
             }
         }
     }
-    
-    func set(removeRemoteCandidates: [RTCIceCandidate]) {
-        guard let peerConnection else {
-            assertionFailure("\(VoIPCallPeerConnectionClientError.peerConnectionIsNotInitialized)")
-            DDLogWarn("\(VoIPCallPeerConnectionClientError.peerConnectionIsNotInitialized)")
-            return
-        }
-
-        peerConnection.remove(removeRemoteCandidates)
-    }
 }
 
 // MARK: - RTCPeerConnectionDelegate
@@ -981,8 +972,8 @@ extension VoIPCallPeerConnectionClient: RTCDataChannelDelegate {
 extension VoIPCallPeerConnectionClient {
     // MARK: VoIP Stats
     
-    func schedulePeriodStats(options: VoIPStatsOptions, period: TimeInterval) {
-        guard let peerConnection else {
+    private func schedulePeriodStats(options: VoIPStatsOptions, period: TimeInterval) {
+        guard peerConnection != nil else {
             assertionFailure("\(VoIPCallPeerConnectionClientError.peerConnectionIsNotInitialized)")
             DDLogWarn("\(VoIPCallPeerConnectionClientError.peerConnectionIsNotInitialized)")
             return
@@ -996,34 +987,41 @@ extension VoIPCallPeerConnectionClient {
             }
         }
         // Create new timer with <period> (but immediately log once)
-        var dict = [AnyHashable: Any]()
-        dict.updateValue(peerConnection, forKey: "connection")
-        dict.updateValue(options, forKey: "options")
-        logDebugStats(dict: dict)
+        // Note: The peer connection is intentionally not stored in the dict. It is resolved at
+        // fire time so a closed connection is never polled for stats (see `close()`).
+        logDebugStats(options: options)
         DispatchQueue.main.async {
-            self.statsTimer = Timer.scheduledTimer(withTimeInterval: period, repeats: true, block: { _ in
-                self.logDebugStats(dict: dict)
-            })
+            self.statsTimer = Timer.scheduledTimer(withTimeInterval: period, repeats: true) { [weak self] _ in
+                self?.logDebugStats(options: options)
+            }
         }
     }
-    
-    func scheduleVideoStats(options: VoIPStatsOptions, period: TimeInterval) {
+
+    private func scheduleVideoStats(options: VoIPStatsOptions, period: TimeInterval) {
         DispatchQueue.main.async {
             if self.receivingVideoTimer != nil {
                 self.receivingVideoTimer?.invalidate()
                 self.receivingVideoTimer = nil
             }
         }
-        
+
         // Create new timer with <period>
-        var dict = [AnyHashable: Any]()
-        dict.updateValue(peerConnection, forKey: "connection")
-        dict.updateValue(options, forKey: "options")
-        checkIsReceivingVideo(dict: dict)
+        checkIsReceivingVideo(options: options)
         DispatchQueue.main.async {
-            self.receivingVideoTimer = Timer.scheduledTimer(withTimeInterval: period, repeats: true, block: { _ in
-                self.checkIsReceivingVideo(dict: dict)
-            })
+            self.receivingVideoTimer = Timer
+                .scheduledTimer(withTimeInterval: period, repeats: true) { [weak self] _ in
+                    self?.checkIsReceivingVideo(options: options)
+                }
+        }
+    }
+
+    /// Invalidates the periodic stats timers so no further stats are requested from a (closing) peer connection.
+    private func invalidateStatsTimers() {
+        DispatchQueue.main.async {
+            self.statsTimer?.invalidate()
+            self.statsTimer = nil
+            self.receivingVideoTimer?.invalidate()
+            self.receivingVideoTimer = nil
         }
     }
     
@@ -1051,28 +1049,29 @@ extension VoIPCallPeerConnectionClient {
             options.candidatePairsFlag = .OVERVIEW_AND_DETAILED
             
             // One-shot stats fetch before disconnect
-            guard let peerConnection else {
+            guard peerConnection != nil else {
                 completion()
                 return
             }
-            logDebugStats(dict: ["connection": peerConnection, "options": options, "callback": completion])
+            
+            logDebugStats(options: options, completion: completion)
         }
         else {
             completion()
         }
     }
     
-    func logDebugStats(dict: [AnyHashable: Any]) {
+    private func logDebugStats(options: VoIPStatsOptions?, completion: (() -> Void)? = nil) {
         guard let peerConnectionParameters else {
             assertionFailure("Peer connection is not initialized")
             return
         }
 
-        guard let connection = dict["connection"] as? RTCPeerConnection,
-              let options = dict["options"] as? VoIPStatsOptions else {
-            if let callback = dict["callback"] as? (() -> Void) {
-                callback()
-            }
+        // Resolve the connection at call time: after `close()` this is nil, so no stats are
+        // requested from a closing/closed peer connection (avoids a teardown race in WebRTC)
+        guard let connection = peerConnection,
+              let options else {
+            completion?()
             return
         }
 
@@ -1096,15 +1095,18 @@ extension VoIPCallPeerConnectionClient {
                 self.checkIsSelectedCandidatePairCellular(stats: stats)
             }
 
-            if let callback = dict["callback"] as? (() -> Void) {
-                callback()
+            if let completion {
+                // Dispatch off WebRTC's signaling thread: the callback may tear down the peer
+                // connection, which must not happen from within its own stats-delivery callback
+                DispatchQueue.main.async {
+                    completion()
+                }
             }
         }
     }
-    
-    func checkIsReceivingVideo(dict: [AnyHashable: Any]) {
-        guard let connection = dict["connection"] as? RTCPeerConnection,
-              let options = dict["options"] as? VoIPStatsOptions else {
+
+    private func checkIsReceivingVideo(options: VoIPStatsOptions) {
+        guard let connection = peerConnection else {
             return
         }
 
@@ -1127,7 +1129,7 @@ extension VoIPCallPeerConnectionClient {
         }
     }
     
-    func checkIsSelectedCandidatePairCellular(stats: VoIPStats) {
+    private func checkIsSelectedCandidatePairCellular(stats: VoIPStats) {
         isSelectedCandidatePairCellular = stats.isSelectedCandidatePairCellular()
     }
 }

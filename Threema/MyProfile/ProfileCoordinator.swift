@@ -374,8 +374,15 @@ final class ProfileCoordinator: NSObject, Coordinator, CurrentDestinationHolderP
             }
             let rootView = ContactIdentityProcessingView(model: model)
             let viewController = UIHostingController(rootView: rootView)
-            
-            presentingViewController?.show(viewController, sender: self)
+
+            // Push onto the scanner's modal navigation controller
+            if let modalNavigationController = presentingViewController?
+                .presentedViewController as? UINavigationController {
+                modalNavigationController.pushViewController(viewController, animated: true)
+            }
+            else {
+                modalRouter.present(viewController)
+            }
 
         case let .identityLink(url: url):
             presentingViewController?.dismiss(animated: true) {

@@ -44,7 +44,9 @@ final class StartChatViewController: ThemedViewController {
     // MARK: - Configuration
     
     @objc private func cancelTapped() {
-        dismiss(animated: true)
+        // Make sure we dismiss even when search is active
+        let presenter = presentingViewController ?? self
+        presenter.dismiss(animated: true)
     }
 
     private func setupViews() {

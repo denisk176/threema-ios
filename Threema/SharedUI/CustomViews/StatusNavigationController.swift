@@ -13,6 +13,10 @@ final class StatusNavigationController: UINavigationController {
 
     /// In contrast to the color, the prompt is based on a VC basis, so if we navigate, we must set the prompt again.
     private var currentPrompt: String?
+
+    /// Logo URL currently shown in the title view. Used to detect a changed (or removed) custom
+    /// logo so it gets refetched, instead of freezing the first logo that was ever displayed.
+    private var displayedLogoURL: String?
     
     // MARK: - Lifecycle
     
@@ -160,15 +164,21 @@ final class StatusNavigationController: UINavigationController {
         }
 
         let textInNavBar = NavigationBarPromptHandler.shouldShowPrompt()
-        
-        if (navHeight <= BrandingUtils.compactNavBarHeight && !textInNavBar) ||
-            (navHeight <= BrandingUtils.compactPromptNavBarHeight && textInNavBar),
-            topViewController.navigationItem.titleView != nil {
-            hideTitleView()
+
+        let isCompact = (navHeight <= BrandingUtils.compactNavBarHeight && !textInNavBar) ||
+            (navHeight <= BrandingUtils.compactPromptNavBarHeight && textInNavBar)
+
+        if isCompact {
+            if topViewController.navigationItem.titleView != nil {
+                hideTitleView()
+            }
         }
-        else if (navHeight > BrandingUtils.compactNavBarHeight && !textInNavBar) ||
-            (navHeight > BrandingUtils.compactPromptNavBarHeight && textInNavBar),
-            topViewController.navigationItem.titleView == nil {
+        // Refetch when no logo is shown yet, or when the logo actually changed (e.g. a company
+        // set/removed/changed its logo in the cockpit, or the theme switched the light/dark URL).
+        // Comparing against the displayed URL avoids re-running the async fetch on every layout pass.
+        else if topViewController.navigationItem.titleView == nil ||
+            Colors.licenseLogoURL != displayedLogoURL {
+            displayedLogoURL = Colors.licenseLogoURL
             BrandingUtils.updateTitleLogo(of: topViewController.navigationItem, in: self)
         }
     }
@@ -177,6 +187,7 @@ final class StatusNavigationController: UINavigationController {
     
     private func hideTitleView() {
         topViewController?.navigationItem.titleView = nil
+        displayedLogoURL = nil
     }
     
     @objc private func promptTapped() {

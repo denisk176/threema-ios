@@ -488,6 +488,8 @@ public final class ContactEntity: ThreemaManagedObject {
         self.workLastFullSyncAt = workLastFullSyncAt
     }
     
+    // A newly discovered contact is virtually certain to be active, so set this explicitly instead of
+    // leaving `state` `nil`. The periodic/manual sync will correct it later if that's wrong.
     convenience init(context: NSManagedObjectContext, identity: String, publicKey: Data, sortOrderFirstName: Bool) {
         self.init(
             context: context,
@@ -496,6 +498,7 @@ public final class ContactEntity: ThreemaManagedObject {
             identity: identity,
             publicKey: publicKey,
             readReceipts: 0,
+            state: ContactState.active.rawValue as NSNumber,
             typingIndicators: 0,
             verificationLevel: 0,
             sortOrderFirstName: sortOrderFirstName

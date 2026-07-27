@@ -335,9 +335,13 @@ public final class MessageForwardingViewController: ThemedViewController {
     }
 
     private func updateDismiss() {
-        if model.shouldDismiss {
-            dismiss(animated: true)
+        guard model.shouldDismiss else {
+            return
         }
+
+        // Make sure we dismiss even when search is active
+        let presenter = presentingViewController ?? self
+        presenter.dismiss(animated: true)
     }
 
     private func dismissKeyboard() {
@@ -374,7 +378,9 @@ public final class MessageForwardingViewController: ThemedViewController {
     // MARK: - ObjC methods
 
     @objc private func handleCancelButtonTapped() {
-        dismiss(animated: true)
+        // Make sure we dismiss even when search is active
+        let presenter = presentingViewController ?? self
+        presenter.dismiss(animated: true)
     }
 
     @objc private func handleSendButtonTapped() {

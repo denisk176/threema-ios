@@ -115,10 +115,16 @@ final class WorkDataFetcher: WorkDataFetcherProtocol {
 
         if oldLightURL != identityStore.licenseLogoLightURL ||
             oldDarkURL != identityStore.licenseLogoDarkURL {
-            NotificationCenter.default.post(
-                name: Notification.Name(kNotificationColorThemeChanged),
-                object: nil
-            )
+            // This notification drives UIKit refreshes in its observers (e.g.
+            // `ThemedNavigationController`), so it must be posted on the main thread.
+            // `checkUpdateWorkData` runs on a background cooperative executor, so hop
+            // to the main queue before posting.
+            DispatchQueue.main.async {
+                NotificationCenter.default.post(
+                    name: Notification.Name(kNotificationColorThemeChanged),
+                    object: nil
+                )
+            }
         }
     }
 
