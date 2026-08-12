@@ -61,8 +61,13 @@ final class OnPremConfigFetcher: OnPremConfigFetcherProtocol {
                             return config
                         }
                         catch OnPremConfigError.fetchRequestFailed {
-                            DDLogVerbose("[Fetch OPPF] Fetch failed, retry in 10s")
-                            try await Task.sleep(seconds: 10)
+                            if await configDownloader.isRecoveryModeEnabled {
+                                DDLogVerbose(
+                                    "[Fetch OPPF] Fetch failed while in recovery, wait 10s to avoid too many requests in a short time"
+                                )
+                                try await Task.sleep(seconds: 10)
+                            }
+                            throw OnPremConfigError.fetchRequestFailed
                         }
                         catch {
                             doFetching = false
